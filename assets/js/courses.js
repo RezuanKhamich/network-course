@@ -24,6 +24,16 @@ const COURSES = [
     tags: ['LLM', 'RAG', 'MCP', 'Tools']
   },
   {
+    id: 'cyber-security',
+    title: 'Информационная безопасность для разработчиков',
+    short: 'Как атакуют приложения, сети и людей и как защищаться: аутентификация, криптография, OWASP, мониторинг, реагирование и облако.',
+    path: 'courses/cyber-security/',
+    lessons: 69, modules: 14,
+    color: '#6d3fc0', colorDark: '#b598ff',
+    icon: '🛡️',
+    tags: ['OWASP', 'IAM', 'SOC', 'Cloud']
+  },
+  {
     id: 'devops',
     title: 'DevOps для разработчиков',
     short: 'От коммита до продакшена: Linux, Git, CI/CD, Docker, Kubernetes, Terraform, облака, мониторинг, SRE и безопасность поставки.',

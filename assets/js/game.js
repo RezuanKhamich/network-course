@@ -16,6 +16,7 @@ const xpForLevel = L => 100 * (L - 1) + 25 * (L - 1) * (L - 2);
 function courseProgress(id){
   const c = Store.state.courses[id] || emptyCourse();
   const meta = c.meta || findCourse(id) || { lessons:1, modules:1 };
+  const plan = (findCourse(id) || {}).planned || {};
   const done = Object.values(c.lessons).filter(l => l && l.completed).length;
   const tests = Object.values(c.tests);
   const passed = tests.filter(t => t.bestScore >= PASS).length;
@@ -27,9 +28,15 @@ function courseProgress(id){
     exam: c.finalExam, examPassed: !!(c.finalExam && c.finalExam.bestScore >= PASS),
     checks: Object.keys(c.checks || {}).length,
     started: done > 0 || tests.length > 0,
-    complete: done >= meta.lessons && passed >= meta.modules
+    complete: done >= Math.max(meta.lessons, plan.lessons || 0) && passed >= Math.max(meta.modules, plan.modules || 0)
   };
 }
+
+// Все тесты курса сданы; для курса, который ещё пишется, считаются все модули программы
+const allTestsPassed = (x, id) => {
+  const p = x.course[id], c = findCourse(id);
+  return !!p && p.passed >= Math.max(p.modules, (c && c.planned && c.planned.modules) || 0);
+};
 
 const ACHIEVEMENTS = [
   { id:'first-lesson', icon:'📖', title:'Первый шаг', desc:'Пройдите первый урок', tier:'bronze', test:x => x.lessons >= 1 },
@@ -44,13 +51,14 @@ const ACHIEVEMENTS = [
   { id:'perfect-5', icon:'🌟', title:'Отличник', desc:'Пять тестов модулей на 100%', tier:'gold', test:x => x.perfect >= 5, goal:x => [x.perfect, 5] },
   { id:'persistent', icon:'🔁', title:'Упорство', desc:'Сдайте тест, который не получился с первых двух попыток', tier:'bronze', test:x => x.persistent },
   { id:'errors-fixed', icon:'🩹', title:'Работа над ошибками', desc:'Исправьте все ошибки теста в режиме «работа над ошибками»', tier:'bronze', test:x => x.flags['errors-fixed'] },
-  { id:'course-network', icon:'🌐', title:'Сетевой инженер', desc:'Сдайте все тесты курса «Сети»', tier:'gold', test:x => x.course.network && x.course.network.passed >= x.course.network.modules },
-  { id:'course-ai', icon:'🤖', title:'Агентостроитель', desc:'Сдайте все тесты курса «AI-агенты»', tier:'gold', test:x => x.course['ai-agents'] && x.course['ai-agents'].passed >= x.course['ai-agents'].modules },
-  { id:'course-devops', icon:'🚀', title:'Инженер поставки', desc:'Сдайте все тесты курса «DevOps»', tier:'gold', test:x => x.course.devops && x.course.devops.passed >= x.course.devops.modules },
+  { id:'course-network', icon:'🌐', title:'Сетевой инженер', desc:'Сдайте все тесты курса «Сети»', tier:'gold', test:x => allTestsPassed(x, 'network') },
+  { id:'course-ai', icon:'🤖', title:'Агентостроитель', desc:'Сдайте все тесты курса «AI-агенты»', tier:'gold', test:x => allTestsPassed(x, 'ai-agents') },
+  { id:'course-security', icon:'🛡️', title:'Страж', desc:'Сдайте все тесты курса «Информационная безопасность»', tier:'gold', test:x => allTestsPassed(x, 'cyber-security') },
+  { id:'course-devops', icon:'🚀', title:'Инженер поставки', desc:'Сдайте все тесты курса «DevOps»', tier:'gold', test:x => allTestsPassed(x, 'devops') },
   { id:'exam-first', icon:'🏁', title:'Экзамен сдан', desc:'Сдайте финальный экзамен любого курса', tier:'silver', test:x => x.exams >= 1 },
   { id:'exam-all', icon:'👑', title:'Все дипломы', desc:'Сдайте финальные экзамены всех курсов', tier:'gold', test:x => x.exams >= COURSES.length },
   { id:'exam-fast', icon:'⚡', title:'Блиц', desc:'Сдайте финальный экзамен быстрее чем за 20 минут', tier:'gold', test:x => x.flags['exam-fast'] },
-  { id:'polyglot', icon:'🔀', title:'Широкий профиль', desc:'Начните оба курса', tier:'bronze', test:x => x.started >= 2 },
+  { id:'polyglot', icon:'🔀', title:'Широкий профиль', desc:'Начните два курса', tier:'bronze', test:x => x.started >= 2 },
   { id:'journey', icon:'🧭', title:'Путешественник', desc:'Дойдите до конца сквозного сценария курса', tier:'bronze', test:x => COURSES.some(c => x.flags[c.id + ':journey']) },
   { id:'tools', icon:'🛠️', title:'Экспериментатор', desc:'Откройте страницу интерактивных инструментов', tier:'bronze', test:x => COURSES.some(c => x.flags[c.id + ':tools']) },
   { id:'streak-3', icon:'🔥', title:'Разогрев', desc:'Занимайтесь 3 дня подряд', tier:'bronze', test:x => x.streakBest >= 3, goal:x => [x.streakBest, 3] },

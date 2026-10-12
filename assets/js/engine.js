@@ -19,7 +19,8 @@ function moduleStats(m){
 }
 function isUnlocked(m){
   if (P.state.unlockAll || m.id === 0) return true;
-  const prev = findModule(m.id - 1);
+  // предыдущий опубликованный модуль: номера могут идти с пропусками, если курс пишется частями
+  const prev = MODULES[MODULES.indexOf(m) - 1];
   // уже начатый модуль не закрываем, даже если перед ним появились новые
   const started = m.lessons.some(l => P.state.lessons[l.id]) || P.state.tests['m' + m.id];
   return !prev || moduleStats(prev).passed || !!started;
@@ -315,7 +316,7 @@ function startTest(id, errorsOnly){
       }
       P.state.tests[key] = { bestScore: Math.max(score, old ? old.bestScore : 0), attempts:(old ? old.attempts : 0) + 1, lastScore:score, lastAttemptAt:new Date().toISOString(), wrongQuestionIds:wrong };
       Store.save();
-      const nm = findModule(m.id + 1) || UPCOMING.find(u => u.id === m.id + 1);
+      const nm = MODULES[MODULES.indexOf(m) + 1];
       const msg = score >= PASS ? (wasPassed ? 'Тест сдан.' : 'Тест сдан! ' + (nm ? `Открыт модуль «${nm.title}».` : '')) : `Нужно ${PASS}% для сдачи. Перечитайте уроки по ссылкам в разборе и попробуйте снова.`;
       return { msg, back:`#/m/${m.id}`, next: score >= PASS && nm ? `#/m/${nm.id}` : null, errors: wrong.length ? `#/t/${m.id}/errors` : null };
     }
