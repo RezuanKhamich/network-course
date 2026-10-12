@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Сети для разработчиков</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: левая колонка-навигация как «стойка» с портами, справа контент. Тон — сетевое оборудование: тёмно-сине-зелёный, индикаторы портов. */
+:root{
+ --bg:#f3f6f5; --panel:#ffffff; --ink:#14201d; --muted:#5b6b67; --line:#d5dfdc;
+ --accent:#0b7a63; --accent-ink:#ffffff; --accent-soft:#dff1ec;
+ --ok:#1f8a3b; --ok-soft:#e1f4e5; --bad:#b4332c; --bad-soft:#fbe5e3; --warn:#9a6400; --warn-soft:#fbf0d9;
+ --code-bg:#0f1b19; --code-ink:#cfe8e1;
+ --f-body:'Golos Text', 'Segoe UI', system-ui, sans-serif;
+ --f-mono:'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+ --bg:#0d1513; --panel:#141f1c; --ink:#e3ece9; --muted:#93a6a1; --line:#26352f;
+ --accent:#3cc4a0; --accent-ink:#06231b; --accent-soft:#163a31;
+ --ok:#52c372; --ok-soft:#173523; --bad:#ef7a72; --bad-soft:#3c1d1b; --warn:#e3b04b; --warn-soft:#3a2d10;
+ --code-bg:#08100e; --code-ink:#cfe8e1; color-scheme:dark }}
+:root[data-theme="dark"]{
+ --bg:#0d1513; --panel:#141f1c; --ink:#e3ece9; --muted:#93a6a1; --line:#26352f;
+ --accent:#3cc4a0; --accent-ink:#06231b; --accent-soft:#163a31;
+ --ok:#52c372; --ok-soft:#173523; --bad:#ef7a72; --bad-soft:#3c1d1b; --warn:#e3b04b; --warn-soft:#3a2d10;
+ --code-bg:#08100e; --code-ink:#cfe8e1; color-scheme:dark }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-body)}
+a{color:var(--accent)}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--accent-soft);padding:.1em .35em;border-radius:4px}
+pre{background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow-x:auto;font:13px/1.55 var(--f-mono)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+h1,h2,h3{line-height:1.25;text-wrap:balance;margin:0}
+h1{font-size:1.9rem;font-weight:700}
+h2{font-size:1.4rem;font-weight:650}
+h3{font-size:1.1rem;font-weight:650;margin-top:1.6em}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.app{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{font-weight:700;font-size:1.05rem;display:flex;gap:10px;align-items:center;padding:0 6px 14px;color:var(--ink);text-decoration:none}
+.brand svg{flex:none}
+.nav-label{font:600 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:16px 8px 8px}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:6px;text-decoration:none;color:var(--ink);font-size:.93rem}
+.nav a:hover{background:var(--accent-soft)}
+.nav a.active{background:var(--accent-soft);font-weight:600}
+.nav a.locked{color:var(--muted)}
+.led{width:9px;height:9px;border-radius:50%;flex:none;background:var(--line);box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.led.on{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.led.part{background:var(--warn)}
+.port{font:600 11px var(--f-mono);color:var(--muted);width:20px;flex:none}
+
+.main{padding-block:28px 80px;padding-inline:clamp(16px,4vw,48px);min-width:0}
+.topbar{display:flex;justify-content:flex-end;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:22px}
+.status{font:500 12.5px var(--f-mono);color:var(--muted);display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel);text-decoration:none}
+.status.ok .led{background:var(--ok)} .status.warn .led{background:var(--warn)}
+.icon-btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:.85rem}
+.menu-btn{display:none}
+.content{max-width:1440px}
+.lesson-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:40px;align-items:start}
+.toc{position:sticky;top:20px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:.88rem}
+.toc .nav-label{padding:4px 0 8px}
+.toc a{display:flex;gap:8px;padding:5px 6px;border-radius:5px;text-decoration:none;color:var(--ink)}
+.toc a:hover,.toc a.active{background:var(--accent-soft)}
+.toc a.sub{color:var(--muted);padding-left:14px}
+@media (max-width:1180px){.lesson-grid{grid-template-columns:1fr}.toc{display:none}}
+@media (min-width:1500px){body{font-size:17px}}
+.prose p,.prose li{max-width:80ch}
+.prose ul,.prose ol{padding-left:1.2em}
+.small{font-size:.85rem;color:var(--muted)}
+.crumbs{font:500 12.5px var(--f-mono);color:var(--muted);margin-bottom:10px}
+.crumbs a{color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:10px 18px;border-radius:8px;font-weight:600;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.danger{background:transparent;border-color:var(--bad);color:var(--bad)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.hero{padding:8px 0 26px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.hero p{color:var(--muted);max-width:75ch;font-size:1.05rem}
+.meter{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.meter>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin:18px 0}
+.stat b{display:block;font:700 1.5rem var(--f-mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:.82rem;color:var(--muted)}
+
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.mod{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:8px;min-width:0}
+.mod:hover{border-color:var(--accent)}
+.mod .num{font:600 12px var(--f-mono);color:var(--muted);display:flex;justify-content:space-between}
+.mod h3{margin:0;font-size:1.05rem}
+.mod p{margin:0;color:var(--muted);font-size:.88rem}
+.mod.soon{opacity:.6;border-style:dashed}
+.mod.locked{opacity:.65}
+.tag{font:600 11px var(--f-mono);padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.muted{background:var(--line);color:var(--muted)}
+
+.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.list a{display:flex;align-items:center;gap:12px;padding:14px 16px;text-decoration:none;color:var(--ink);border-top:1px solid var(--line)}
+.list a:first-child{border-top:none}
+.list a:hover{background:var(--accent-soft)}
+.list .grow{flex:1;min-width:0}
+
+.tbl{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td{font-variant-numeric:tabular-nums}
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 14px;border-radius:0 8px 8px 0;margin:18px 0}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.steps li{margin-bottom:6px}
+.frame{display:flex;gap:3px;font:600 12px/1.3 var(--f-mono);text-align:center;margin:12px 0;overflow-x:auto}
+.frame span{background:var(--accent-soft);border:1px solid var(--line);padding:8px 4px;border-radius:4px;min-width:60px}
+.frame span.pl{background:var(--panel)}
+.frame small{font-weight:400;color:var(--muted)}
+
+/* Виджеты */
+.widget{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:16px;margin:16px 0}
+.encap{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 0}
+.encap .layer{border:2px solid;border-radius:8px;padding:8px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;transition:all .3s}
+.encap .lbl{font:600 11.5px var(--f-mono)}
+.encap .data{background:var(--accent);color:var(--accent-ink);font:600 12px var(--f-mono);padding:6px 14px;border-radius:5px}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:12px}
+.calc div{background:var(--bg);border-radius:6px;padding:8px 10px;min-width:0}
+.calc span{display:block;font-size:.75rem;color:var(--muted)}
+.calc b{font:600 .95rem var(--f-mono);word-break:break-all}
+.bits{font:12px var(--f-mono);margin-top:10px;overflow-x:auto;white-space:nowrap}
+.bits .n{color:var(--accent);font-weight:700}
+input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+.tcp{display:grid;grid-template-columns:110px 1fr 110px;gap:6px;align-items:center;font:13px var(--f-mono)}
+.tcp .host{text-align:center;font-weight:700;padding:8px;border:1px solid var(--line);border-radius:6px}
+.tcp .arrow{text-align:center;padding:6px;border-radius:6px;transition:opacity .3s}
+.tcp .arrow.dim{opacity:.15}
+
+/* Вопросы */
+.q{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:16px 0}
+.q .qh{font:600 12px var(--f-mono);color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px}
+.q .qp{font-weight:600;margin:0 0 12px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin:6px 0;cursor:pointer;background:var(--bg)}
+.opt input{margin-top:5px}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.ord{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--bg)}
+.ord .t{flex:1;min-width:0}
+.ord button{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:5px;width:32px;height:30px}
+.ord.right{border-color:var(--ok)} .ord.wrong{border-color:var(--bad)}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px;align-items:center;margin:6px 0}
+.mrow .l{font-weight:600}
+.fb{margin-top:12px;padding:12px 14px;border-radius:8px;font-size:.93rem}
+.fb.ok{background:var(--ok-soft)} .fb.bad{background:var(--bad-soft)}
+.fb b{display:block;margin-bottom:2px}
+.result{text-align:center;padding:28px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:20px}
+.result .big{font:700 3rem var(--f-mono)}
+.banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between;background:var(--warn-soft);border:1px solid var(--warn);border-radius:10px;padding:10px 14px;margin-bottom:20px;font-size:.92rem}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:.9rem;z-index:50}
+.confirm{background:var(--bad-soft);border:1px solid var(--bad);padding:12px;border-radius:8px;margin-top:10px}
+.timer{font:700 1.1rem var(--f-mono)}
+.gl-item{padding:12px 0;border-bottom:1px solid var(--line)}
+.gl-item b{font-family:var(--f-mono)}
+
+@media (max-width:860px){
+ .app{grid-template-columns:1fr}
+ .side{position:fixed;inset:0 auto 0 0;width:min(300px,85vw);z-index:40;transform:translateX(-100%);transition:transform .2s;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+ .side.open{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.35)}
+ .menu-btn{display:inline-block;margin-right:auto}
+ .mrow{grid-template-columns:1fr}
+ .tcp{grid-template-columns:70px 1fr 70px;font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+ <aside class="side" id="side"></aside>
+ <main class="main">
+  <div class="topbar">
+   <button class="icon-btn menu-btn" id="menuBtn" aria-label="Меню">☰ Меню</button>
+   <a class="status" id="saveStatus" href="#/progress"><span class="led"></span><span>…</span></a>
+   <button class="icon-btn" id="themeBtn" aria-label="Тема">◐ Тема</button>
+  </div>
+  <div class="content" id="view"></div>
+ </main>
+</div>
+<script>
+// ====== КОНТЕНТ КУРСА ======
+// Типы вопросов: single | multiple | order | match | input | analyze
+const MODULES = [
+{
+ id: 0, title: 'Общая картина', short: 'Модели, инкапсуляция, метрики',
+ lessons: [
+ { id: '0-1', title: 'Что происходит, когда вы открываете сайт', html: `
+<p>Вы вводите <code>example.com</code> и нажимаете Enter. За доли секунды происходит цепочка событий, которую мы разберём за весь курс. Вот она целиком, чтобы дальше было понятно, к какому шагу относится каждая тема.</p>
+<ol class="steps">
+<li><b>Подключение к сети.</b> Ноутбук получил IP-адрес, маску, шлюз и DNS-сервер от роутера по <b>DHCP</b> (модуль 3).</li>
+<li><b>Поиск имени.</b> Браузер спрашивает DNS-резолвер: какой IP у <code>example.com</code>? (модуль 8)</li>
+<li><b>Поиск соседа.</b> IP сервера не в нашей сети, поэтому пакет нужно отдать шлюзу. Его MAC-адрес узнаём через <b>ARP</b> (модуль 2).</li>
+<li><b>Маршрут.</b> Роутеры провайдеров передают пакет друг другу по таблицам маршрутизации (модуль 5–6).</li>
+<li><b>Соединение.</b> Браузер и сервер устанавливают <b>TCP</b>-соединение: SYN → SYN-ACK → ACK (модуль 7).</li>
+<li><b>Шифрование.</b> <b>TLS</b>-рукопожатие: сервер показывает сертификат, стороны договариваются о ключах (модуль 10).</li>
+<li><b>Запрос.</b> Браузер отправляет <code>GET / HTTP/1.1</code>, сервер отвечает <code>200 OK</code> и HTML (модуль 9).</li>
+</ol>
+<div class="note why"><b>Зачем это разработчику.</b> Почти любая проблема «сайт не открывается» ломается на одном из этих шагов. Тот, кто знает цепочку, ищет ошибку за минуты: не резолвится имя, не открывается порт, истёк сертификат.</div>
+<p>Базовые слова, которые понадобятся сразу:</p>
+<ul>
+<li><b>Узел (хост)</b> — любое устройство в сети с адресом: компьютер, телефон, сервер.</li>
+<li><b>Клиент</b> инициирует обмен, <b>сервер</b> ждёт входящих запросов и отвечает.</li>
+<li><b>Протокол</b> — договорённость о формате сообщений и порядке обмена.</li>
+<li><b>Пакет</b> — порция данных с заголовком, в котором указано, куда и откуда она идёт.</li>
+</ul>`,
+ check: [
+  { id:'q0-1a', type:'order', prompt:'Расставьте шаги открытия сайта в правильном порядке.', options:['DHCP: получение IP-адреса','DNS: поиск IP по имени','TCP: установка соединения','TLS: рукопожатие','HTTP: запрос GET'], answer:[0,1,2,3,4], explanation:'Сначала устройство получает адрес в сети, потом узнаёт IP сервера, затем открывает TCP-соединение, шифрует его через TLS и только после этого отправляет HTTP-запрос.' },
+  { id:'q0-1b', type:'single', prompt:'Кто начинает обмен в модели клиент–сервер?', options:['Клиент','Сервер','Роутер','Тот, у кого больше пропускная способность'], answer:0, explanation:'Клиент инициирует запрос, сервер слушает порт и отвечает.' }
+ ]},
+ { id: '0-2', title: 'Виды сетей, топологии и коммутация пакетов', html: `
+<h3>По масштабу</h3>
+<div class="tbl"><table><tr><th>Тип</th><th>Масштаб</th><th>Пример</th></tr>
+<tr><td>PAN</td><td>несколько метров</td><td>Bluetooth-наушники и телефон</td></tr>
+<tr><td>LAN</td><td>квартира, офис, этаж</td><td>домашний Wi-Fi, офисная сеть</td></tr>
+<tr><td>MAN</td><td>город</td><td>городская сеть провайдера</td></tr>
+<tr><td>WAN</td><td>страна, мир</td><td>сеть между филиалами, интернет</td></tr></table></div>
+<p><b>Интернет</b> — это не одна сеть, а сеть сетей: десятки тысяч независимых сетей провайдеров и компаний, договорившихся обмениваться трафиком по общим протоколам (IP, BGP).</p>
+<h3>Топологии</h3>
+<ul>
+<li><b>Звезда</b> — все устройства подключены к центральному коммутатору. Самая распространённая в LAN. Отказ одного кабеля затрагивает только одно устройство, отказ центра — всех.</li>
+<li><b>Шина</b> — все на одном кабеле (старый коаксиальный Ethernet). Один обрыв кладёт всю сеть.</li>
+<li><b>Кольцо</b> — каждый узел соединён с двумя соседями. Используется в оптических магистралях провайдеров с резервированием.</li>
+<li><b>Mesh (ячеистая)</b> — много связей между узлами, есть обходные пути. Так устроен интернет на уровне провайдеров и mesh-Wi-Fi дома.</li>
+</ul>
+<h3>Коммутация каналов и пакетов</h3>
+<p>В старой телефонной сети на время звонка выделялся <b>канал</b> — физический путь с гарантированной полосой. Пока вы молчите, канал простаивает, но занят.</p>
+<p>Интернет использует <b>коммутацию пакетов</b>: данные режутся на пакеты, и каждый идёт самостоятельно, разделяя линии с чужими пакетами. Это гораздо эффективнее, но появляются очереди, задержки, потери и перестановка пакетов. Борьба с этими эффектами — задача протоколов вроде TCP.</p>
+<div class="note warn"><b>Частая ошибка.</b> Считать, что пакеты одного файла идут по одному пути и приходят по порядку. Это не гарантировано: порядок восстанавливает TCP на стороне получателя.</div>`,
+ check: [
+  { id:'q0-2a', type:'single', prompt:'Какой принцип передачи использует интернет?', options:['Коммутация каналов','Коммутация пакетов','Коммутация сообщений целиком','Широковещание на всех'], answer:1, explanation:'Данные делятся на пакеты, которые независимо проходят через общие линии.' },
+  { id:'q0-2b', type:'match', prompt:'Сопоставьте тип сети с примером.', pairs:[['PAN','Bluetooth-наушники'],['LAN','Офисная сеть'],['WAN','Сеть между филиалами в разных городах']], explanation:'PAN — личная сеть в пару метров, LAN — локальная, WAN — глобальная.' }
+ ]},
+ { id: '0-3', title: 'Модели OSI и TCP/IP, инкапсуляция', html: `
+<p>Сеть разбита на <b>уровни</b>. Каждый решает одну задачу и пользуется услугами нижнего. Благодаря этому браузеру не важно, Wi-Fi у вас или оптика.</p>
+<div class="tbl"><table><tr><th>#</th><th>OSI</th><th>TCP/IP</th><th>Единица (PDU)</th><th>Примеры</th></tr>
+<tr><td>7</td><td>Прикладной</td><td rowspan="3">Прикладной</td><td rowspan="3">данные</td><td>HTTP, DNS, SSH</td></tr>
+<tr><td>6</td><td>Представления</td><td>TLS*, кодировки</td></tr>
+<tr><td>5</td><td>Сеансовый</td><td>сессии</td></tr>
+<tr><td>4</td><td>Транспортный</td><td>Транспортный</td><td>сегмент / датаграмма</td><td>TCP, UDP</td></tr>
+<tr><td>3</td><td>Сетевой</td><td>Межсетевой</td><td>пакет</td><td>IP, ICMP</td></tr>
+<tr><td>2</td><td>Канальный</td><td rowspan="2">Сетевого доступа</td><td>кадр</td><td>Ethernet, Wi-Fi, ARP*</td></tr>
+<tr><td>1</td><td>Физический</td><td>биты</td><td>кабель, радио</td></tr></table></div>
+<p class="small">* TLS и ARP плохо ложатся в модель OSI: их относят к разным уровням в разных источниках. Модель — инструмент для мышления, а не закон.</p>
+<h3>Инкапсуляция</h3>
+<p>При отправке каждый уровень добавляет к данным свой <b>заголовок</b>: HTTP-запрос оборачивается в TCP-сегмент (порты), тот — в IP-пакет (IP-адреса), тот — в Ethernet-кадр (MAC-адреса). Получатель снимает обёртки в обратном порядке. Нажмите «Следующий уровень»:</p>
+<div data-widget="encap"></div>
+<div class="note why"><b>Зачем это разработчику.</b> Когда говорят «балансировщик L4» или «L7», имеют в виду уровни OSI: L4 видит только IP и порты, L7 понимает HTTP — URL, заголовки, cookies.</div>`,
+ check: [
+  { id:'q0-3a', type:'match', prompt:'Сопоставьте уровень и единицу данных (PDU).', pairs:[['Канальный','Кадр'],['Сетевой','Пакет'],['Транспортный (TCP)','Сегмент']], explanation:'Кадр — L2, пакет — L3, сегмент TCP — L4.' },
+  { id:'q0-3b', type:'single', prompt:'Что делает отправитель при инкапсуляции?', options:['Добавляет заголовок каждого уровня к данным верхнего','Сжимает данные','Шифрует все заголовки','Удаляет заголовки нижних уровней'], answer:0, explanation:'Каждый уровень оборачивает данные верхнего в свой заголовок.' }
+ ]},
+ { id: '0-4', title: 'Метрики сети: скорость, задержка, потери', html: `
+<ul>
+<li><b>Пропускная способность (bandwidth)</b> — сколько бит в секунду влезает в канал: 100 Мбит/с, 1 Гбит/с. Внимание: <b>Мбит/с ≠ МБ/с</b>. 100 Мбит/с ≈ 12,5 МБ/с.</li>
+<li><b>Задержка (latency)</b> — время доставки одного бита от отправителя до получателя. Складывается из распространения сигнала, передачи в линию, обработки на роутерах и ожидания в очередях.</li>
+<li><b>RTT (round-trip time)</b> — время «туда и обратно». Его показывает <code>ping</code>.</li>
+<li><b>Джиттер</b> — разброс задержки. Критичен для звонков и игр.</li>
+<li><b>Потери пакетов</b> — доля пакетов, которые не дошли (переполненные очереди, помехи в Wi-Fi).</li>
+</ul>
+<h3>Физика задержки</h3>
+<p>Свет в оптоволокне идёт примерно 200 000 км/с — около <b>5 мс на 1000 км</b> в одну сторону. Москва — Нью-Йорк ≈ 7500 км, значит RTT не может быть меньше ~75 мс, сколько бы денег ни потратить. Поэтому существуют CDN: сервер нужно поставить ближе к пользователю.</p>
+<pre><code>$ ping -c 3 example.com
+64 bytes from 93.184.215.14: icmp_seq=1 ttl=56 time=118 ms
+64 bytes from 93.184.215.14: icmp_seq=2 ttl=56 time=117 ms
+64 bytes from 93.184.215.14: icmp_seq=3 ttl=56 time=121 ms
+--- 3 packets transmitted, 3 received, 0% packet loss
+rtt min/avg/max/mdev = 117.1/118.7/121.0/1.6 ms</code></pre>
+<p><code>mdev</code> здесь — грубая оценка джиттера.</p>
+<h3>Bandwidth-delay product</h3>
+<p><b>BDP = пропускная способность × RTT</b> — сколько данных «в полёте» нужно держать, чтобы канал был загружен полностью. 100 Мбит/с × 0,1 с = 10 Мбит ≈ 1,25 МБ. Если TCP-окно меньше, канал простаивает в ожидании подтверждений (модуль 7).</p>
+<div class="note why"><b>Зачем это разработчику.</b> Страница из 80 последовательных запросов при RTT 100 мс — это минимум 8 секунд ожидания, даже на гигабитном канале. Часто узкое место — задержка, а не скорость.</div>`,
+ check: [
+  { id:'q0-4a', type:'input', prompt:'Сколько мегабайт в секунду (МБ/с) максимум даёт канал 80 Мбит/с? Введите число.', answer:['10'], explanation:'В байте 8 бит: 80 / 8 = 10 МБ/с.' },
+  { id:'q0-4b', type:'single', prompt:'Почему пинг до другого континента не бывает 5 мс?', options:['Ограничена скорость света в среде передачи','Протокол ICMP медленный','Роутеры специально тормозят ICMP','Из-за шифрования'], answer:0, explanation:'Около 5 мс на 1000 км в одну сторону — физический предел.' }
+ ]}
+ ],
+ test: [
+  { id:'t0-1', type:'single', prompt:'На каком уровне OSI работает протокол IP?', options:['2 — канальный','3 — сетевой','4 — транспортный','7 — прикладной'], answer:1, explanation:'IP — протокол сетевого уровня (L3).', difficulty:1 },
+  { id:'t0-2', type:'single', prompt:'На каком уровне работают TCP и UDP?', options:['L2','L3','L4','L7'], answer:2, explanation:'Транспортный уровень — L4.', difficulty:1 },
+  { id:'t0-3', type:'order', prompt:'Порядок вложенности при отправке HTTP-запроса по Ethernet, от внешней обёртки к внутренней.', options:['Ethernet-кадр','IP-пакет','TCP-сегмент','HTTP-запрос'], answer:[0,1,2,3], explanation:'Кадр содержит пакет, пакет — сегмент, сегмент — данные HTTP.', difficulty:2 },
+  { id:'t0-4', type:'multiple', prompt:'Что относится к прикладному уровню модели TCP/IP? (несколько ответов)', options:['HTTP','DNS','SSH','Ethernet','UDP'], answer:[0,1,2], explanation:'HTTP, DNS, SSH — прикладные. Ethernet — канальный, UDP — транспортный.', difficulty:1 },
+  { id:'t0-5', type:'single', prompt:'Какая топология типична для офисной LAN?', options:['Шина','Кольцо','Звезда','Полная mesh'], answer:2, explanation:'Устройства подключаются к центральному коммутатору.', difficulty:1 },
+  { id:'t0-6', type:'single', prompt:'Что показывает значение time в выводе ping?', options:['Задержку в одну сторону','RTT — время туда и обратно','Время DNS-запроса','Время загрузки страницы'], answer:1, explanation:'ping измеряет время от отправки echo request до получения echo reply.', difficulty:1 },
+  { id:'t0-7', type:'input', prompt:'Канал 200 Мбит/с, RTT 50 мс. Чему равен BDP в мегабитах?', answer:['10'], explanation:'200 Мбит/с × 0,05 с = 10 Мбит.', difficulty:3 },
+  { id:'t0-8', type:'analyze', prompt:'Что можно сказать о связи по этому выводу?', code:'--- 50 packets transmitted, 41 received, 18% packet loss\nrtt min/avg/max/mdev = 21.3/94.7/412.8/88.1 ms', options:['Связь стабильная, всё в порядке','Есть потери и большой джиттер — звонки будут прерываться','Сервер выключен','Не работает DNS'], answer:1, explanation:'18% потерь и mdev 88 мс при среднем 94 — нестабильная связь, плохо для реального времени.', difficulty:2 },
+  { id:'t0-9', type:'single', prompt:'Сколько примерно занимает распространение сигнала по оптике на 1000 км в одну сторону?', options:['0,05 мс','5 мс','50 мс','500 мс'], answer:1, explanation:'~200 000 км/с → 1000 км за 5 мс.', difficulty:2 },
+  { id:'t0-10', type:'single', prompt:'Балансировщик принимает решения по URL и HTTP-заголовкам. Это балансировщик…', options:['L2','L3','L4','L7'], answer:3, explanation:'Разбор HTTP — прикладной уровень, L7.', difficulty:2 },
+  { id:'t0-11', type:'match', prompt:'Сопоставьте метрику и описание.', pairs:[['Bandwidth','Сколько бит в секунду проходит по каналу'],['Latency','Время доставки данных'],['Jitter','Разброс задержки'],['Packet loss','Доля потерянных пакетов']], explanation:'Это четыре базовые метрики качества сети.', difficulty:1 },
+  { id:'t0-12', type:'single', prompt:'Почему пакеты одного файла могут прийти не по порядку?', options:['Каждый пакет маршрутизируется независимо и может пойти другим путём или задержаться в очереди','Так работает шифрование','Сервер отправляет их в случайном порядке','Это невозможно'], answer:0, explanation:'Коммутация пакетов не гарантирует порядок; его восстанавливает TCP.', difficulty:2 }
+ ]
+},
+{
+ id: 1, title: 'Физический уровень', short: 'Кабели, Wi-Fi, последняя миля',
+ lessons: [
+ { id:'1-1', title:'Среды передачи: медь и оптика', html:`
+<h3>Витая пара</h3>
+<p>Восемь медных проводов, скрученных попарно: скрутка гасит электромагнитные помехи. Разъём — RJ-45. Максимальная длина сегмента Ethernet по меди — <b>100 м</b>.</p>
+<div class="tbl"><table><tr><th>Категория</th><th>Типичная скорость</th><th>Примечание</th></tr>
+<tr><td>Cat5e</td><td>1 Гбит/с</td><td>до 100 м, самый массовый</td></tr>
+<tr><td>Cat6</td><td>1 Гбит/с, 10 Гбит/с</td><td>10G только до ~55 м</td></tr>
+<tr><td>Cat6a</td><td>10 Гбит/с</td><td>до 100 м</td></tr>
+<tr><td>Cat8</td><td>25–40 Гбит/с</td><td>до 30 м, внутри дата-центров</td></tr></table></div>
+<h3>Оптоволокно</h3>
+<p>Сигнал передаётся светом по стеклянному волокну. Не боится электромагнитных помех, работает на десятки километров без усиления.</p>
+<ul><li><b>Многомодовое</b> (сердцевина 50 или 62,5 мкм) — дешевле, до сотен метров. Внутри зданий и дата-центров.</li>
+<li><b>Одномодовое</b> (сердцевина ~9 мкм) — луч идёт почти прямо, расстояния до десятков километров. Магистрали, подключение домов (GPON).</li></ul>
+<h3>Коаксиал</h3>
+<p>Центральная жила в экране. Сегодня встречается в кабельном интернете (DOCSIS) и телевидении.</p>
+<div class="note why"><b>Зачем это разработчику.</b> В дата-центре ваши серверы связаны 10–100 Гбит/с оптикой и медью на короткие дистанции. Сеть между сервисами внутри одного ЦОД почти всегда быстрее, чем диск у соседней машины в другом регионе.</div>`,
+ check:[
+  { id:'q1-1a', type:'single', prompt:'Максимальная длина медного сегмента Ethernet на витой паре?', options:['10 м','100 м','500 м','2 км'], answer:1, explanation:'Стандарт задаёт 100 м на сегмент.' },
+  { id:'q1-1b', type:'single', prompt:'Какое волокно используют на расстояниях в десятки километров?', options:['Многомодовое','Одномодовое','Коаксиал','Витую пару Cat8'], answer:1, explanation:'У одномодового узкая сердцевина и малое затухание.' }
+ ]},
+ { id:'1-2', title:'Сигнал, кодирование и дуплекс', html:`
+<p>Физический уровень превращает биты в сигнал: напряжение в меди, вспышки света в оптике, радиоволны в Wi-Fi. Правило превращения называется <b>линейным кодированием</b> или модуляцией. Его задача — передать как можно больше бит за единицу времени и чтобы приёмник не сбился с такта.</p>
+<ul><li><b>Бод</b> — число изменений сигнала в секунду. Если одно изменение несёт несколько бит (например, 4 уровня напряжения = 2 бита), битовая скорость выше бодовой.</li>
+<li>В Wi-Fi и 4G используют <b>QAM</b>: каждое состояние волны кодирует много бит (у 1024-QAM — 10 бит). Чем сильнее помехи, тем проще модуляция и ниже скорость.</li></ul>
+<h3>Дуплекс</h3>
+<ul><li><b>Симплекс</b> — передача только в одну сторону (телевещание).</li>
+<li><b>Полудуплекс</b> — в обе стороны, но по очереди (рация, старые хабы, Wi-Fi на одном канале).</li>
+<li><b>Полный дуплекс</b> — одновременно в обе стороны (современный Ethernet через коммутатор).</li></ul>
+<div class="note warn"><b>Частая ошибка.</b> Несогласованный дуплекс (один конец full, другой half) даёт странные потери и медленную скорость. Это классическая причина «сеть вроде работает, но тормозит» на старом оборудовании.</div>`,
+ check:[
+  { id:'q1-2a', type:'single', prompt:'Как работает полный дуплекс?', options:['Передача в обе стороны одновременно','Только в одну сторону','В обе стороны по очереди','Только широковещательно'], answer:0, explanation:'Full duplex — одновременная передача в обе стороны.' },
+  { id:'q1-2b', type:'single', prompt:'Почему при слабом Wi-Fi-сигнале падает скорость?', options:['Устройства переходят на более простую модуляцию, несущую меньше бит','Роутер специально ограничивает','Отключается шифрование','Меняется IP-адрес'], answer:0, explanation:'При шумах сложную QAM приёмник не различит, поэтому выбирается более простая.' }
+ ]},
+ { id:'1-3', title:'Wi-Fi', html:`
+<div class="tbl"><table><tr><th>Стандарт</th><th>Имя</th><th>Диапазоны</th><th>Теор. макс.</th></tr>
+<tr><td>802.11n</td><td>Wi-Fi 4</td><td>2,4 / 5 ГГц</td><td>600 Мбит/с</td></tr>
+<tr><td>802.11ac</td><td>Wi-Fi 5</td><td>5 ГГц</td><td>~3,5 Гбит/с</td></tr>
+<tr><td>802.11ax</td><td>Wi-Fi 6 / 6E</td><td>2,4 / 5 / 6 ГГц (6E)</td><td>~9,6 Гбит/с</td></tr>
+<tr><td>802.11be</td><td>Wi-Fi 7</td><td>2,4 / 5 / 6 ГГц</td><td>~46 Гбит/с</td></tr></table></div>
+<h3>Диапазоны</h3>
+<ul><li><b>2,4 ГГц</b> — лучше проходит стены, но мало места: всего три непересекающихся канала (1, 6, 11) и много соседей, микроволновки, Bluetooth.</li>
+<li><b>5 ГГц и 6 ГГц</b> — много широких каналов, высокая скорость, но хуже проходит через препятствия.</li></ul>
+<h3>Почему Wi-Fi медленнее обещанного</h3>
+<p>Радиоэфир — общая среда: одновременно на канале может говорить только одно устройство. Используется <b>CSMA/CA</b>: послушай эфир, подожди случайное время, передавай, жди подтверждения. Каждое устройство и каждый соседний роутер на том же канале отнимают эфирное время. Цифры на коробке — это сумма по всем потокам в идеальных условиях.</p>
+<div class="note why"><b>Зачем это разработчику.</b> Если тест производительности гоняете по Wi-Fi, вы измеряете Wi-Fi. Для бенчмарков используйте кабель.</div>`,
+ check:[
+  { id:'q1-3a', type:'multiple', prompt:'Какие каналы 2,4 ГГц не пересекаются? (несколько ответов)', options:['1','3','6','9','11'], answer:[0,2,4], explanation:'Классическая тройка непересекающихся каналов — 1, 6, 11.' },
+  { id:'q1-3b', type:'single', prompt:'Какой механизм доступа к среде использует Wi-Fi?', options:['CSMA/CD','CSMA/CA','Token Ring','TDMA'], answer:1, explanation:'Collision Avoidance: избегание коллизий, т.к. в радио их нельзя надёжно обнаружить.' }
+ ]},
+ { id:'1-4', title:'Последняя миля', html:`
+<p><b>Последняя миля</b> — участок от провайдера до вашего дома. Именно он чаще всего определяет скорость и задержку.</p>
+<ul>
+<li><b>DSL</b> — по телефонной меди. Скорость сильно падает с расстоянием до станции.</li>
+<li><b>Кабельный (DOCSIS)</b> — по коаксиалу ТВ-сети. Канал делится между соседями, вечером может проседать.</li>
+<li><b>Ethernet до квартиры (FTTB)</b> — оптика до дома, дальше витая пара. Самый массовый вариант в городах России.</li>
+<li><b>GPON (FTTH)</b> — оптика до квартиры. Одно волокно пассивно разветвляется на десятки абонентов, до 2,5 Гбит/с вниз на дерево.</li>
+<li><b>4G / 5G</b> — радио, задержка обычно 20–50 мс, сильно зависит от загрузки вышки.</li>
+<li><b>Спутник</b>: геостационарный — RTT ~600 мс из-за высоты 36 000 км; низкоорбитальный (около 550 км) — 25–60 мс.</li>
+</ul>
+<p>Почти у всех домашних подключений скорость <b>асимметрична</b>: загрузка больше отдачи. Если вы стримите или отдаёте файлы из дома, смотрите на отдачу (upload).</p>`,
+ check:[
+  { id:'q1-4a', type:'single', prompt:'Почему у геостационарного спутникового интернета RTT около 600 мс?', options:['Сигнал проходит ~36 000 км до спутника несколько раз','Слабые передатчики','Шифрование','Медленная модуляция'], answer:0, explanation:'Путь вверх-вниз для запроса и ответа — около 144 000 км.' },
+  { id:'q1-4b', type:'single', prompt:'Что такое FTTH?', options:['Оптика до квартиры','Оптика до города','Медь до квартиры','Мобильный интернет'], answer:0, explanation:'Fiber To The Home.' }
+ ]}
+ ],
+ test:[
+  { id:'t1-1', type:'single', prompt:'Какая категория витой пары даёт 10 Гбит/с на полные 100 м?', options:['Cat5e','Cat6','Cat6a','Cat3'], answer:2, explanation:'Cat6 держит 10G только до ~55 м, Cat6a — до 100 м.', difficulty:2 },
+  { id:'t1-2', type:'single', prompt:'Какую среду не затрагивают электромагнитные помехи?', options:['Витая пара','Коаксиал','Оптоволокно','Wi-Fi'], answer:2, explanation:'Свет в стекле не реагирует на электромагнитные наводки.', difficulty:1 },
+  { id:'t1-3', type:'match', prompt:'Сопоставьте стандарт и маркетинговое имя.', pairs:[['802.11n','Wi-Fi 4'],['802.11ac','Wi-Fi 5'],['802.11ax','Wi-Fi 6']], explanation:'Wi-Fi Alliance ввёл номера в 2018 году.', difficulty:1 },
+  { id:'t1-4', type:'single', prompt:'Почему 2,4 ГГц проходит стены лучше, чем 5 ГГц?', options:['Более длинная волна меньше затухает в препятствиях','Больше мощность','Меньше каналов','Другое шифрование'], answer:0, explanation:'Чем ниже частота, тем лучше проникающая способность.', difficulty:2 },
+  { id:'t1-5', type:'single', prompt:'Роутер Wi-Fi 6 «до 4800 Мбит/с», а скачивание идёт на 300 Мбит/с. Главная причина?', options:['Обман производителя','Эфир общий, цифра — сумма потоков в идеальных условиях; реальная зависит от сигнала, клиента и соседей','Провайдер блокирует Wi-Fi 6','Нужен кабель Cat8'], answer:1, explanation:'Теоретический максимум недостижим для одного клиента.', difficulty:2 },
+  { id:'t1-6', type:'single', prompt:'Что такое полудуплекс?', options:['Передача только в одну сторону','В обе стороны, но по очереди','В обе стороны одновременно','Передача половиной проводов'], answer:1, explanation:'Half duplex: как рация.', difficulty:1 },
+  { id:'t1-7', type:'single', prompt:'Сигнал меняется 1000 раз в секунду, каждое состояние кодирует 4 бита. Битовая скорость?', options:['250 бит/с','1000 бит/с','4000 бит/с','16 000 бит/с'], answer:2, explanation:'1000 бод × 4 бита = 4000 бит/с.', difficulty:2 },
+  { id:'t1-8', type:'single', prompt:'Какой вид подключения делит канал между соседями в одном дереве?', options:['GPON и кабельный DOCSIS','Выделенная оптическая линия','Прямой Ethernet до сервера','Никакой'], answer:0, explanation:'В PON и DOCSIS среда разделяется между абонентами.', difficulty:2 },
+  { id:'t1-9', type:'multiple', prompt:'Что снижает реальную скорость Wi-Fi? (несколько ответов)', options:['Соседние сети на том же канале','Стены и расстояние','Старые клиенты в сети','Длина доменного имени сайта'], answer:[0,1,2], explanation:'Конкуренция за эфир, затухание и медленные клиенты отнимают эфирное время.', difficulty:2 },
+  { id:'t1-10', type:'single', prompt:'Какая сердцевина у одномодового волокна?', options:['~9 мкм','50 мкм','62,5 мкм','1 мм'], answer:0, explanation:'Узкая сердцевина допускает одну моду распространения.', difficulty:3 },
+  { id:'t1-11', type:'single', prompt:'Домашний интернет «500 Мбит/с», но видео из дома на стрим уходит плохо. Что проверить первым?', options:['Скорость отдачи (upload)','Скорость загрузки','Пинг до DNS','Версию браузера'], answer:0, explanation:'Каналы асимметричны: отдача обычно сильно меньше.', difficulty:1 },
+  { id:'t1-12', type:'single', prompt:'Для бенчмарка API между ноутбуком и сервером в офисе лучше…', options:['Подключить ноутбук кабелем','Сесть ближе к роутеру','Включить 2,4 ГГц','Это не важно'], answer:0, explanation:'Wi-Fi добавляет переменную задержку и потери, искажающие замеры.', difficulty:1 }
+ ]
+},
+{
+ id: 2, title: 'Канальный уровень', short: 'Ethernet, MAC, коммутаторы, VLAN, ARP',
+ lessons:[
+ { id:'2-1', title:'Ethernet-кадр и MAC-адрес', html:`
+<p><b>Канальный уровень</b> доставляет данные между устройствами внутри одной сети — до ближайшего соседа. Самый распространённый протокол — <b>Ethernet</b> (Wi-Fi использует похожую адресацию).</p>
+<h3>MAC-адрес</h3>
+<p>48 бит, обычно записываются как <code>3c:22:fb:9a:10:4e</code>. Первые 24 бита — <b>OUI</b>, код производителя; остальные выдаёт производитель. MAC вшит в сетевую карту, но его можно поменять программно (телефоны делают это для приватности в Wi-Fi).</p>
+<ul><li><b>Unicast</b> — конкретному устройству.</li>
+<li><b>Broadcast</b> — <code>ff:ff:ff:ff:ff:ff</code>, всем в сети.</li>
+<li><b>Multicast</b> — группе; младший бит первого байта равен 1 (например, <code>01:00:5e:…</code>).</li></ul>
+<h3>Структура кадра</h3>
+<div class="frame"><span style="flex:2">MAC получателя<br><small>6 Б</small></span><span style="flex:2">MAC отправителя<br><small>6 Б</small></span><span style="flex:1">Тип<br><small>2 Б</small></span><span style="flex:6" class="pl">Данные<br><small>46–1500 Б</small></span><span style="flex:1.2">FCS<br><small>4 Б</small></span></div>
+<ul><li><b>EtherType</b> говорит, что внутри: <code>0x0800</code> — IPv4, <code>0x86DD</code> — IPv6, <code>0x0806</code> — ARP.</li>
+<li><b>FCS</b> — контрольная сумма CRC-32. Битый кадр просто отбрасывается, Ethernet не пересылает его повторно.</li>
+<li><b>MTU</b> Ethernet — 1500 байт полезной нагрузки. Отсюда «магическое» число в сетевых настройках.</li></ul>
+<pre><code>$ ip link show eth0
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP
+    link/ether 3c:22:fb:9a:10:4e brd ff:ff:ff:ff:ff:ff</code></pre>`,
+ check:[
+  { id:'q2-1a', type:'single', prompt:'Сколько бит в MAC-адресе?', options:['32','48','64','128'], answer:1, explanation:'6 байт = 48 бит.' },
+  { id:'q2-1b', type:'single', prompt:'Какой MAC-адрес широковещательный?', options:['00:00:00:00:00:00','ff:ff:ff:ff:ff:ff','01:00:5e:00:00:01','127:0:0:1'], answer:1, explanation:'Все единицы — broadcast.' }
+ ]},
+ { id:'2-2', title:'Коммутатор, хаб и домены', html:`
+<p><b>Хаб</b> (устаревший) — повторитель: всё, что пришло в один порт, рассылает во все остальные. Все устройства делят полосу и сталкиваются (коллизии).</p>
+<p><b>Коммутатор (switch)</b> — умный: он учится, какой MAC за каким портом.</p>
+<ol class="steps"><li>Пришёл кадр на порт 3 от MAC A. Коммутатор записывает в <b>MAC-таблицу</b>: A → порт 3.</li>
+<li>Ищет в таблице MAC получателя B. Нашёл — отправляет только в нужный порт.</li>
+<li>Не нашёл — рассылает во все порты, кроме входного (<b>flooding</b>). Когда B ответит, коммутатор запомнит и его.</li>
+<li>Broadcast-кадры всегда рассылаются во все порты.</li></ol>
+<pre><code>switch# show mac address-table
+Vlan  Mac Address      Type     Ports
+  10  3c22.fb9a.104e   DYNAMIC  Gi0/3
+  10  a4bb.6d21.0f01   DYNAMIC  Gi0/7</code></pre>
+<h3>Домены</h3>
+<ul><li><b>Домен коллизий</b> — участок, где кадры могут столкнуться. Каждый порт коммутатора — свой домен коллизий; у хаба — один на всех.</li>
+<li><b>Широковещательный домен</b> — все устройства, которые получат broadcast. Коммутатор его не разделяет. Разделяют <b>роутер</b> и <b>VLAN</b>.</li></ul>
+<div class="note warn"><b>Частая ошибка.</b> Думать, что роутер и коммутатор — одно и то же. Коммутатор работает с MAC внутри сети (L2), роутер передаёт пакеты между сетями по IP (L3). Домашний «роутер» — это роутер, коммутатор и точка Wi-Fi в одной коробке.</div>`,
+ check:[
+  { id:'q2-2a', type:'single', prompt:'Что делает коммутатор с кадром, если MAC получателя нет в таблице?', options:['Отбрасывает','Рассылает во все порты, кроме входного','Отправляет роутеру','Отвечает отправителю ошибкой'], answer:1, explanation:'Это flooding.' },
+  { id:'q2-2b', type:'single', prompt:'Какое устройство разделяет широковещательные домены?', options:['Хаб','Коммутатор без VLAN','Роутер','Кабель'], answer:2, explanation:'Роутер не пропускает broadcast в другие сети.' }
+ ]},
+ { id:'2-3', title:'VLAN и STP', html:`
+<h3>VLAN — виртуальные сети</h3>
+<p>Один физический коммутатор можно разделить на несколько логических сетей: бухгалтерия, гости, серверы. Устройства в разных VLAN не видят друг друга на L2 — общаться могут только через роутер (и там можно поставить фильтры).</p>
+<ul><li><b>Access-порт</b> принадлежит одному VLAN. Подключённое устройство ничего не знает о VLAN.</li>
+<li><b>Trunk-порт</b> несёт несколько VLAN сразу (между коммутаторами или к серверу виртуализации). Кадры помечаются тегом <b>802.1Q</b>.</li></ul>
+<p>Тег 802.1Q — 4 байта, вставляется после MAC отправителя. В нём <b>VLAN ID — 12 бит</b>: значения 1–4094 (0 и 4095 зарезервированы).</p>
+<h3>STP — защита от петель</h3>
+<p>Если два коммутатора соединить двумя кабелями, broadcast-кадр пойдёт по кругу бесконечно: у Ethernet-кадра нет TTL. За секунды возникает <b>широковещательный шторм</b>, сеть ложится полностью, MAC-таблицы «прыгают».</p>
+<p><b>Spanning Tree Protocol</b> находит петли и блокирует лишние порты, оставляя дерево без циклов. Если активный путь отваливается, блокированный порт включается. Современный вариант — RSTP (быстрая сходимость).</p>
+<div class="note why"><b>Зачем это разработчику.</b> В облаках та же идея изоляции называется VPC и подсетями, а в Docker — отдельными bridge-сетями (модуль 11).</div>`,
+ check:[
+  { id:'q2-3a', type:'single', prompt:'Сколько бит отводится под VLAN ID?', options:['8','12','16','32'], answer:1, explanation:'12 бит → до 4094 рабочих VLAN.' },
+  { id:'q2-3b', type:'single', prompt:'Почему петля в L2-сети так опасна?', options:['У Ethernet-кадра нет TTL, broadcast крутится бесконечно','Петли замедляют DNS','Петли меняют IP-адреса','Коммутаторы перегреваются от длинных кабелей'], answer:0, explanation:'Отсюда шторм; STP ломает петли.' }
+ ]},
+ { id:'2-4', title:'ARP: как найти MAC по IP', html:`
+<p>Программы знают IP-адрес получателя, а Ethernet-кадр требует MAC. Связь между ними находит <b>ARP</b> (Address Resolution Protocol).</p>
+<ol class="steps"><li>Ноутбук 192.168.1.10 хочет отправить пакет 192.168.1.1 (шлюзу). Смотрит в ARP-кэш — записи нет.</li>
+<li>Шлёт <b>broadcast</b>: «Who has 192.168.1.1? Tell 192.168.1.10».</li>
+<li>Все в сети получают запрос, отвечает только владелец адреса — <b>unicast</b>: «192.168.1.1 is at a4:bb:6d:21:0f:01».</li>
+<li>Ноутбук записывает пару в кэш на несколько минут и отправляет кадр.</li></ol>
+<pre><code>$ ip neigh
+192.168.1.1 dev wlan0 lladdr a4:bb:6d:21:0f:01 REACHABLE
+192.168.1.23 dev wlan0 lladdr 3c:22:fb:9a:10:4e STALE</code></pre>
+<p>Важный момент: если адресат <b>в другой сети</b>, ARP ищет MAC не его, а <b>шлюза по умолчанию</b>. IP-адрес получателя в пакете остаётся конечным, а MAC в кадре — следующего роутера. На каждом прыжке кадр пересобирается с новыми MAC, IP-адреса не меняются (если нет NAT).</p>
+<p><b>Gratuitous ARP</b> — устройство само объявляет «мой IP — у этого MAC». Используется при старте и при переезде IP на резервный сервер.</p>
+<div class="note warn"><b>ARP-spoofing.</b> ARP не проверяет, кто отвечает. Злоумышленник в той же сети может заявить «шлюз — это я» и пропускать весь трафик через себя (MITM). Защита: шифрование (HTTPS, VPN) и функции коммутаторов (Dynamic ARP Inspection).</div>`,
+ check:[
+  { id:'q2-4a', type:'single', prompt:'Ноутбук отправляет пакет на 8.8.8.8. MAC какого устройства он запросит через ARP?', options:['Сервера 8.8.8.8','Шлюза по умолчанию','DNS-сервера провайдера','Никакого — ARP не нужен'], answer:1, explanation:'Узел вне своей сети достижим только через шлюз.' },
+  { id:'q2-4b', type:'order', prompt:'Порядок ARP-обмена.', options:['Проверка ARP-кэша','Broadcast-запрос «Who has…»','Unicast-ответ владельца адреса','Запись в кэш и отправка кадра'], answer:[0,1,2,3], explanation:'Сначала кэш, затем запрос всем, ответ одному, запись.' }
+ ]}
+ ],
+ test:[
+  { id:'t2-1', type:'single', prompt:'Что означают первые 24 бита MAC-адреса?', options:['Номер VLAN','Код производителя (OUI)','Номер порта','Маску сети'], answer:1, explanation:'Organizationally Unique Identifier.', difficulty:1 },
+  { id:'t2-2', type:'match', prompt:'Сопоставьте EtherType и протокол.', pairs:[['0x0800','IPv4'],['0x86DD','IPv6'],['0x0806','ARP']], explanation:'Поле EtherType говорит, кому отдать содержимое кадра.', difficulty:2 },
+  { id:'t2-3', type:'single', prompt:'Каков стандартный MTU Ethernet?', options:['576 байт','1280 байт','1500 байт','9000 байт'], answer:2, explanation:'9000 — jumbo frames, нестандартно; 1500 — стандарт.', difficulty:1 },
+  { id:'t2-4', type:'single', prompt:'Что происходит с кадром с неверной FCS?', options:['Отбрасывается','Отправляется повторно коммутатором','Исправляется','Передаётся с пометкой'], answer:0, explanation:'Ethernet не восстанавливает ошибки — это дело верхних уровней.', difficulty:2 },
+  { id:'t2-5', type:'single', prompt:'Чем коммутатор лучше хаба?', options:['Отправляет кадр только в нужный порт по MAC-таблице','Маршрутизирует по IP','Шифрует трафик','Выдаёт IP-адреса'], answer:0, explanation:'Хаб повторяет всем, коммутатор — адресно.', difficulty:1 },
+  { id:'t2-6', type:'analyze', prompt:'Что видно в этом захвате?', code:'14:02:11 ARP, Request who-has 192.168.1.1 tell 192.168.1.10\n14:02:11 ARP, Reply 192.168.1.1 is-at a4:bb:6d:21:0f:01\n14:02:30 ARP, Reply 192.168.1.1 is-at de:ad:be:ef:00:01\n14:02:31 ARP, Reply 192.168.1.1 is-at de:ad:be:ef:00:01', options:['Нормальная работа ARP','Признаки ARP-spoofing: кто-то ещё объявляет себя шлюзом','Отказ DHCP','Петля в сети'], answer:1, explanation:'Непрошеные ответы с другим MAC для IP шлюза — классический ARP-spoofing.', difficulty:3 },
+  { id:'t2-7', type:'single', prompt:'Как называется порт коммутатора, передающий несколько VLAN с тегами?', options:['Access','Trunk','Uplink-only','Console'], answer:1, explanation:'Trunk несёт кадры с тегами 802.1Q.', difficulty:1 },
+  { id:'t2-8', type:'single', prompt:'Два компьютера в разных VLAN на одном коммутаторе. Как им связаться?', options:['Напрямую по MAC','Только через роутер (L3)','Через broadcast','Никак, ни при каких условиях'], answer:1, explanation:'VLAN изолирует на L2; маршрутизация между VLAN — дело L3.', difficulty:2 },
+  { id:'t2-9', type:'single', prompt:'Для чего нужен STP?', options:['Шифрование кадров','Блокировка лишних путей для устранения петель','Выдача адресов','Ускорение Wi-Fi'], answer:1, explanation:'Spanning Tree строит дерево без циклов.', difficulty:1 },
+  { id:'t2-10', type:'multiple', prompt:'Что верно про широковещательный домен? (несколько ответов)', options:['Коммутатор без VLAN его не делит','Роутер его делит','VLAN создаёт отдельный домен','Хаб делит его на части'], answer:[0,1,2], explanation:'Делят домены только L3-устройства и VLAN.', difficulty:2 },
+  { id:'t2-11', type:'single', prompt:'Пакет идёт через три роутера. Что меняется на каждом прыжке (без NAT)?', options:['IP-адреса отправителя и получателя','MAC-адреса в кадре','Номер порта TCP','Ничего'], answer:1, explanation:'Кадр пересобирается для каждого участка; IP остаются конечными.', difficulty:3 },
+  { id:'t2-12', type:'single', prompt:'Как называется ARP-сообщение, в котором устройство само объявляет свой IP без запроса?', options:['Proxy ARP','Gratuitous ARP','Reverse ARP','ARP flood'], answer:1, explanation:'Gratuitous ARP используется при старте и переносе адреса.', difficulty:2 }
+ ]
+},
+{
+ id: 3, title: 'IPv4 и адресация', short: 'Подсети, CIDR, DHCP, NAT',
+ lessons:[
+ { id:'3-1', title:'IP-пакет', html:`
+<p>IP (Internet Protocol) доставляет пакет от отправителя к получателю <b>через несколько сетей</b>. Он работает по принципу «best effort»: не гарантирует доставку, порядок и отсутствие дублей.</p>
+<h3>Главные поля заголовка IPv4 (минимум 20 байт)</h3>
+<div class="tbl"><table><tr><th>Поле</th><th>Размер</th><th>Зачем</th></tr>
+<tr><td>Version</td><td>4 бита</td><td>4 для IPv4</td></tr>
+<tr><td>IHL</td><td>4 бита</td><td>длина заголовка (20–60 байт)</td></tr>
+<tr><td>Total Length</td><td>16 бит</td><td>размер пакета, максимум 65 535 байт</td></tr>
+<tr><td>Identification, Flags, Fragment Offset</td><td>32 бита</td><td>фрагментация, флаг DF — «не фрагментировать»</td></tr>
+<tr><td>TTL</td><td>8 бит</td><td>каждый роутер уменьшает на 1; при 0 пакет уничтожается</td></tr>
+<tr><td>Protocol</td><td>8 бит</td><td>что внутри: 1 — ICMP, 6 — TCP, 17 — UDP</td></tr>
+<tr><td>Header Checksum</td><td>16 бит</td><td>контроль целостности заголовка</td></tr>
+<tr><td>Source / Destination</td><td>по 32 бита</td><td>IP отправителя и получателя</td></tr></table></div>
+<p><b>TTL</b> защищает от бесконечных циклов маршрутизации. По начальному TTL можно угадать ОС: Linux и macOS ставят 64, Windows — 128. Если пинг вернул <code>ttl=56</code>, до сервера Linux было около 8 прыжков.</p>`,
+ check:[
+  { id:'q3-1a', type:'single', prompt:'Что делает роутер с TTL?', options:['Увеличивает на 1','Уменьшает на 1, при нуле уничтожает пакет','Сбрасывает в 64','Не трогает'], answer:1, explanation:'Это защита от петель маршрутизации.' },
+  { id:'q3-1b', type:'match', prompt:'Значение поля Protocol и протокол.', pairs:[['1','ICMP'],['6','TCP'],['17','UDP']], explanation:'Номера протоколов назначает IANA.' }
+ ]},
+ { id:'3-2', title:'Адрес, маска, CIDR и расчёт подсетей', html:`
+<p>IPv4-адрес — 32 бита, записанные четырьмя числами 0–255: <code>192.168.1.10</code>. Адрес делится на две части: <b>сеть</b> и <b>хост</b>. Границу задаёт <b>маска</b>.</p>
+<pre><code>IP     192.168.1.10   11000000.10101000.00000001.00001010
+Маска  255.255.255.0  11111111.11111111.11111111.00000000
+Сеть   192.168.1.0    — первые 24 бита (единицы маски)</code></pre>
+<p><b>CIDR-запись</b> <code>/24</code> — просто число единиц в маске. <code>192.168.1.0/24</code> = маска 255.255.255.0.</p>
+<h3>Как посчитать подсеть</h3>
+<ol class="steps"><li>Бит хоста = 32 − префикс. Для /26 — 6 бит.</li>
+<li>Адресов в подсети = 2<sup>биты хоста</sup>. Для /26 — 64.</li>
+<li>Хостов = адресов − 2: первый адрес — <b>адрес сети</b>, последний — <b>broadcast</b>. Для /26 — 62.</li>
+<li>Подсети начинаются с кратных размеру: для /26 — .0, .64, .128, .192.</li></ol>
+<p>Пример: <code>10.0.5.77/26</code>. Размер блока 64 → 77 лежит в блоке 64–127. Сеть <code>10.0.5.64</code>, broadcast <code>10.0.5.127</code>, хосты .65–.126.</p>
+<div class="tbl"><table><tr><th>Префикс</th><th>Маска</th><th>Адресов</th><th>Хостов</th></tr>
+<tr><td>/8</td><td>255.0.0.0</td><td>16 777 216</td><td>16 777 214</td></tr>
+<tr><td>/16</td><td>255.255.0.0</td><td>65 536</td><td>65 534</td></tr>
+<tr><td>/24</td><td>255.255.255.0</td><td>256</td><td>254</td></tr>
+<tr><td>/25</td><td>255.255.255.128</td><td>128</td><td>126</td></tr>
+<tr><td>/26</td><td>255.255.255.192</td><td>64</td><td>62</td></tr>
+<tr><td>/27</td><td>255.255.255.224</td><td>32</td><td>30</td></tr>
+<tr><td>/28</td><td>255.255.255.240</td><td>16</td><td>14</td></tr>
+<tr><td>/30</td><td>255.255.255.252</td><td>4</td><td>2</td></tr>
+<tr><td>/32</td><td>255.255.255.255</td><td>1</td><td>один хост</td></tr></table></div>
+<p><b>VLSM</b> — разбиение сети на подсети разного размера под реальные нужды: /26 для офиса на 50 человек, /30 для линка между двумя роутерами.</p>
+<h3>Калькулятор</h3>
+<div data-widget="subnet"></div>
+<div class="note why"><b>Зачем это разработчику.</b> CIDR встречается везде: правила файрвола и security groups (<code>10.0.0.0/16</code>), настройки VPC, allowlist IP в API, сети Docker и Kubernetes.</div>`,
+ check:[
+  { id:'q3-2a', type:'input', prompt:'Сколько адресов для хостов в подсети /27?', answer:['30'], explanation:'2^5 = 32 адреса, минус сеть и broadcast = 30.' },
+  { id:'q3-2b', type:'input', prompt:'Адрес сети для 172.16.10.200/25?', answer:['172.16.10.128'], explanation:'Блоки по 128: 0–127 и 128–255. 200 попадает во второй.' }
+ ]},
+ { id:'3-3', title:'Особые адреса, фрагментация и MTU', html:`
+<div class="tbl"><table><tr><th>Диапазон</th><th>Назначение</th></tr>
+<tr><td>10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16</td><td>Частные (RFC 1918). Не маршрутизируются в интернете</td></tr>
+<tr><td>127.0.0.0/8</td><td>Loopback — сам компьютер (обычно 127.0.0.1)</td></tr>
+<tr><td>169.254.0.0/16</td><td>Link-local. Назначается сам, если DHCP не ответил</td></tr>
+<tr><td>100.64.0.0/10</td><td>CGNAT — общий адрес провайдера</td></tr>
+<tr><td>0.0.0.0</td><td>«Любой адрес»: сервер слушает на всех интерфейсах</td></tr>
+<tr><td>224.0.0.0/4</td><td>Multicast</td></tr>
+<tr><td>255.255.255.255</td><td>Broadcast в своей сети</td></tr></table></div>
+<p>Исторически адреса делились на <b>классы</b> A (/8), B (/16), C (/24). С 1993 года используется бесклассовая адресация (CIDR), но выражения «сеть класса C» встречаются до сих пор.</p>
+<div class="note warn"><b>Частая ошибка.</b> Сервер в Docker слушает на <code>127.0.0.1:3000</code>, и снаружи контейнера к нему не подключиться. Внутри контейнера нужно слушать <code>0.0.0.0</code>, иначе принимаются только соединения от самого контейнера.</div>
+<h3>Фрагментация и MTU</h3>
+<p>Если пакет больше MTU следующего канала, роутер может разрезать его на <b>фрагменты</b> — их соберёт получатель. Это медленно, а потеря одного фрагмента губит весь пакет.</p>
+<p>Поэтому современные системы ставят флаг <b>DF</b> (Don't Fragment) и используют <b>Path MTU Discovery</b>: если пакет не пролезает, роутер возвращает ICMP «Fragmentation Needed», и отправитель уменьшает размер.</p>
+<div class="note warn"><b>Классическая проблема.</b> Файрвол блокирует весь ICMP → PMTUD ломается → маленькие запросы проходят, а большие ответы зависают. Симптом: «сайт открывается, но страницы грузятся бесконечно», особенно через VPN (у туннеля MTU меньше 1500).</div>`,
+ check:[
+  { id:'q3-3a', type:'multiple', prompt:'Какие адреса частные (RFC 1918)? (несколько ответов)', options:['10.12.0.5','172.20.1.1','192.168.100.3','172.32.0.1','8.8.8.8'], answer:[0,1,2], explanation:'172.16.0.0/12 — это 172.16–172.31; 172.32 уже публичный.' },
+  { id:'q3-3b', type:'single', prompt:'Компьютер получил адрес 169.254.13.7. Что это значит?', options:['Всё работает','DHCP-сервер не ответил, адрес назначен автоматически','Это адрес CGNAT','Это IPv6'], answer:1, explanation:'Link-local назначается при отсутствии DHCP.' }
+ ]},
+ { id:'3-4', title:'DHCP', html:`
+<p><b>DHCP</b> автоматически выдаёт устройству сетевые настройки: IP-адрес, маску, шлюз, DNS-серверы, время аренды. Работает поверх UDP: сервер — порт <b>67</b>, клиент — <b>68</b>.</p>
+<h3>DORA</h3>
+<ol class="steps"><li><b>Discover</b> — клиент без адреса шлёт broadcast: «Есть DHCP-сервер?»</li>
+<li><b>Offer</b> — сервер предлагает адрес.</li>
+<li><b>Request</b> — клиент просит именно этот адрес (broadcast, чтобы другие серверы знали выбор).</li>
+<li><b>Ack</b> — сервер подтверждает, адрес выдан в аренду.</li></ol>
+<p><b>Аренда (lease)</b> выдаётся на время: часы или дни. На половине срока клиент пытается продлить её у того же сервера.</p>
+<p><b>DHCP relay</b>: broadcast не проходит через роутер, поэтому в больших сетях роутер пересылает запросы на центральный DHCP-сервер.</p>
+<pre><code>$ ip addr show wlan0
+3: wlan0: ...
+    inet 192.168.1.10/24 brd 192.168.1.255 scope global dynamic wlan0
+       valid_lft 85912sec preferred_lft 85912sec</code></pre>
+<p><code>dynamic</code> и <code>valid_lft</code> показывают, что адрес выдан по DHCP и сколько секунд осталось.</p>
+<div class="note why"><b>Зачем это разработчику.</b> Серверам обычно ставят статический адрес или <b>резервирование DHCP</b> (фиксированный IP по MAC), иначе после перезагрузки сервис может «переехать».</div>`,
+ check:[
+  { id:'q3-4a', type:'order', prompt:'Расставьте сообщения DHCP по порядку.', options:['Discover','Offer','Request','Ack'], answer:[0,1,2,3], explanation:'DORA.' },
+  { id:'q3-4b', type:'single', prompt:'Какой транспорт и порт у DHCP-сервера?', options:['TCP 67','UDP 67','UDP 53','TCP 80'], answer:1, explanation:'DHCP — UDP, сервер 67, клиент 68.' }
+ ]},
+ { id:'3-5', title:'NAT', html:`
+<p>IPv4-адресов всего ~4,3 миллиарда — на всех не хватает. <b>NAT</b> (Network Address Translation) позволяет целой домашней сети выходить в интернет под одним публичным адресом.</p>
+<h3>Как работает PAT (NAT с портами)</h3>
+<p>Роутер подменяет адрес и порт отправителя и запоминает соответствие в <b>таблице трансляций</b>:</p>
+<div class="tbl"><table><tr><th>Внутри</th><th>Снаружи</th><th>Получатель</th></tr>
+<tr><td>192.168.1.10:51000</td><td>203.0.113.5:40001</td><td>93.184.215.14:443</td></tr>
+<tr><td>192.168.1.23:51000</td><td>203.0.113.5:40002</td><td>93.184.215.14:443</td></tr></table></div>
+<p>Когда ответ приходит на 203.0.113.5:40002, роутер смотрит таблицу и отдаёт его 192.168.1.23:51000.</p>
+<h3>Последствия</h3>
+<ul><li><b>Входящие соединения не проходят</b>: если запись в таблице не создана исходящим трафиком, роутер не знает, кому отдать пакет. Поэтому из интернета не достучаться до сервера на домашнем ноутбуке.</li>
+<li><b>Проброс портов (port forwarding)</b> — ручное правило: «всё, что пришло на :8080, отдавать 192.168.1.10:3000».</li>
+<li><b>CGNAT</b>: провайдер тоже ставит NAT (адреса 100.64.0.0/10). Тогда проброс портов на домашнем роутере не поможет — вы за двумя NAT.</li>
+<li>P2P-приложения (звонки, игры) пробивают NAT техникой hole punching с помощью STUN/TURN-серверов.</li></ul>
+<div class="note why"><b>Зачем это разработчику.</b> Чтобы показать локальный сервер коллеге или принять вебхук, используют туннели (ngrok, cloudflared): они открывают исходящее соединение наружу, через которое приходят запросы. Сервер с бэкендом в облаке тоже часто выходит в интернет через NAT Gateway.</div>`,
+ check:[
+  { id:'q3-5a', type:'single', prompt:'Почему к сервису на домашнем ноутбуке нельзя подключиться из интернета без настройки?', options:['NAT не знает, кому отдать входящий пакет без записи в таблице','Ноутбуки не умеют быть серверами','Провайдер блокирует порт 80 всегда','Из-за DNS'], answer:0, explanation:'Записи создаёт только исходящий трафик; для входящего нужен проброс порта.' },
+  { id:'q3-5b', type:'single', prompt:'Внешний адрес роутера 100.72.14.9. Что это значит?', options:['Это публичный адрес','Провайдер использует CGNAT','Это адрес loopback','Это multicast'], answer:1, explanation:'100.64.0.0/10 зарезервирован для CGNAT.' }
+ ]}
+ ],
+ test:[
+  { id:'t3-1', type:'input', prompt:'Сколько хостов в подсети /26?', answer:['62'], explanation:'64 − 2 = 62.', difficulty:1 },
+  { id:'t3-2', type:'input', prompt:'Broadcast-адрес подсети 192.168.4.0/22?', answer:['192.168.7.255'], explanation:'/22 охватывает 4 блока /24: 4.0–7.255.', difficulty:3 },
+  { id:'t3-3', type:'input', prompt:'Маска для /20 в десятичной записи?', answer:['255.255.240.0'], explanation:'20 единиц: 255.255.11110000.0 = 255.255.240.0.', difficulty:2 },
+  { id:'t3-4', type:'single', prompt:'Попадают ли 10.1.1.10/25 и 10.1.1.200/25 в одну подсеть?', options:['Да','Нет'], answer:1, explanation:'/25 делит на .0–.127 и .128–.255.', difficulty:2 },
+  { id:'t3-5', type:'single', prompt:'Какой префикс выбрать для офиса на 100 устройств, чтобы потерять минимум адресов?', options:['/24','/25','/26','/27'], answer:1, explanation:'/25 = 126 хостов; /26 = 62 — мало.', difficulty:2 },
+  { id:'t3-6', type:'single', prompt:'Сервер на Node.js в контейнере слушает 127.0.0.1:3000, порт проброшен, но снаружи «connection refused». Что исправить?', options:['Слушать 0.0.0.0','Поменять порт на 80','Отключить DNS','Включить IPv6'], answer:0, explanation:'Loopback внутри контейнера недоступен извне.', difficulty:2 },
+  { id:'t3-7', type:'analyze', prompt:'Что произошло с этим компьютером?', code:'$ ip addr show eth0\n    inet 169.254.88.12/16 brd 169.254.255.255 scope link eth0', options:['Адрес получен от провайдера','DHCP не ответил, назначен link-local','Работает CGNAT','Настроен статический публичный IP'], answer:1, explanation:'169.254/16 — автоконфигурация при отсутствии DHCP.', difficulty:2 },
+  { id:'t3-8', type:'single', prompt:'Сколько байт минимальный заголовок IPv4?', options:['8','20','40','60'], answer:1, explanation:'20 байт без опций, максимум 60.', difficulty:1 },
+  { id:'t3-9', type:'single', prompt:'Ping вернул ttl=117. Какая ОС на сервере вероятнее и сколько прыжков?', options:['Linux, 53 прыжка','Windows, около 11 прыжков','macOS, 117 прыжков','Невозможно сказать'], answer:1, explanation:'Ближайшее стандартное начальное значение выше 117 — 128 (Windows). 128 − 117 = 11.', difficulty:3 },
+  { id:'t3-10', type:'single', prompt:'Через VPN сайт открывается, но большие страницы виснут. Вероятная причина?', options:['Проблема MTU и заблокированный ICMP (сломан PMTUD)','Неверный DNS','Истёк сертификат','Неверная маска'], answer:0, explanation:'Малые пакеты проходят, большие с флагом DF теряются молча.', difficulty:3 },
+  { id:'t3-11', type:'multiple', prompt:'Что передаёт DHCP-сервер клиенту? (несколько ответов)', options:['IP-адрес и маску','Шлюз по умолчанию','DNS-серверы','Пароль от Wi-Fi'], answer:[0,1,2], explanation:'Пароль Wi-Fi нужен до подключения, DHCP его не передаёт.', difficulty:1 },
+  { id:'t3-12', type:'single', prompt:'Как NAT-роутер различает ответы двум компьютерам, обратившимся к одному серверу?', options:['По внешнему порту в таблице трансляций','По MAC-адресу сервера','По TTL','Никак, ответы получают оба'], answer:0, explanation:'PAT назначает уникальный внешний порт каждому соединению.', difficulty:2 },
+  { id:'t3-13', type:'single', prompt:'Что значит 172.16.0.0/12?', options:['Диапазон 172.16.0.0–172.31.255.255','Диапазон 172.16.0.0–172.16.255.255','Один адрес','Только 12 адресов'], answer:0, explanation:'/12 = 16 блоков /16: от 172.16 до 172.31.', difficulty:2 }
+ ]
+}
+];
+
+// Модули в разработке — показываются на карте курса
+const UPCOMING = [
+ { id:4, title:'IPv6', short:'Адресация, SLAAC, NDP, dual stack' },
+ { id:5, title:'Маршрутизация', short:'Таблицы, OSPF, BGP, anycast, traceroute' },
+ { id:6, title:'Устройство интернета', short:'Tier 1–3, IXP, RIR, сбои BGP' },
+ { id:7, title:'Транспортный уровень', short:'TCP в деталях, UDP, порты, сокеты' },
+ { id:8, title:'DNS', short:'Резолверы, записи, кэш, DNSSEC' },
+ { id:9, title:'Прикладные протоколы', short:'HTTP/1.1–3, WebSocket, gRPC, SSH' },
+ { id:10, title:'Безопасность', short:'TLS, файрволы, VPN, атаки, CORS' },
+ { id:11, title:'Инфраструктура и облака', short:'Прокси, балансировщики, CDN, Docker, VPC' },
+ { id:12, title:'Диагностика', short:'dig, curl, ss, tcpdump, Wireshark' }
+];
+
+const GLOSSARY = [
+ ['ARP','Протокол поиска MAC-адреса по IP внутри локальной сети.','2-4'],
+ ['Bandwidth','Пропускная способность: сколько бит в секунду проходит по каналу.','0-4'],
+ ['BDP','Bandwidth-delay product: объём данных «в полёте», нужный для полной загрузки канала.','0-4'],
+ ['Broadcast','Отправка всем узлам сети. MAC ff:ff:ff:ff:ff:ff.','2-1'],
+ ['CGNAT','NAT на стороне провайдера; адреса 100.64.0.0/10.','3-5'],
+ ['CIDR','Запись сети с длиной префикса: 10.0.0.0/16.','3-2'],
+ ['CSMA/CA','Метод доступа к радиоэфиру в Wi-Fi: слушать, ждать, передавать.','1-3'],
+ ['DHCP','Протокол автоматической выдачи IP-адреса и настроек.','3-4'],
+ ['DORA','Discover, Offer, Request, Ack — четыре шага DHCP.','3-4'],
+ ['EtherType','Поле Ethernet-кадра, указывающее протокол содержимого.','2-1'],
+ ['FCS','Контрольная сумма Ethernet-кадра (CRC-32).','2-1'],
+ ['Инкапсуляция','Оборачивание данных в заголовки нижележащих уровней.','0-3'],
+ ['Jitter','Разброс задержки между пакетами.','0-4'],
+ ['LAN','Локальная сеть: дом, офис.','0-2'],
+ ['Latency','Задержка доставки данных.','0-4'],
+ ['MAC-адрес','48-битный адрес сетевого интерфейса на канальном уровне.','2-1'],
+ ['Маска подсети','Определяет, какая часть IP-адреса — сеть, а какая — хост.','3-2'],
+ ['MTU','Максимальный размер полезной нагрузки кадра; в Ethernet 1500 байт.','2-1'],
+ ['NAT','Подмена адресов на границе сети; позволяет многим устройствам использовать один публичный IP.','3-5'],
+ ['OSI','Семиуровневая эталонная модель сетевого взаимодействия.','0-3'],
+ ['OUI','Первые 24 бита MAC — код производителя.','2-1'],
+ ['PMTUD','Path MTU Discovery — поиск максимального размера пакета на пути.','3-3'],
+ ['RFC 1918','Стандарт, определяющий частные диапазоны IPv4.','3-3'],
+ ['RTT','Время прохождения туда и обратно.','0-4'],
+ ['STP','Spanning Tree Protocol — устранение петель в L2-сети.','2-3'],
+ ['TTL','Счётчик прыжков в IP-пакете; на нуле пакет уничтожается.','3-1'],
+ ['VLAN','Логическая сеть внутри физического коммутатора; тег 802.1Q.','2-3'],
+ ['Коммутатор','L2-устройство: пересылает кадры по MAC-таблице.','2-2'],
+ ['Коммутация пакетов','Передача данных независимыми пакетами по общим линиям.','0-2'],
+ ['Роутер','L3-устройство: передаёт пакеты между сетями по IP.','2-2']
+];
+
+</script>
+<script>
+// ====== ХРАНЕНИЕ ПРОГРЕССА ======
+const LS_KEY = 'network-course-progress';
+const LS_BACKUP = 'network-course-last-backup';
+const FILE_NAME = 'network-course-progress.json';
+const FS_SUPPORTED = typeof window.showSaveFilePicker === 'function';
+
+function emptyProgress(){
+  return { app:'network-course', version:1, savedAt:new Date().toISOString(), lessons:{}, tests:{}, finalExam:null, settings:{ theme:'system', unlockAll:false } };
+}
+function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+
+const progressStorage = {
+  state: emptyProgress(),
+  handle: null,
+  fileStatus: FS_SUPPORTED ? 'none' : 'unsupported', // none | ok | denied | error | unsupported
+  lastFileSave: null,
+  writeTimer: null,
+
+  load(){
+    const raw = lsGet(LS_KEY);
+    if (raw){ try { const p = JSON.parse(raw); if (this.validate(p)) this.state = this.normalize(p); } catch(e){} }
+  },
+  validate(p){ return p && p.app === 'network-course' && p.version === 1; },
+  normalize(p){
+    const e = emptyProgress();
+    return { ...e, ...p, lessons:p.lessons||{}, tests:p.tests||{}, settings:{ ...e.settings, ...(p.settings||{}) } };
+  },
+  save(){
+    this.state.savedAt = new Date().toISOString();
+    lsSet(LS_KEY, JSON.stringify(this.state));
+    this.scheduleFileWrite();
+    renderStatus();
+  },
+  scheduleFileWrite(){
+    if (!this.handle || this.fileStatus === 'denied') return;
+    clearTimeout(this.writeTimer);
+    this.writeTimer = setTimeout(() => this.writeFile(), 1200);
+  },
+  async writeFile(){
+    if (!this.handle) return;
+    try {
+      const perm = await this.handle.queryPermission({ mode:'readwrite' });
+      if (perm !== 'granted'){ this.fileStatus = 'denied'; renderStatus(); return; }
+      const w = await this.handle.createWritable();
+      await w.write(JSON.stringify(this.state, null, 2));
+      await w.close();
+      this.fileStatus = 'ok'; this.lastFileSave = new Date();
+      lsSet(LS_BACKUP, new Date().toISOString());
+    } catch(e){ this.fileStatus = 'error'; }
+    renderStatus();
+  },
+  async linkFile(){
+    if (!FS_SUPPORTED) return;
+    try {
+      const h = await window.showSaveFilePicker({ suggestedName:FILE_NAME, types:[{ description:'Прогресс курса', accept:{ 'application/json':['.json'] } }] });
+      this.handle = h; await idbSet('handle', h);
+      this.fileStatus = 'ok'; await this.writeFile();
+      toast('Файл привязан. Прогресс сохраняется автоматически.');
+    } catch(e){ if (e.name !== 'AbortError') toast('Не удалось привязать файл: ' + e.message); }
+    render();
+  },
+  async openLinkedFile(){
+    if (!FS_SUPPORTED) return;
+    try {
+      const [h] = await window.showOpenFilePicker({ types:[{ description:'Прогресс курса', accept:{ 'application/json':['.json'] } }] });
+      const text = await (await h.getFile()).text();
+      const data = this.parse(text);
+      if (!data) return;
+      this.handle = h; await idbSet('handle', h);
+      const perm = await h.requestPermission({ mode:'readwrite' });
+      this.fileStatus = perm === 'granted' ? 'ok' : 'denied';
+      pendingImport = data; render();
+    } catch(e){ if (e.name !== 'AbortError') toast('Не удалось открыть файл: ' + e.message); }
+  },
+  async restoreHandle(){
+    if (!FS_SUPPORTED) return;
+    try {
+      const h = await idbGet('handle');
+      if (!h) return;
+      this.handle = h;
+      const perm = await h.queryPermission({ mode:'readwrite' });
+      if (perm !== 'granted'){ this.fileStatus = 'denied'; renderStatus(); return; }
+      this.fileStatus = 'ok';
+      const data = this.parse(await (await h.getFile()).text(), true);
+      if (data && data.savedAt > this.state.savedAt){ newerFileData = data; render(); }
+      renderStatus();
+    } catch(e){ this.fileStatus = 'error'; renderStatus(); }
+  },
+  async requestAccess(){
+    if (!this.handle) return this.linkFile();
+    try {
+      const perm = await this.handle.requestPermission({ mode:'readwrite' });
+      this.fileStatus = perm === 'granted' ? 'ok' : 'denied';
+      if (perm === 'granted'){
+        const data = this.parse(await (await this.handle.getFile()).text(), true);
+        if (data && data.savedAt > this.state.savedAt){ newerFileData = data; }
+        else await this.writeFile();
+      }
+    } catch(e){ this.fileStatus = 'error'; toast('Файл недоступен. Привяжите его заново.'); }
+    render();
+  },
+  async unlink(){ this.handle = null; this.fileStatus = FS_SUPPORTED ? 'none' : 'unsupported'; await idbSet('handle', null); render(); },
+  parse(text, silent){
+    let data;
+    try { data = JSON.parse(text); } catch(e){ if (!silent) toast('Файл повреждён: это не JSON.'); return null; }
+    if (!data || data.app !== 'network-course'){ if (!silent) toast('Это не файл прогресса этого курса.'); return null; }
+    if (data.version !== 1){ if (!silent) toast('Версия файла ' + data.version + ' не поддерживается.'); return null; }
+    return this.normalize(data);
+  },
+  exportFile(){
+    const d = new Date().toISOString().slice(0,10);
+    const blob = new Blob([JSON.stringify(this.state, null, 2)], { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'network-course-progress-' + d + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    lsSet(LS_BACKUP, new Date().toISOString());
+    toast('Копия прогресса скачана.'); render();
+  },
+  importFile(file){
+    const r = new FileReader();
+    r.onload = () => { const data = this.parse(r.result); if (data){ pendingImport = data; render(); } };
+    r.readAsText(file);
+  },
+  merge(a, b){
+    const out = this.normalize(JSON.parse(JSON.stringify(a)));
+    for (const [id, l] of Object.entries(b.lessons||{})){
+      if (l.completed && !(out.lessons[id] && out.lessons[id].completed)) out.lessons[id] = l;
+    }
+    for (const [id, t] of Object.entries(b.tests||{})){
+      const o = out.tests[id];
+      if (!o) { out.tests[id] = t; continue; }
+      const newer = t.lastAttemptAt > o.lastAttemptAt ? t : o;
+      out.tests[id] = { bestScore:Math.max(o.bestScore,t.bestScore), attempts:Math.max(o.attempts,t.attempts), lastScore:newer.lastScore, lastAttemptAt:newer.lastAttemptAt, wrongQuestionIds:newer.wrongQuestionIds };
+    }
+    if (b.finalExam){
+      const o = out.finalExam;
+      out.finalExam = !o ? b.finalExam : { bestScore:Math.max(o.bestScore,b.finalExam.bestScore), attempts:Math.max(o.attempts,b.finalExam.attempts), lastAttemptAt: o.lastAttemptAt > b.finalExam.lastAttemptAt ? o.lastAttemptAt : b.finalExam.lastAttemptAt };
+    }
+    return out;
+  },
+  apply(data, mode){
+    this.state = mode === 'merge' ? this.merge(this.state, data) : this.normalize(data);
+    applyTheme(); this.save();
+  },
+  reset(){ const s = this.state.settings; this.state = emptyProgress(); this.state.settings = s; this.save(); }
+};
+
+// IndexedDB для дескриптора файла
+function idb(){ return new Promise((res, rej) => { const r = indexedDB.open('network-course', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function idbSet(k, v){ try { const db = await idb(); await new Promise((res, rej) => { const tx = db.transaction('kv','readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); } catch(e){} }
+async function idbGet(k){ try { const db = await idb(); return await new Promise((res, rej) => { const r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch(e){ return null; } }
+
+let pendingImport = null, newerFileData = null, confirmReset = false;
+const P = progressStorage;
+
+// ====== УТИЛИТЫ ======
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+function fmtTime(d){ return d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' }); }
+const allLessons = () => MODULES.flatMap(m => m.lessons.map(l => ({ ...l, module:m })));
+const findLesson = id => allLessons().find(l => l.id === id);
+const findModule = id => MODULES.find(m => m.id === +id);
+const PASS = 70;
+
+function moduleStats(m){
+  const done = m.lessons.filter(l => P.state.lessons[l.id] && P.state.lessons[l.id].completed).length;
+  const t = P.state.tests['m' + m.id];
+  return { done, total:m.lessons.length, test:t, passed: !!(t && t.bestScore >= PASS) };
+}
+function isUnlocked(m){
+  if (P.state.settings.unlockAll || m.id === 0) return true;
+  const prev = findModule(m.id - 1);
+  return !prev || moduleStats(prev).passed;
+}
+function overall(){
+  const ls = allLessons(); const done = ls.filter(l => P.state.lessons[l.id] && P.state.lessons[l.id].completed).length;
+  const passed = MODULES.filter(m => moduleStats(m).passed).length;
+  const units = ls.length + MODULES.length;
+  return { pct: Math.round((done + passed) / units * 100), done, lessons: ls.length, passed };
+}
+
+// ====== ТЕМА ======
+function applyTheme(){
+  const t = P.state.settings.theme;
+  if (t === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+}
+$('#themeBtn').onclick = () => {
+  const order = ['system','light','dark']; const cur = P.state.settings.theme;
+  P.state.settings.theme = order[(order.indexOf(cur) + 1) % 3];
+  applyTheme(); P.save();
+  toast('Тема: ' + ({ system:'как в системе', light:'светлая', dark:'тёмная' }[P.state.settings.theme]));
+};
+$('#menuBtn').onclick = () => $('#side').classList.toggle('open');
+
+function renderStatus(){
+  const el = $('#saveStatus'); el.className = 'status';
+  let txt;
+  switch (P.fileStatus){
+    case 'ok': el.classList.add('ok'); txt = 'Сохранено в файл' + (P.lastFileSave ? ' · ' + fmtTime(P.lastFileSave) : ''); break;
+    case 'denied': el.classList.add('warn'); txt = 'Нет доступа к файлу — нажмите'; break;
+    case 'error': el.classList.add('warn'); txt = 'Ошибка записи в файл'; break;
+    case 'unsupported': txt = 'Сохранено в браузере'; break;
+    default: txt = 'Файл не привязан';
+  }
+  el.lastElementChild.textContent = txt;
+}
+$('#saveStatus').addEventListener('click', e => { if (P.fileStatus === 'denied'){ e.preventDefault(); P.requestAccess(); } });
+
+// ====== НАВИГАЦИЯ ======
+function renderSide(){
+  const h = location.hash || '#/';
+  const link = (href, label, extra='') => `<a href="${href}" class="${h === href ? 'active' : ''} ${extra}">${label}</a>`;
+  let html = `<a class="brand" href="#/"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="6" width="24" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5" y="10" width="4" height="4" fill="var(--accent)"/><rect x="11" y="10" width="4" height="4" fill="currentColor" opacity=".35"/><rect x="17" y="10" width="4" height="4" fill="var(--accent)"/></svg>Сети для разработчиков</a>`;
+  html += '<nav class="nav">' + link('#/', '<span class="port">~</span>Главная');
+  html += '<div class="nav-label">Модули</div>';
+  for (const m of MODULES){
+    const s = moduleStats(m); const un = isUnlocked(m);
+    const led = s.passed ? 'on' : (s.done ? 'part' : '');
+    html += link('#/m/' + m.id, `<span class="led ${led}"></span><span class="port">${String(m.id).padStart(2,'0')}</span>${esc(m.title)}${un ? '' : ' 🔒'}`, un ? '' : 'locked');
+  }
+  for (const m of UPCOMING) html += `<a class="locked" href="#/m/${m.id}"><span class="led"></span><span class="port">${String(m.id).padStart(2,'0')}</span>${esc(m.title)}</a>`;
+  html += '<div class="nav-label">Практика</div>' + link('#/exam', '<span class="port">∑</span>Финальный экзамен') + link('#/tools', '<span class="port">⚙</span>Инструменты');
+  html += '<div class="nav-label">Справка</div>' + link('#/glossary', '<span class="port">A</span>Глоссарий') + link('#/cheats', '<span class="port">#</span>Шпаргалки') + link('#/progress', '<span class="port">↓</span>Прогресс и файл');
+  html += '</nav>';
+  $('#side').innerHTML = html;
+}
+
+let examTimer = null;
+function render(){
+  clearInterval(examTimer);
+  $('#side').classList.remove('open');
+  renderSide(); renderStatus();
+  const h = (location.hash || '#/').slice(1).split('/').filter(Boolean);
+  const v = $('#view');
+  const [r, a] = h;
+  if (!r) v.innerHTML = viewHome();
+  else if (r === 'm') v.innerHTML = viewModule(a);
+  else if (r === 'l') { v.innerHTML = viewLesson(a); mountLesson(a); }
+  else if (r === 't') { v.innerHTML = '<div id="testRoot"></div>'; startTest(a, h[2] === 'errors'); }
+  else if (r === 'exam') { v.innerHTML = '<div id="testRoot"></div>'; viewExamIntro(); }
+  else if (r === 'tools') { v.innerHTML = viewTools(); mountWidgets(v); }
+  else if (r === 'glossary') { v.innerHTML = viewGlossary(); mountGlossary(); }
+  else if (r === 'cheats') v.innerHTML = viewCheats();
+  else if (r === 'progress') { v.innerHTML = viewProgress(); mountProgress(); }
+  else v.innerHTML = '<h1>Страница не найдена</h1><p><a href="#/">На главную</a></p>';
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', render);
+
+// ====== БАННЕРЫ ======
+function banners(){
+  let html = '';
+  if (newerFileData){
+    html += `<div class="banner"><span>В привязанном файле прогресс новее, чем в браузере (${new Date(newerFileData.savedAt).toLocaleString('ru-RU')}).</span><span class="row"><button class="btn" data-act="load-newer">Загрузить из файла</button><button class="btn ghost" data-act="skip-newer">Оставить текущий</button></span></div>`;
+  }
+  const last = lsGet(LS_BACKUP);
+  const done = overall().done;
+  const stale = !last ? done > 3 : (Date.now() - new Date(last)) > 7 * 864e5;
+  if (P.fileStatus !== 'ok' && stale){
+    html += `<div class="banner"><span>Прогресс хранится только в этом браузере. Сохраните его в файл, чтобы не потерять.</span><a class="btn ghost" href="#/progress">Сохранить в файл</a></div>`;
+  }
+  return html;
+}
+document.addEventListener('click', e => {
+  const act = e.target.closest('[data-act]'); if (!act) return;
+  const k = act.dataset.act;
+  if (k === 'load-newer'){ P.apply(newerFileData, 'replace'); newerFileData = null; toast('Прогресс загружен из файла.'); render(); }
+  if (k === 'skip-newer'){ newerFileData = null; P.writeFile(); render(); }
+});
+
+// ====== ГЛАВНАЯ ======
+function viewHome(){
+  const o = overall();
+  const next = allLessons().find(l => !(P.state.lessons[l.id] && P.state.lessons[l.id].completed) && isUnlocked(l.module));
+  const nextModTest = MODULES.find(m => isUnlocked(m) && !moduleStats(m).passed && moduleStats(m).done === m.lessons.length);
+  const cont = nextModTest ? `#/t/${nextModTest.id}` : (next ? `#/l/${next.id}` : '#/exam');
+  let html = banners() + `<section class="hero"><div class="crumbs">курс · ${MODULES.length + UPCOMING.length} модулей</div>
+  <h1>Сети для разработчиков</h1>
+  <p>От кабеля до HTTP/3: как данные на самом деле доходят от браузера до сервера. Короткая теория, схемы, реальные команды и тесты после каждого модуля.</p>
+  <div class="stats"><div class="stat"><b>${o.pct}%</b><span>курса пройдено</span></div><div class="stat"><b>${o.done}/${o.lessons}</b><span>уроков</span></div><div class="stat"><b>${o.passed}/${MODULES.length}</b><span>тестов сдано</span></div></div>
+  <div class="meter" aria-label="Прогресс"><i style="width:${o.pct}%"></i></div>
+  <div class="row" style="margin-top:20px"><a class="btn" href="${cont}">${o.done ? 'Продолжить' : 'Начать обучение'} →</a><a class="btn ghost" href="#/tools">Инструменты</a></div></section>
+  <h2 style="margin-bottom:14px">Карта курса</h2><div class="mods">`;
+  for (const m of MODULES){
+    const s = moduleStats(m); const un = isUnlocked(m);
+    const tag = s.passed ? `<span class="tag ok">тест ${s.test.bestScore}%</span>` : (un ? `<span class="tag">${s.done}/${s.total}</span>` : '<span class="tag muted">закрыт</span>');
+    html += `<a class="mod ${un ? '' : 'locked'}" href="#/m/${m.id}"><div class="num"><span>МОДУЛЬ ${String(m.id).padStart(2,'0')}</span>${tag}</div><h3>${esc(m.title)}</h3><p>${esc(m.short)}</p><div class="meter"><i style="width:${Math.round(s.done / s.total * 100)}%"></i></div></a>`;
+  }
+  for (const m of UPCOMING) html += `<a class="mod soon" href="#/m/${m.id}"><div class="num"><span>МОДУЛЬ ${String(m.id).padStart(2,'0')}</span><span class="tag muted">скоро</span></div><h3>${esc(m.title)}</h3><p>${esc(m.short)}</p></a>`;
+  return html + '</div>';
+}
+
+// ====== МОДУЛЬ ======
+function viewModule(id){
+  const up = UPCOMING.find(m => m.id === +id);
+  if (up) return `<div class="crumbs"><a href="#/">главная</a> / модуль ${id}</div><h1>${esc(up.title)}</h1><p class="small" style="margin-top:8px">${esc(up.short)}</p><div class="note">Модуль в разработке и появится в следующем обновлении сайта.</div>`;
+  const m = findModule(id); if (!m) return '<h1>Модуль не найден</h1>';
+  const s = moduleStats(m); const un = isUnlocked(m);
+  let html = `<div class="crumbs"><a href="#/">главная</a> / модуль ${String(m.id).padStart(2,'0')}</div><h1>${esc(m.title)}</h1><p class="small" style="margin:8px 0 20px">${esc(m.short)} · ${s.done} из ${s.total} уроков</p>`;
+  if (!un) return html + `<div class="note warn">Модуль откроется после сдачи теста предыдущего модуля на ${PASS}% и выше. Блокировку можно отключить на странице <a href="#/progress">«Прогресс»</a>.</div>`;
+  html += '<div class="list">';
+  m.lessons.forEach((l, i) => {
+    const d = P.state.lessons[l.id] && P.state.lessons[l.id].completed;
+    html += `<a href="#/l/${l.id}"><span class="led ${d ? 'on' : ''}"></span><span class="port">${m.id}.${i + 1}</span><span class="grow">${esc(l.title)}</span>${d ? '<span class="tag ok">пройден</span>' : ''}</a>`;
+  });
+  html += '</div><h2 style="margin:28px 0 10px">Тест модуля</h2>';
+  html += `<p class="small">${m.test.length} вопросов, порог — ${PASS}%. ${s.test ? `Лучший результат: <b>${s.test.bestScore}%</b>, попыток: ${s.test.attempts}.` : 'Ещё не проходили.'}</p><div class="row"><a class="btn" href="#/t/${m.id}">${s.test ? 'Пройти снова' : 'Начать тест'}</a>${s.test && s.test.wrongQuestionIds.length ? `<a class="btn ghost" href="#/t/${m.id}/errors">Повторить ошибки (${s.test.wrongQuestionIds.length})</a>` : ''}</div>`;
+  return html;
+}
+
+// ====== УРОК ======
+function viewLesson(id){
+  const l = findLesson(id); if (!l) return '<h1>Урок не найден</h1>';
+  if (!isUnlocked(l.module)) return `<h1>${esc(l.title)}</h1><div class="note warn">Урок откроется после сдачи теста предыдущего модуля.</div>`;
+  const ls = l.module.lessons; const i = ls.findIndex(x => x.id === id);
+  const prev = ls[i - 1], next = ls[i + 1];
+  const done = P.state.lessons[id] && P.state.lessons[id].completed;
+  return `<div class="crumbs"><a href="#/">главная</a> / <a href="#/m/${l.module.id}">${esc(l.module.title.toLowerCase())}</a> / урок ${l.module.id}.${i + 1}</div>
+  <h1>${esc(l.title)}</h1><div class="lesson-grid"><div style="min-width:0"><article class="prose" style="margin-top:18px">${l.html}</article>
+  <h2 style="margin-top:34px" id="selfcheck">Самопроверка</h2><div id="checkRoot"></div>
+  <div class="row" style="margin-top:24px;justify-content:space-between">
+   ${prev ? `<a class="btn ghost" href="#/l/${prev.id}">← ${esc(prev.title)}</a>` : '<span></span>'}
+   <span class="row"><button class="btn ${done ? 'ghost' : ''}" id="doneBtn">${done ? '✓ Урок пройден' : 'Отметить как пройденный'}</button>
+   ${next ? `<a class="btn ghost" href="#/l/${next.id}">Далее →</a>` : `<a class="btn ghost" href="#/t/${l.module.id}">К тесту модуля →</a>`}</span></div></div>
+  <aside class="toc"><div class="nav-label">Модуль ${l.module.id}</div>${ls.map((x, j) => `<a href="#/l/${x.id}" class="${x.id === id ? 'active' : ''}"><span class="led ${P.state.lessons[x.id] && P.state.lessons[x.id].completed ? 'on' : ''}" style="margin-top:7px"></span>${esc(x.title)}</a>`).join('')}<a href="#/t/${l.module.id}"><span class="port">✓</span>Тест модуля</a><div class="nav-label" style="margin-top:12px">На странице</div><div id="tocSecs"></div></aside></div>`;
+}
+function mountLesson(id){
+  const l = findLesson(id); if (!l || !isUnlocked(l.module)) return;
+  mountWidgets($('#view'));
+  const secs = [...document.querySelectorAll('.prose h3'), $('#selfcheck')];
+  $('#tocSecs').innerHTML = secs.map((h, i) => { h.id = h.id || 'sec' + i; return `<a class="sub" href="javascript:void 0" data-sec="${h.id}">${esc(h.textContent)}</a>`; }).join('');
+  $('#tocSecs').onclick = e => { const t = e.target.closest('[data-sec]'); if (t) document.getElementById(t.dataset.sec).scrollIntoView({ behavior:'smooth' }); };
+  const root = $('#checkRoot');
+  l.check.forEach((q, i) => { const c = document.createElement('div'); root.appendChild(c); mountQuestion(c, q, i + 1, l.check.length, 'instant'); });
+  $('#doneBtn').onclick = () => {
+    const d = P.state.lessons[id] && P.state.lessons[id].completed;
+    if (d) delete P.state.lessons[id]; else P.state.lessons[id] = { completed:true, completedAt:new Date().toISOString() };
+    P.save(); render();
+    if (!d) toast('Урок отмечен как пройденный.');
+  };
+}
+
+// ====== ВОПРОСЫ ======
+function mountQuestion(el, q, n, total, mode){
+  const st = { q, el, answered:false };
+  const typeLbl = { single:'один ответ', multiple:'несколько ответов', order:'порядок', match:'сопоставление', input:'ввод ответа', analyze:'анализ вывода' }[q.type];
+  const name = 'q_' + q.id + '_' + Math.random().toString(36).slice(2, 7);
+  let body = '';
+  if (q.type === 'single' || q.type === 'analyze' || q.type === 'multiple'){
+    st.perm = shuffle(q.options.map((_, i) => i));
+    const t = q.type === 'multiple' ? 'checkbox' : 'radio';
+    body = st.perm.map(i => `<label class="opt" data-i="${i}"><input type="${t}" name="${name}" value="${i}"><span>${esc(q.options[i])}</span></label>`).join('');
+  } else if (q.type === 'order'){
+    st.cur = shuffle(q.options.map((_, i) => i));
+    if (st.cur.every((v, i) => v === i) && st.cur.length > 1) st.cur.reverse();
+    body = '<div class="ordlist"></div>';
+  } else if (q.type === 'match'){
+    st.right = shuffle(q.pairs.map((_, i) => i));
+    body = q.pairs.map((p, i) => `<div class="mrow" data-i="${i}"><span class="l">${esc(p[0])}</span><select id="${name}_${i}" aria-label="${esc(p[0])}"><option value="">— выберите —</option>${st.right.map(j => `<option value="${j}">${esc(q.pairs[j][1])}</option>`).join('')}</select></div>`).join('');
+  } else if (q.type === 'input'){
+    body = `<input type="text" id="${name}" placeholder="Ваш ответ" autocomplete="off" style="width:100%;max-width:320px;font-family:var(--f-mono)">`;
+  }
+  el.className = 'q';
+  el.innerHTML = `<div class="qh"><span>ВОПРОС ${n}/${total}</span><span>${typeLbl}</span></div><p class="qp">${esc(q.prompt)}</p>${q.code ? `<pre><code>${esc(q.code)}</code></pre>` : ''}<div class="qb">${body}</div>${mode === 'instant' ? '<div class="row" style="margin-top:12px"><button class="btn ghost chk">Проверить</button></div>' : ''}<div class="fbw"></div>`;
+  if (q.type === 'order') renderOrder(st);
+  if (mode === 'instant') el.querySelector('.chk').onclick = () => { if (!hasResponse(st)){ toast('Сначала выберите ответ.'); return; } showFeedback(st, grade(st)); el.querySelector('.chk').disabled = true; };
+  return st;
+}
+function renderOrder(st){
+  const box = st.el.querySelector('.ordlist');
+  box.innerHTML = st.cur.map((i, pos) => `<div class="ord" data-i="${i}"><span class="port">${pos + 1}.</span><span class="t">${esc(st.q.options[i])}</span><button aria-label="Выше" data-d="-1" ${pos === 0 || st.answered ? 'disabled' : ''}>↑</button><button aria-label="Ниже" data-d="1" ${pos === st.cur.length - 1 || st.answered ? 'disabled' : ''}>↓</button></div>`).join('');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const pos = [...box.children].indexOf(b.closest('.ord')); const to = pos + +b.dataset.d;
+    [st.cur[pos], st.cur[to]] = [st.cur[to], st.cur[pos]]; renderOrder(st);
+  });
+}
+function response(st){
+  const q = st.q, el = st.el;
+  if (q.type === 'single' || q.type === 'analyze'){ const c = el.querySelector('input:checked'); return c ? +c.value : null; }
+  if (q.type === 'multiple') return [...el.querySelectorAll('input:checked')].map(x => +x.value);
+  if (q.type === 'order') return st.cur.slice();
+  if (q.type === 'match') return [...el.querySelectorAll('select')].map(s => s.value === '' ? null : +s.value);
+  if (q.type === 'input') return el.querySelector('input').value;
+}
+function hasResponse(st){
+  const r = response(st);
+  if (st.q.type === 'multiple') return r.length > 0;
+  if (st.q.type === 'match') return r.some(x => x !== null);
+  if (st.q.type === 'input') return r.trim() !== '';
+  return r !== null;
+}
+const norm = s => String(s).trim().toLowerCase().replace(/\s+/g, '').replace(',', '.');
+function grade(st){
+  const q = st.q, r = response(st);
+  switch (q.type){
+    case 'single': case 'analyze': return r === q.answer;
+    case 'multiple': return r.length === q.answer.length && q.answer.every(a => r.includes(a));
+    case 'order': return r.every((v, i) => v === q.answer[i]);
+    case 'match': return r.every((v, i) => v === i);
+    case 'input': return q.answer.some(a => norm(a) === norm(r));
+  }
+}
+function showFeedback(st, ok){
+  st.answered = true; const q = st.q, el = st.el;
+  el.querySelectorAll('input,select').forEach(x => x.disabled = true);
+  if (q.type === 'single' || q.type === 'analyze' || q.type === 'multiple'){
+    const right = Array.isArray(q.answer) ? q.answer : [q.answer];
+    el.querySelectorAll('.opt').forEach(o => {
+      const i = +o.dataset.i; const chosen = o.querySelector('input').checked;
+      if (right.includes(i)) o.classList.add('right'); else if (chosen) o.classList.add('wrong');
+    });
+  }
+  if (q.type === 'order'){ renderOrder(st); el.querySelectorAll('.ord').forEach((o, pos) => o.classList.add(+o.dataset.i === q.answer[pos] ? 'right' : 'wrong')); }
+  if (q.type === 'match') el.querySelectorAll('.mrow select').forEach((s, i) => { s.style.borderColor = +s.value === i && s.value !== '' ? 'var(--ok)' : 'var(--bad)'; });
+  let correct = '';
+  if (!ok){
+    if (q.type === 'order') correct = 'Правильный порядок: ' + q.answer.map(i => q.options[i]).join(' → ');
+    if (q.type === 'match') correct = 'Правильно: ' + q.pairs.map(p => p[0] + ' — ' + p[1]).join('; ');
+    if (q.type === 'input') correct = 'Правильный ответ: ' + q.answer[0];
+  }
+  const lesson = q.lessonId || (q.id.startsWith('q') ? null : null);
+  el.querySelector('.fbw').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? 'Верно.' : 'Неверно.'}</b>${correct ? esc(correct) + '<br>' : ''}${esc(q.explanation)}${lesson ? ` <a href="#/l/${lesson}">Перечитать урок</a>` : ''}</div>`;
+}
+
+// ====== ТЕСТ МОДУЛЯ / ЭКЗАМЕН ======
+function startTest(id, errorsOnly){
+  const m = findModule(id); const root = $('#testRoot');
+  if (!m){ root.innerHTML = '<h1>Тест не найден</h1>'; return; }
+  if (!isUnlocked(m)){ root.innerHTML = `<h1>Тест: ${esc(m.title)}</h1><div class="note warn">Тест откроется после сдачи предыдущего модуля.</div>`; return; }
+  let qs = m.test.map(q => ({ ...q, lessonId: q.lessonId || guessLesson(m, q) }));
+  const rec = P.state.tests['m' + m.id];
+  if (errorsOnly && rec) qs = qs.filter(q => rec.wrongQuestionIds.includes(q.id));
+  if (!qs.length){ location.hash = '#/m/' + m.id; return; }
+  runQuiz(root, shuffle(qs), {
+    title: (errorsOnly ? 'Работа над ошибками: ' : 'Тест: ') + m.title,
+    crumbs: `<a href="#/">главная</a> / <a href="#/m/${m.id}">${esc(m.title.toLowerCase())}</a> / тест`,
+    onFinish: (score, wrong) => {
+      const key = 'm' + m.id; const old = P.state.tests[key];
+      const wasPassed = old && old.bestScore >= PASS;
+      if (errorsOnly){
+        // работа над ошибками не меняет оценку, только список ошибок
+        if (old){ old.wrongQuestionIds = old.wrongQuestionIds.filter(x => wrong.includes(x)); P.save(); }
+        return { msg: wrong.length ? `Осталось ошибок: ${wrong.length}.` : 'Все ошибки исправлены!', back:`#/m/${m.id}` };
+      }
+      P.state.tests[key] = { bestScore: Math.max(score, old ? old.bestScore : 0), attempts:(old ? old.attempts : 0) + 1, lastScore:score, lastAttemptAt:new Date().toISOString(), wrongQuestionIds:wrong };
+      P.save();
+      const nm = findModule(m.id + 1) || UPCOMING.find(u => u.id === m.id + 1);
+      const msg = score >= PASS ? (wasPassed ? 'Тест сдан.' : 'Тест сдан! ' + (nm ? `Открыт модуль «${nm.title}».` : '')) : `Нужно ${PASS}% для сдачи. Перечитайте уроки по ссылкам в разборе и попробуйте снова.`;
+      return { msg, back:`#/m/${m.id}`, next: score >= PASS && nm ? `#/m/${nm.id}` : null, errors: wrong.length ? `#/t/${m.id}/errors` : null };
+    }
+  });
+}
+function guessLesson(m, q){ return m.lessons[Math.min(m.lessons.length - 1, Math.floor(m.test.indexOf(q) / Math.ceil(m.test.length / m.lessons.length)))].id; }
+
+function viewExamIntro(){
+  const root = $('#testRoot'); const fe = P.state.finalExam;
+  const pool = MODULES.flatMap(m => [...m.test.map(q => ({ ...q, lessonId: guessLesson(m, q) })), ...m.lessons.flatMap(l => l.check.map(q => ({ ...q, lessonId:l.id })))]);
+  const n = Math.min(40, pool.length);
+  root.innerHTML = `<div class="crumbs"><a href="#/">главная</a> / экзамен</div><h1>Финальный экзамен</h1>
+  <p style="margin-top:10px">${n} случайных вопросов из всех открытых модулей, 60 минут. Порог — ${PASS}%. Сейчас в банке ${pool.length} вопросов; он будет расти с новыми модулями.</p>
+  ${fe ? `<p class="small">Лучший результат: <b>${fe.bestScore}%</b>, попыток: ${fe.attempts}.</p>` : ''}
+  <button class="btn" id="examGo">Начать экзамен</button>`;
+  $('#examGo').onclick = () => {
+    const qs = shuffle(pool).slice(0, n);
+    const deadline = Date.now() + 60 * 60 * 1000;
+    runQuiz(root, qs, { title:'Финальный экзамен', crumbs:'<a href="#/">главная</a> / экзамен', deadline,
+      onFinish: (score) => {
+        const o = P.state.finalExam;
+        P.state.finalExam = { bestScore:Math.max(score, o ? o.bestScore : 0), attempts:(o ? o.attempts : 0) + 1, lastAttemptAt:new Date().toISOString() };
+        P.save();
+        return { msg: score >= PASS ? 'Экзамен сдан. Отличная работа!' : 'Экзамен пока не сдан. Разбор ошибок ниже.', back:'#/exam' };
+      } });
+  };
+}
+
+function runQuiz(root, qs, opts){
+  root.innerHTML = `<div class="crumbs">${opts.crumbs}</div><div class="row" style="justify-content:space-between"><h1>${esc(opts.title)}</h1>${opts.deadline ? '<span class="timer" id="timer"></span>' : ''}</div><p class="small" style="margin-top:6px">${qs.length} вопросов. Ответы проверяются после нажатия «Завершить».</p><div id="qs"></div><div class="row" style="margin-top:20px"><button class="btn" id="finish">Завершить тест</button><span class="small" id="answeredCnt"></span></div>`;
+  const box = $('#qs');
+  const states = qs.map((q, i) => { const c = document.createElement('div'); box.appendChild(c); return mountQuestion(c, q, i + 1, qs.length, 'test'); });
+  const upd = () => { const a = states.filter(hasResponse).length; $('#answeredCnt').textContent = `Отвечено ${a} из ${qs.length}`; };
+  box.addEventListener('change', upd); box.addEventListener('input', upd); box.addEventListener('click', upd); upd();
+  let finished = false;
+  const finish = () => {
+    if (finished) return; finished = true; clearInterval(examTimer);
+    let ok = 0; const wrong = [];
+    states.forEach(st => { const g = grade(st); showFeedback(st, g); if (g) ok++; else wrong.push(st.q.id); });
+    const score = Math.round(ok / qs.length * 100);
+    const res = opts.onFinish(score, wrong);
+    $('#finish').remove(); $('#answeredCnt').remove();
+    const head = document.createElement('div'); head.className = 'result';
+    head.innerHTML = `<div class="big" style="color:${score >= PASS ? 'var(--ok)' : 'var(--bad)'}">${score}%</div><p>${ok} из ${qs.length} верно. ${esc(res.msg)}</p><div class="row" style="justify-content:center">${res.errors ? `<a class="btn" href="${res.errors}">Повторить только ошибки</a>` : ''}${res.next ? `<a class="btn" href="${res.next}">Следующий модуль →</a>` : ''}<a class="btn ghost" href="${res.back}">Назад</a></div>`;
+    box.before(head);
+    const h2 = document.createElement('h2'); h2.textContent = 'Разбор ответов'; h2.style.marginTop = '10px'; box.before(h2);
+    renderSide(); window.scrollTo(0, 0);
+  };
+  $('#finish').onclick = () => {
+    const un = states.length - states.filter(hasResponse).length;
+    if (un && !$('#finishConfirm')){
+      const c = document.createElement('div'); c.id = 'finishConfirm'; c.className = 'confirm';
+      c.innerHTML = `Без ответа осталось ${un} вопр. Они будут засчитаны как неверные. <button class="btn danger" style="margin-left:8px">Всё равно завершить</button>`;
+      c.querySelector('button').onclick = finish; $('#finish').parentElement.after(c); return;
+    }
+    finish();
+  };
+  if (opts.deadline){
+    const tick = () => { const left = Math.max(0, opts.deadline - Date.now()); const mm = Math.floor(left / 60000), ss = Math.floor(left % 60000 / 1000); const t = $('#timer'); if (t) t.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; if (!left){ toast('Время вышло.'); finish(); } };
+    tick(); examTimer = setInterval(tick, 1000);
+  }
+}
+
+// ====== ВИДЖЕТЫ ======
+function mountWidgets(scope){
+  scope.querySelectorAll('[data-widget]').forEach(el => { const w = WIDGETS[el.dataset.widget]; if (w) w(el); });
+}
+const WIDGETS = {
+  encap(el){
+    const layers = [
+      { n:'Прикладной (HTTP)', h:'GET /index.html HTTP/1.1', c:'var(--accent)' },
+      { n:'Транспортный (TCP)', h:'TCP: порт 51000 → 443, seq, ack', c:'#3b82c4' },
+      { n:'Сетевой (IP)', h:'IP: 192.168.1.10 → 93.184.215.14, TTL 64', c:'#a46ad1' },
+      { n:'Канальный (Ethernet)', h:'Ethernet: MAC 3c:22:… → a4:bb:…, FCS', c:'#d0802b' }
+    ];
+    let lvl = 0;
+    el.className = 'widget';
+    const draw = () => {
+      let inner = `<div class="data">данные</div>`;
+      for (let i = 0; i <= lvl; i++){
+        const L = layers[i];
+        inner = `<div class="layer" style="border-color:${L.c}"><span class="lbl" style="color:${L.c}">${i === 0 ? 'HTTP-запрос' : L.h}</span>${i === 0 ? `<div class="data">${L.h}</div>` : inner}</div>`;
+      }
+      el.innerHTML = `<div class="encap">${inner}</div><p class="small" style="text-align:center">Уровень: <b>${layers[lvl].n}</b></p><div class="row" style="justify-content:center"><button class="btn ghost" data-d="-1" ${lvl === 0 ? 'disabled' : ''}>← Снять заголовок</button><button class="btn" data-d="1" ${lvl === layers.length - 1 ? 'disabled' : ''}>Следующий уровень →</button></div>`;
+      el.querySelectorAll('button').forEach(b => b.onclick = () => { lvl += +b.dataset.d; draw(); });
+    };
+    draw();
+  },
+  subnet(el){
+    el.className = 'widget';
+    const id = 'sn' + Math.random().toString(36).slice(2, 6);
+    el.innerHTML = `<label for="${id}" class="small">IP-адрес и префикс</label><div class="row"><input type="text" id="${id}" value="10.0.5.77/26" style="font-family:var(--f-mono);flex:1;max-width:280px" autocomplete="off"></div><div class="out"></div>`;
+    const inp = el.querySelector('input'), out = el.querySelector('.out');
+    const toIp = n => [24, 16, 8, 0].map(s => (n >>> s) & 255).join('.');
+    const bin = n => [24, 16, 8, 0].map(s => ((n >>> s) & 255).toString(2).padStart(8, '0')).join('.');
+    const calc = () => {
+      const m = inp.value.trim().match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\s*\/\s*(\d{1,2})$/);
+      if (!m || m.slice(1, 5).some(x => +x > 255) || +m[5] > 32){ out.innerHTML = '<p class="small" style="color:var(--bad)">Введите адрес в формате 192.168.1.10/24 (префикс 0–32).</p>'; return; }
+      const ip = ((+m[1] << 24) | (+m[2] << 16) | (+m[3] << 8) | +m[4]) >>> 0, p = +m[5];
+      const mask = p === 0 ? 0 : (0xFFFFFFFF << (32 - p)) >>> 0;
+      const net = (ip & mask) >>> 0, bc = (net | (~mask >>> 0)) >>> 0, size = 2 ** (32 - p);
+      const hosts = p === 32 ? 1 : p === 31 ? 2 : size - 2;
+      const first = p >= 31 ? net : net + 1, last = p >= 31 ? bc : bc - 1;
+      const priv = (ip >>> 24 === 10) || (ip >>> 20 === 0xAC1) || (ip >>> 16 === 0xC0A8);
+      const ipBin = bin(ip); let pos = 0, colored = '';
+      for (const ch of ipBin){ if (ch === '.'){ colored += '.'; continue; } colored += pos < p ? `<span class="n">${ch}</span>` : ch; pos++; }
+      out.innerHTML = `<div class="calc">
+        <div><span>Адрес сети</span><b>${toIp(net)}/${p}</b></div><div><span>Маска</span><b>${toIp(mask)}</b></div>
+        <div><span>Broadcast</span><b>${p >= 31 ? '—' : toIp(bc)}</b></div><div><span>Диапазон хостов</span><b>${toIp(first)} – ${toIp(last)}</b></div>
+        <div><span>Всего адресов</span><b>${size.toLocaleString('ru-RU')}</b></div><div><span>Хостов</span><b>${hosts.toLocaleString('ru-RU')}</b></div>
+        <div><span>Тип</span><b>${priv ? 'частный (RFC 1918)' : (ip >>> 24 === 127 ? 'loopback' : (ip >>> 16 === 0xA9FE ? 'link-local' : ((ip >>> 22) === 0x191 ? 'CGNAT' : 'публичный / особый')))}</b></div></div>
+        <div class="bits">IP: ${colored} <span class="small">— сетевая часть выделена</span><br>Маска: ${bin(mask)}</div>${p === 31 ? '<p class="small">/31 используется для линков точка-точка (RFC 3021): оба адреса — хосты.</p>' : ''}`;
+    };
+    inp.addEventListener('input', calc); calc();
+  },
+  tcp(el){
+    el.className = 'widget';
+    const steps = [
+      { d:'→', t:'SYN, seq=1000', e:'Клиент просит открыть соединение и сообщает свой начальный номер последовательности.' },
+      { d:'←', t:'SYN-ACK, seq=5000, ack=1001', e:'Сервер соглашается, сообщает свой номер и подтверждает номер клиента + 1.' },
+      { d:'→', t:'ACK, ack=5001', e:'Клиент подтверждает. Соединение ESTABLISHED, можно передавать данные.' },
+      { d:'→', t:'данные: GET / HTTP/1.1', e:'Обмен данными. Каждый байт нумеруется и подтверждается.' },
+      { d:'→', t:'FIN', e:'Клиент закончил отправку и закрывает свою половину соединения.' },
+      { d:'←', t:'ACK', e:'Сервер подтверждает. Клиент в состоянии FIN_WAIT_2, сервер — CLOSE_WAIT.' },
+      { d:'←', t:'FIN', e:'Сервер тоже закрывает свою половину.' },
+      { d:'→', t:'ACK', e:'Клиент подтверждает и ждёт в TIME_WAIT (2×MSL), чтобы опоздавшие пакеты не попали в новое соединение.' }
+    ];
+    let k = 0;
+    const draw = () => {
+      el.innerHTML = `<div class="tcp">${steps.map((s, i) => `<div class="host" style="visibility:${i ? 'hidden' : 'visible'}">Клиент</div><div class="arrow ${i > k ? 'dim' : ''}" style="background:${i === k ? 'var(--accent-soft)' : 'transparent'}">${s.d === '→' ? '' : '◀── '}${esc(s.t)}${s.d === '→' ? ' ──▶' : ''}</div><div class="host" style="visibility:${i ? 'hidden' : 'visible'}">Сервер</div>`).join('')}</div>
+      <p style="margin:14px 0 10px"><b>Шаг ${k + 1}/${steps.length}.</b> ${esc(steps[k].e)}</p>
+      <div class="row"><button class="btn ghost" data-d="-1" ${k === 0 ? 'disabled' : ''}>← Назад</button><button class="btn" data-d="1" ${k === steps.length - 1 ? 'disabled' : ''}>Шаг вперёд →</button></div>`;
+      el.querySelectorAll('button').forEach(b => b.onclick = () => { k += +b.dataset.d; draw(); });
+    };
+    draw();
+  }
+};
+
+function viewTools(){
+  return `<div class="crumbs"><a href="#/">главная</a> / инструменты</div><h1>Инструменты</h1>
+  <h2 style="margin-top:26px">Калькулятор подсетей</h2><div data-widget="subnet"></div>
+  <h2 style="margin-top:26px">TCP: установка и закрытие соединения</h2><p class="small">Подробно разбирается в модуле 7.</p><div data-widget="tcp"></div>
+  <h2 style="margin-top:26px">Инкапсуляция</h2><div data-widget="encap"></div>`;
+}
+
+// ====== ГЛОССАРИЙ ======
+function viewGlossary(){
+  return `<div class="crumbs"><a href="#/">главная</a> / глоссарий</div><h1>Глоссарий</h1><input type="text" id="glq" placeholder="Поиск термина" style="width:100%;max-width:400px;margin:16px 0" aria-label="Поиск"><div id="gl"></div>`;
+}
+function mountGlossary(){
+  const draw = () => {
+    const s = $('#glq').value.trim().toLowerCase();
+    const items = GLOSSARY.filter(g => !s || (g[0] + ' ' + g[1]).toLowerCase().includes(s)).sort((a, b) => a[0].localeCompare(b[0], 'ru'));
+    $('#gl').innerHTML = items.map(g => `<div class="gl-item"><b>${esc(g[0])}</b> — ${esc(g[1])} <a href="#/l/${g[2]}" class="small">урок ${g[2].replace('-', '.')}</a></div>`).join('') || '<p class="small">Ничего не найдено.</p>';
+  };
+  $('#glq').oninput = draw; draw();
+}
+
+// ====== ШПАРГАЛКИ ======
+function viewCheats(){
+  const t = (head, rows) => `<div class="tbl"><table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+  return `<div class="crumbs"><a href="#/">главная</a> / шпаргалки</div><h1>Шпаргалки</h1>
+  <h2 style="margin-top:26px">Известные порты</h2>${t(['Порт','Протокол','Транспорт'], [['20/21','FTP','TCP'],['22','SSH, SFTP','TCP'],['25','SMTP','TCP'],['53','DNS','UDP/TCP'],['67/68','DHCP','UDP'],['80','HTTP','TCP'],['123','NTP','UDP'],['143 / 993','IMAP / IMAPS','TCP'],['443','HTTPS, HTTP/3','TCP / UDP'],['465 / 587','SMTP с TLS / submission','TCP'],['3306','MySQL','TCP'],['5432','PostgreSQL','TCP'],['6379','Redis','TCP'],['8080','HTTP (альтернативный)','TCP'],['27017','MongoDB','TCP']])}
+  <h2 style="margin-top:26px">Коды ответа HTTP</h2>${t(['Код','Значение'], [['200','OK'],['201','Created'],['204','No Content'],['301 / 308','Постоянный редирект'],['302 / 307','Временный редирект'],['304','Not Modified (кэш актуален)'],['400','Bad Request'],['401','Нужна аутентификация'],['403','Доступ запрещён'],['404','Не найдено'],['409','Конфликт'],['429','Слишком много запросов'],['500','Ошибка сервера'],['502','Bad Gateway: прокси получил плохой ответ'],['503','Сервис недоступен'],['504','Gateway Timeout: апстрим не ответил']])}
+  <h2 style="margin-top:26px">Типы DNS-записей</h2>${t(['Тип','Назначение'], [['A','Имя → IPv4'],['AAAA','Имя → IPv6'],['CNAME','Псевдоним другого имени'],['MX','Почтовый сервер домена'],['TXT','Произвольный текст: SPF, верификация'],['NS','Авторитетные серверы зоны'],['SOA','Параметры зоны'],['SRV','Сервис: хост и порт'],['PTR','IP → имя (обратная зона)']])}
+  <h2 style="margin-top:26px">CIDR</h2>${t(['Префикс','Маска','Адресов','Хостов'], [['/8','255.0.0.0','16 777 216','16 777 214'],['/16','255.255.0.0','65 536','65 534'],['/20','255.255.240.0','4 096','4 094'],['/22','255.255.252.0','1 024','1 022'],['/24','255.255.255.0','256','254'],['/25','255.255.255.128','128','126'],['/26','255.255.255.192','64','62'],['/27','255.255.255.224','32','30'],['/28','255.255.255.240','16','14'],['/29','255.255.255.248','8','6'],['/30','255.255.255.252','4','2'],['/32','255.255.255.255','1','1']])}
+  <h2 style="margin-top:26px">Команды диагностики</h2>${t(['Команда','Что делает'], [['<code>ip a</code> / <code>ipconfig</code>','Адреса интерфейсов'],['<code>ip route</code> / <code>route print</code>','Таблица маршрутов'],['<code>ip neigh</code> / <code>arp -a</code>','ARP-кэш'],['<code>ping host</code>','Доступность и RTT'],['<code>traceroute host</code> / <code>tracert</code>','Путь пакета'],['<code>mtr host</code>','traceroute + ping в реальном времени'],['<code>dig example.com</code>','DNS-запрос'],['<code>curl -v https://…</code>','HTTP-запрос с заголовками и TLS'],['<code>ss -tlnp</code>','Какие порты слушаются'],['<code>tcpdump -i eth0 port 443</code>','Захват трафика']])}`;
+}
+
+// ====== ПРОГРЕСС ======
+function viewProgress(){
+  const o = overall(); const last = lsGet(LS_BACKUP);
+  let fileBlock;
+  if (!FS_SUPPORTED){
+    fileBlock = `<p>Ваш браузер не умеет автоматически сохранять в файл (это доступно в Chrome, Edge, Opera, Яндекс Браузере). Используйте кнопки ниже: скачайте копию и откройте её, когда нужно.</p>`;
+  } else if (P.handle){
+    fileBlock = `<p>Файл привязан: <b>${esc(P.handle.name)}</b>. Статус: ${{ ok:'сохраняется автоматически', denied:'нужен доступ', error:'ошибка записи' }[P.fileStatus] || '—'}${P.lastFileSave ? ', последнее сохранение в ' + fmtTime(P.lastFileSave) : ''}.</p>
+    <div class="row">${P.fileStatus !== 'ok' ? '<button class="btn" id="reqAccess">Разрешить доступ к файлу</button>' : '<button class="btn ghost" id="saveNow">Сохранить сейчас</button>'}<button class="btn ghost" id="relink">Выбрать другой файл</button><button class="btn ghost" id="unlink">Отвязать</button></div>`;
+  } else {
+    fileBlock = `<p>Привяжите файл один раз, и каждое изменение прогресса будет сохраняться в него автоматически. После перезапуска браузера может понадобиться один клик, чтобы снова разрешить доступ.</p>
+    <div class="row"><button class="btn" id="link">Создать файл прогресса</button><button class="btn ghost" id="openLinked">Открыть существующий файл</button></div>`;
+  }
+  let imp = '';
+  if (pendingImport){
+    const pd = pendingImport; const done = Object.values(pd.lessons).filter(x => x.completed).length;
+    imp = `<div class="banner"><span>Загружен файл от ${new Date(pd.savedAt).toLocaleString('ru-RU')}: ${done} уроков, ${Object.keys(pd.tests).length} тестов. Что сделать с текущим прогрессом?</span><span class="row"><button class="btn" id="impReplace">Заменить</button><button class="btn ghost" id="impMerge">Объединить</button><button class="btn ghost" id="impCancel">Отмена</button></span></div>`;
+  }
+  return `<div class="crumbs"><a href="#/">главная</a> / прогресс</div><h1>Прогресс и файл</h1>${imp}
+  <div class="stats"><div class="stat"><b>${o.pct}%</b><span>курса</span></div><div class="stat"><b>${o.done}/${o.lessons}</b><span>уроков</span></div><div class="stat"><b>${o.passed}/${MODULES.length}</b><span>тестов</span></div><div class="stat"><b>${P.state.finalExam ? P.state.finalExam.bestScore + '%' : '—'}</b><span>экзамен</span></div></div>
+  <h2 style="margin-top:20px">Автосохранение в файл</h2>${fileBlock}
+  <h2 style="margin-top:28px">Копия вручную</h2>
+  <p class="small">Последняя копия: ${last ? new Date(last).toLocaleString('ru-RU') : 'ещё не сохранялась'}.</p>
+  <div class="row"><button class="btn ghost" id="export">Скачать копию (.json)</button><label class="btn ghost" for="impFile" style="cursor:pointer">Загрузить из файла</label><input type="file" id="impFile" accept=".json,application/json" hidden></div>
+  <h2 style="margin-top:28px">Результаты тестов</h2>
+  <div class="tbl"><table><tr><th>Модуль</th><th>Лучший</th><th>Последний</th><th>Попыток</th></tr>${MODULES.map(m => { const t = P.state.tests['m' + m.id]; return `<tr><td>${m.id}. ${esc(m.title)}</td><td>${t ? t.bestScore + '%' : '—'}</td><td>${t ? t.lastScore + '%' : '—'}</td><td>${t ? t.attempts : 0}</td></tr>`; }).join('')}</table></div>
+  <h2 style="margin-top:28px">Настройки</h2>
+  <label class="opt" style="max-width:520px"><input type="checkbox" id="unlockAll" ${P.state.settings.unlockAll ? 'checked' : ''}><span>Открыть все модули без сдачи тестов</span></label>
+  <h2 style="margin-top:28px">Сброс</h2>
+  <button class="btn danger" id="resetBtn">Сбросить весь прогресс</button>
+  ${confirmReset ? `<div class="confirm">Весь прогресс будет удалён без возможности восстановления. Сначала скачайте копию, если она может понадобиться.<div class="row" style="margin-top:10px"><button class="btn ghost" id="resetExport">Скачать копию</button><button class="btn danger" id="resetYes">Да, сбросить</button><button class="btn ghost" id="resetNo">Отмена</button></div></div>` : ''}`;
+}
+function mountProgress(){
+  const on = (id, fn) => { const e = document.getElementById(id); if (e) e.onclick = fn; };
+  on('link', () => P.linkFile()); on('relink', () => P.linkFile()); on('openLinked', () => P.openLinkedFile());
+  on('unlink', () => P.unlink()); on('reqAccess', () => P.requestAccess()); on('saveNow', async () => { await P.writeFile(); toast('Сохранено в файл.'); render(); });
+  on('export', () => P.exportFile());
+  const f = $('#impFile'); if (f) f.onchange = () => { if (f.files[0]) P.importFile(f.files[0]); };
+  on('impReplace', () => { P.apply(pendingImport, 'replace'); pendingImport = null; toast('Прогресс заменён.'); render(); });
+  on('impMerge', () => { P.apply(pendingImport, 'merge'); pendingImport = null; toast('Прогресс объединён.'); render(); });
+  on('impCancel', () => { pendingImport = null; render(); });
+  const u = $('#unlockAll'); if (u) u.onchange = () => { P.state.settings.unlockAll = u.checked; P.save(); renderSide(); };
+  on('resetBtn', () => { confirmReset = true; render(); });
+  on('resetNo', () => { confirmReset = false; render(); });
+  on('resetExport', () => P.exportFile());
+  on('resetYes', () => { confirmReset = false; P.reset(); toast('Прогресс сброшен.'); render(); });
+}
+
+// ====== СТАРТ ======
+P.load(); applyTheme(); render(); P.restoreHandle();
+
+</script>
+</body>
+</html>
