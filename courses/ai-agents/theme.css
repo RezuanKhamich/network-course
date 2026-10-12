@@ -1,0 +1,19 @@
+/* Цвета курса: переопределяют токены из assets/css/base.css */
+:root{
+ --bg:#f4f5f7; --panel:#ffffff; --ink:#191b22; --muted:#5d6170; --line:#dcdee5;
+ --accent:#a8500a; --accent-ink:#ffffff; --accent-soft:#fbeedd;
+ --ok:#1f8a3b; --ok-soft:#e1f4e5; --bad:#b4332c; --bad-soft:#fbe5e3; --warn:#8a5a00; --warn-soft:#fbf0d9;
+ --code-bg:#15171e; --code-ink:#e6e1d6;
+ --f-body:'Golos Text', 'Segoe UI', system-ui, sans-serif;
+ --f-mono:'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+ --bg:#111318; --panel:#191c23; --ink:#e7e8ec; --muted:#9a9eab; --line:#2a2e38;
+ --accent:#f0a33a; --accent-ink:#231300; --accent-soft:#3a2a12;
+ --ok:#52c372; --ok-soft:#173523; --bad:#ef7a72; --bad-soft:#3c1d1b; --warn:#e3b04b; --warn-soft:#3a2d10;
+ --code-bg:#0b0c10; --code-ink:#e6e1d6; color-scheme:dark }}
+:root[data-theme="dark"]{
+ --bg:#111318; --panel:#191c23; --ink:#e7e8ec; --muted:#9a9eab; --line:#2a2e38;
+ --accent:#f0a33a; --accent-ink:#231300; --accent-soft:#3a2a12;
+ --ok:#52c372; --ok-soft:#173523; --bad:#ef7a72; --bad-soft:#3c1d1b; --warn:#e3b04b; --warn-soft:#3a2d10;
+ --code-bg:#0b0c10; --code-ink:#e6e1d6; color-scheme:dark }
