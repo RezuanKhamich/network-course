@@ -1,0 +1,151 @@
+{
+  "course": {
+    "id": "cyber-security",
+    "title": "Информационная безопасность для разработчиков",
+    "source": "https://roadmap.sh/cyber-security",
+    "audience": "Разработчики и начинающие специалисты ИБ, знакомые с программированием, но без опыта в безопасности",
+    "journeyLabel": "Разбор инцидента",
+    "icon": "🛡️"
+  },
+  "modules": [
+    {
+      "id": 0, "title": "Введение в безопасность", "short": "CIA-триада, риск, глубокая защита, профессия и этика",
+      "lessons": [
+        { "id": "0-1", "title": "Зачем разработчику ИБ: триада CIA", "topics": ["security-skills-and-knowledge", "understand-cia-triad"] },
+        { "id": "0-2", "title": "Риск, угроза, уязвимость", "topics": ["understand-the-definition-of-risk", "known-vs-unknown", "zero-day", "apt"] },
+        { "id": "0-3", "title": "Глубокая защита, изоляция и Zero Trust", "topics": ["understand-concept-of-defense-in-depth", "understand-concept-of-isolation", "core-concepts-of-zero-trust"] },
+        { "id": "0-4", "title": "Профессия: синие, красные, фиолетовые команды и сертификации", "topics": ["blue--red--purple-teams", "comptia-a", "comptia-linux", "comptia-network", "ccna", "comptia-security", "ceh", "cisa", "cism", "gsec", "gpen", "gwapt", "giac", "oscp", "crest", "cissp"] },
+        { "id": "0-5", "title": "Этика, закон и где тренироваться легально", "topics": ["penetration-testing-rules-of-engagement", "hackthebox", "tryhackme", "vulnhub", "picoctf", "pwncollege", "sans-holiday-hack-challenge"] }
+      ]
+    },
+    {
+      "id": 1, "title": "IT-фундамент и операционные системы", "short": "Железо, ОС, права, CLI, виртуализация и лаборатория",
+      "lessons": [
+        { "id": "1-1", "title": "Железо, интерфейсы и беспроводные соединения", "topics": ["fundamental-it-skills", "computer-hardware-components", "connection-types-and-their-function", "nfc", "bluetooth", "wifi", "infrared"] },
+        { "id": "1-2", "title": "Windows, Linux, macOS: установка и различия", "topics": ["operating-systems", "windows", "linux", "macos", "installation-and-configuration", "different-versions-and-differences", "installing-software-and-applications"] },
+        { "id": "1-3", "title": "Командная строка, файлы и диагностика", "topics": ["navigating-using-gui-and-cli", "performing-crud-on-files", "common-commands", "troubleshooting", "os-independent-troubleshooting", "grep", "head", "tail", "cat"] },
+        { "id": "1-4", "title": "Права доступа в ОС", "topics": ["understand-permissions"] },
+        { "id": "1-5", "title": "Офисные пакеты и облачные аккаунты как поверхность атаки", "topics": ["understand-basics-of-popular-suites", "ms-office-suite", "google-suite"] },
+        { "id": "1-6", "title": "Виртуализация: собираем свою лабораторию", "topics": ["hypervisor", "hostos", "guestos", "vm", "vmware", "virtualbox", "esxi", "proxmox"] },
+        { "id": "1-7", "title": "Программирование и скрипты для безопасника", "topics": ["programming-skills", "python", "go", "javascript", "c", "bash", "power-shell"] }
+      ]
+    },
+    {
+      "id": 2, "title": "Сети глазами защитника", "short": "Адресация, устройства, протоколы, порты и инструменты диагностики",
+      "lessons": [
+        { "id": "2-1", "title": "Модель OSI, IP-адресация и подсети", "topics": ["networking-knowledge", "basics-of-computer-networking", "understand-the-osi-model", "basics-of-subnetting", "public-vs-private-ip-addresses", "ip", "cidr", "subnet-mask", "default-gateway", "localhost", "loopback"] },
+        { "id": "2-2", "title": "Устройства, топологии и сегменты сети", "topics": ["router", "switch", "vpn", "lan", "wan", "man", "wlan", "star", "ring", "mesh", "bus", "vlan", "dmz", "nat", "arp"] },
+        { "id": "2-3", "title": "Сетевые службы и хранилища", "topics": ["dhcp", "dns", "ntp", "ipam", "basics-of-nas-and-san"] },
+        { "id": "2-4", "title": "Протоколы и порты, которые нужно знать", "topics": ["common-protocols-and-their-uses", "common-ports-and-their-uses", "ssh", "rdp", "ftp", "sftp", "http--https", "ssl--tls", "ssl-and-tls-basics", "understand-handshakes"] },
+        { "id": "2-5", "title": "Инструменты: ping, nmap, tcpdump, Wireshark", "topics": ["ping", "tracert", "ipconfig", "nslookup", "dig", "netstat", "route", "nmap", "tcpdump", "iptables", "packet-sniffers", "port-scanners", "protocol-analyzers", "wireshark", "hping", "curl"] }
+      ]
+    },
+    {
+      "id": 3, "title": "Аутентификация и управление доступом", "short": "Кто вы и что вам можно: MFA, SSO, Kerberos, LDAP, привилегии",
+      "lessons": [
+        { "id": "3-1", "title": "Аутентификация, авторизация и MFA", "topics": ["authentication-vs-authorization", "local-auth", "mfa--2fa"] },
+        { "id": "3-2", "title": "Корпоративная аутентификация: Kerberos, LDAP, RADIUS, SSO", "topics": ["kerberos", "ldap", "radius", "sso", "certificates"] },
+        { "id": "3-3", "title": "Атаки на учётные данные", "topics": ["brute-force-vs-password-spray", "pass-the-hash"] },
+        { "id": "3-4", "title": "ACL, групповые политики и минимальные привилегии", "topics": ["acls", "acl", "group-policy", "jump-server"] },
+        { "id": "3-5", "title": "Повышение привилегий", "topics": ["privilege-escalation"] }
+      ]
+    },
+    {
+      "id": 4, "title": "Криптография на практике", "short": "Хеши, соль, ключи, PKI, TLS и защищённые версии протоколов",
+      "lessons": [
+        { "id": "4-1", "title": "Хеширование и соль: как правильно хранить пароли", "topics": ["hashing", "salting"] },
+        { "id": "4-2", "title": "Симметричное и асимметричное шифрование, обмен ключами", "topics": ["private-vs-public-keys", "key-exchange", "obfuscation"] },
+        { "id": "4-3", "title": "PKI и сертификаты", "topics": ["pki"] },
+        { "id": "4-4", "title": "SSL и TLS: что изменилось и почему", "topics": ["ssl-vs-tls"] },
+        { "id": "4-5", "title": "Защищённые и незащищённые протоколы", "topics": ["ftp-vs-sftp", "ipsec", "dnssec", "ldaps", "srtp", "smime"] }
+      ]
+    },
+    {
+      "id": 5, "title": "Социальная инженерия", "short": "Фишинг во всех вариантах, офлайн-приёмы и атаки через сайты",
+      "lessons": [
+        { "id": "5-1", "title": "Как работает социальная инженерия", "topics": ["social-engineering", "reconnaissance", "impersonation"] },
+        { "id": "5-2", "title": "Фишинг, вишинг, смишинг и уэйлинг", "topics": ["phishing", "whishing", "smishing", "whaling", "spam-vs-spim"] },
+        { "id": "5-3", "title": "Тайпсквоттинг, watering hole и drive-by", "topics": ["typo-squatting", "watering-hole-attack", "drive-by-attack"] },
+        { "id": "5-4", "title": "Физическая безопасность: tailgating, подглядывание, мусор", "topics": ["shoulder-surfing", "tailgating", "dumpster-diving"] }
+      ]
+    },
+    {
+      "id": 6, "title": "Сетевые и беспроводные атаки", "short": "MITM, спуфинг, DoS, атаки на Wi-Fi и VLAN",
+      "lessons": [
+        { "id": "6-1", "title": "MITM, спуфинг и отравление DNS", "topics": ["mitm", "spoofing", "dns-poisoning"] },
+        { "id": "6-2", "title": "Replay-атаки", "topics": ["replay-attack"] },
+        { "id": "6-3", "title": "DoS и DDoS", "topics": ["dos-vs-ddos"] },
+        { "id": "6-4", "title": "Wi-Fi: от WEP до WPA3", "topics": ["wpa-vs-wpa2-vs-wpa3-vs-wep", "wps", "eap-vs-peap"] },
+        { "id": "6-5", "title": "Evil twin, rogue AP и деаутентификация", "topics": ["evil-twin", "rogue-access-point", "deauth-attack"] },
+        { "id": "6-6", "title": "Сегментация, периметр и VLAN hopping", "topics": ["perimiter-vs-dmz-vs-segmentation", "vlan-hopping"] }
+      ]
+    },
+    {
+      "id": 7, "title": "Атаки на приложения и вредоносное ПО", "short": "OWASP Top 10, инъекции, CSRF, ошибки памяти, малварь",
+      "lessons": [
+        { "id": "7-1", "title": "OWASP Top 10: карта рисков веба", "topics": ["web-based-attacks-and-owasp10"] },
+        { "id": "7-2", "title": "SQL-инъекции", "topics": ["sql-injection"] },
+        { "id": "7-3", "title": "XSS", "topics": ["xss"] },
+        { "id": "7-4", "title": "CSRF и обход каталогов", "topics": ["csrf", "directory-traversal"] },
+        { "id": "7-5", "title": "Переполнение буфера и утечки памяти", "topics": ["buffer-overflow", "memory-leak"] },
+        { "id": "7-6", "title": "Как устроено вредоносное ПО", "topics": ["learn-how-malware-works-and-types"] }
+      ]
+    },
+    {
+      "id": 8, "title": "Защита инфраструктуры", "short": "Харденинг, патчи, межсетевые экраны, IDS/IPS, EDR, бэкапы",
+      "lessons": [
+        { "id": "8-1", "title": "Харденинг ОС, патчи и закрытие портов", "topics": ["operating-system-hardening", "patching", "port-blocking"] },
+        { "id": "8-2", "title": "Межсетевые экраны и NGFW", "topics": ["firewall--nextgen-firewall", "host-based-firewall"] },
+        { "id": "8-3", "title": "IDS и IPS, honeypots и sinkholes", "topics": ["basics-of-ids-and-ips", "nids", "nips", "hips", "honeypots", "sinkholes"] },
+        { "id": "8-4", "title": "Защита конечных точек: антивирус, EDR, DLP, песочницы", "topics": ["endpoint-security", "antivirus", "antimalware", "edr", "dlp", "sandboxing"] },
+        { "id": "8-5", "title": "Контроль доступа к сети: NAC и MAC-фильтрация", "topics": ["nac-based", "mac-based"] },
+        { "id": "8-6", "title": "Резервные копии и устойчивость", "topics": ["understand-backups-and-resiliency"] }
+      ]
+    },
+    {
+      "id": 9, "title": "Мониторинг и обнаружение", "short": "Логи, SIEM, ложные срабатывания, threat intel и проверка индикаторов",
+      "lessons": [
+        { "id": "9-1", "title": "Какие логи собирать и где их искать", "topics": ["event-logs", "syslogs", "netflow", "firewall-logs", "packet-captures"] },
+        { "id": "9-2", "title": "SIEM и SOAR", "topics": ["siem", "soar"] },
+        { "id": "9-3", "title": "Ложные и истинные срабатывания", "topics": ["false-negative--false-positive", "true-negative--true-positive"] },
+        { "id": "9-4", "title": "Threat intelligence, OSINT и охота на угрозы", "topics": ["basics-of-threat-intel-osint", "basics-and-concepts-of-threat-hunting"] },
+        { "id": "9-5", "title": "Проверка подозрительных файлов и ссылок", "topics": ["virustotal", "urlscan", "anyrun", "joe-sandbox", "urlvoid", "whois"] }
+      ]
+    },
+    {
+      "id": 10, "title": "Реагирование на инциденты и форензика", "short": "Процесс IR от подготовки до разбора, ранбуки, сбор улик",
+      "lessons": [
+        { "id": "10-1", "title": "Процесс реагирования: шесть этапов", "topics": ["preparation", "identification", "containment", "eradication", "recovery", "lessons-learned"] },
+        { "id": "10-2", "title": "Ранбуки и коммуникации во время инцидента", "topics": ["understand-concept-of-runbooks", "stakeholders", "hr", "legal"] },
+        { "id": "10-3", "title": "Основы цифровой криминалистики", "topics": ["understand-basics-of-forensics", "dd", "memdump", "ftk-imager", "autopsy", "winhex"] },
+        { "id": "10-4", "title": "Основы реверс-инжиниринга", "topics": ["basics-of-reverse-engineering"] }
+      ]
+    },
+    {
+      "id": 11, "title": "Взгляд атакующего", "short": "Kill Chain, ATT&CK, пентест, инструменты и управление уязвимостями",
+      "lessons": [
+        { "id": "11-1", "title": "Модели атак: Kill Chain, ATT&CK, Diamond", "topics": ["cyber-kill-chain", "kill-chain", "attck", "diamond-model"] },
+        { "id": "11-2", "title": "Как проходит пентест", "topics": ["understand-common-hacking-tools", "kali-linux", "parrotos"] },
+        { "id": "11-3", "title": "Фреймворки эксплуатации", "topics": ["understand-common-exploit-frameworks"] },
+        { "id": "11-4", "title": "Living off the land: LOLBAS и GTFOBins", "topics": ["lolbas", "gtfobins", "wadcoms"] },
+        { "id": "11-5", "title": "Управление уязвимостями", "topics": ["basics-of-vulnerability-management"] }
+      ]
+    },
+    {
+      "id": 12, "title": "Управление ИБ: стандарты и комплаенс", "short": "ISO 27001, NIST, CIS, CSF, RMF, аудит и работа с бизнесом",
+      "lessons": [
+        { "id": "12-1", "title": "Стандарты и фреймворки", "topics": ["iso", "nist", "cis", "csf", "rmf"] },
+        { "id": "12-2", "title": "Комплаенс, аудиторы и руководство", "topics": ["roles-of-compliance-and-auditors", "compliance", "management"] }
+      ]
+    },
+    {
+      "id": 13, "title": "Безопасность в облаке", "short": "Модели облака, разделённая ответственность, IaC, serverless и хранилища",
+      "lessons": [
+        { "id": "13-1", "title": "Облако и on-premises: модели и типы", "topics": ["cloud-skills-and-knowledge", "understand-the-differences-between-cloud-and-on-premises", "saas", "paas", "iaas", "private", "public", "hybrid"] },
+        { "id": "13-2", "title": "Модель разделённой ответственности: AWS, GCP, Azure", "topics": ["understand-the-concept-of-security-in-the-cloud", "aws", "gcp", "azure"] },
+        { "id": "13-3", "title": "Деплой, инфраструктура как код и serverless", "topics": ["understand-the-basics-and-general-flow-of-deploying-in-the-cloud", "understand-the-concept-of-infrastructure-as-code", "understand-the-concept-of-serverless"] },
+        { "id": "13-4", "title": "Облачные хранилища: S3, Drive, OneDrive и утечки", "topics": ["s3", "dropbox", "box", "onedrive", "google-drive", "icloud"] }
+      ]
+    }
+  ]
+}
