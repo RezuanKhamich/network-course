@@ -22,6 +22,16 @@ const COURSES = [
     color: '#a8500a', colorDark: '#f0a33a',
     icon: '🤖',
     tags: ['LLM', 'RAG', 'MCP', 'Tools']
+  },
+  {
+    id: 'devops',
+    title: 'DevOps для разработчиков',
+    short: 'От коммита до продакшена: Linux, Git, CI/CD, Docker, Kubernetes, Terraform, облака, мониторинг, SRE и безопасность поставки.',
+    path: 'courses/devops/',
+    lessons: 52, modules: 13,
+    color: '#3d4fc4', colorDark: '#8c9bff',
+    icon: '🚀',
+    tags: ['CI/CD', 'Docker', 'K8s', 'IaC']
   }
 ];
 const findCourse = id => COURSES.find(c => c.id === id);
