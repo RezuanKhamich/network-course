@@ -76,15 +76,15 @@
 .profile-head input{font:700 1.6rem var(--f-body);border:1px dashed transparent;background:transparent;color:var(--ink);padding:2px 6px;border-radius:6px;width:min(360px,100%)}
 .profile-head input:hover,.profile-head input:focus{border-color:var(--line);background:var(--panel)}
 .avatars{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 18px}
-.avatars button{width:40px;height:40px;font-size:22px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+.avatars button{width:40px;height:40px;padding:0;display:grid;place-items:center;line-height:1;font-size:22px;border-radius:10px;border:1px solid var(--line);background:var(--panel);overflow:hidden}
 .avatars button.on{border-color:var(--accent);background:var(--accent-soft)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin:18px 0 26px}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
 .kpi b{display:block;font:700 1.5rem var(--f-mono)}
 .kpi span{font-size:.8rem;color:var(--muted)}
 .heat-wrap{overflow-x:auto;padding-bottom:4px}
-.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,12px);gap:3px;width:max-content}
-.heat i{width:12px;height:12px;border-radius:3px;background:var(--line)}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,auto);grid-auto-columns:minmax(10px,1fr);gap:3px;width:100%;min-width:max-content}
+.heat i{aspect-ratio:1;min-width:10px;border-radius:3px;background:var(--line)}
 .heat i.l1{background:color-mix(in srgb,var(--ok) 30%,var(--line))}
 .heat i.l2{background:color-mix(in srgb,var(--ok) 55%,var(--line))}
 .heat i.l3{background:color-mix(in srgb,var(--ok) 80%,var(--line))}

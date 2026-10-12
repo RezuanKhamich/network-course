@@ -119,7 +119,7 @@ function viewHome(){
 // ====== ПРОФИЛЬ ======
 function heatmap(){
   const days = Store.state.game.days, goal = Game.goal();
-  const weeks = 20, end = new Date(); end.setHours(12, 0, 0, 0);
+  const weeks = 53, end = new Date(); end.setHours(12, 0, 0, 0);
   // начинаем с понедельника, чтобы строки сетки были днями недели
   const start = new Date(end); start.setDate(end.getDate() - (weeks - 1) * 7);
   while (start.getDay() !== 1) start.setDate(start.getDate() - 1);
@@ -151,7 +151,7 @@ function viewProfile(){
    <div class="kpi"><b>🔥 ${s.current}</b><span>серия (рекорд ${s.best})</span></div>
    <div class="kpi"><b>${activeDays}</b><span>дней с занятиями</span></div>
   </div>
-  <h2>Активность</h2><p class="small">Последние 20 недель. Насыщенность — сколько XP набрано за день относительно дневной цели.</p>${heatmap()}
+  <h2>Активность</h2><p class="small">Последний год. Насыщенность — сколько XP набрано за день относительно дневной цели.</p>${heatmap()}
   <h2 style="margin-top:28px">Курсы</h2>
   <div class="tbl"><table><tr><th>Курс</th><th>Прогресс</th><th>Уроки</th><th>Тесты</th><th>Экзамен</th></tr>${COURSES.map(c => { const p = courseProgress(c.id); return `<tr><td><a href="${c.path}">${c.icon} ${esc(c.title)}</a></td><td>${p.pct}%</td><td>${p.done}/${p.lessons}</td><td>${p.passed}/${p.modules}</td><td>${p.exam ? p.exam.bestScore + '%' : '—'}</td></tr>`; }).join('')}</table></div>
   <h2 style="margin-top:28px" id="achievements">Достижения · ${got} из ${ACHIEVEMENTS.length}</h2>
@@ -168,6 +168,8 @@ function viewProfile(){
 function mountProfile(){
   const n = $('#nameInp');
   n.onchange = () => { Store.state.profile.name = n.value.trim(); Store.save(); renderStatus(); };
+  // на узком экране карта прокручивается — показываем последние недели
+  const hw = $('.heat-wrap'); if (hw) hw.scrollLeft = hw.scrollWidth;
   $('#avaBtn').onclick = () => { avatarPicker = !avatarPicker; render(); };
   document.querySelectorAll('[data-ava]').forEach(b => b.onclick = () => { Store.state.profile.avatar = b.dataset.ava; avatarPicker = false; Store.save(); render(); });
   document.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => { achFilter = b.dataset.filter; render(); });
