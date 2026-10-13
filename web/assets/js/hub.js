@@ -1,8 +1,9 @@
 // ====== ГЛАВНАЯ САЙТА: каталог, профиль, данные ======
 import { Store, FS_SUPPORTED, LS_BACKUP, $, esc, toast, fmtTime, plural, dayKey, lsGet, applyTheme, cycleTheme } from './storage.js';
 import { COURSES, findCourse } from './courses.js';
-import { Game, ACHIEVEMENTS, AVATARS, PASS, TIER_XP, XP, confetti, courseProgress } from './game.js';
+import { Game, ACHIEVEMENTS, AVATARS, PASS, TIER_XP, XP, confetti, courseProgress, heatmapHtml } from './game.js';
 import { Account } from './sync.js';
+import { Social, takeInviteFromHash, mountFriends, mountFriend } from './friends-views.js';
 import { takeTokenFromHash, viewAccount, mountAccount, viewVerify, mountVerify, viewReset, mountReset, viewForgot, mountForgot, viewPrivacy } from './account-views.js';
 
 // Ссылки старой одностраничной версии курса «Сети» (index.html#/l/0-1 и т. п.) ведут в новый курс
@@ -37,7 +38,7 @@ function renderSide(){
   const h = location.hash || '#/';
   const link = (href, label) => `<a href="${href}" class="${h === href ? 'active' : ''}">${label}</a>`;
   let html = `<a class="brand" href="#/"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="4" width="22" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 10l3 3-3 3M12 16h7" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Курсы для разработчиков</a>`;
-  html += '<nav class="nav">' + link('#/', '<span class="port">~</span>Главная') + link('#/profile', '<span class="port">★</span>Профиль и достижения') + link('#/data', '<span class="port">↓</span>Данные и настройки') + link('#/account', '<span class="port">@</span>' + (Account.user ? 'Аккаунт' : 'Вход и регистрация'));
+  html += '<nav class="nav">' + link('#/', '<span class="port">~</span>Главная') + link('#/profile', '<span class="port">★</span>Профиль и достижения') + link('#/data', '<span class="port">↓</span>Данные и настройки') + link('#/friends', '<span class="port">♟</span>Друзья' + (Social.incoming ? ` <span class="badge">${Social.incoming}</span>` : '')) + link('#/account', '<span class="port">@</span>' + (Account.user ? 'Аккаунт' : 'Вход и регистрация'));
   html += '<div class="nav-label">Курсы</div>';
   for (const c of COURSES){
     const p = courseProgress(c.id);
@@ -57,6 +58,11 @@ function render(){
   else if (r === 'account'){ v.innerHTML = viewAccount(); mountAccount(render); }
   else if (r === 'privacy') v.innerHTML = viewPrivacy();
   else if (r === 'auth') renderAuth(v);
+  else if (r === 'friends'){
+    takeInviteFromHash();
+    const [, sub, id] = (location.hash || '').slice(1).split('/').filter(Boolean);
+    if (sub === 'u' && id) mountFriend(v, render, id); else mountFriends(v, render);
+  }
   else v.innerHTML = '<h1>Страница не найдена</h1><p><a href="#/">На главную</a></p>';
 }
 window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
@@ -138,21 +144,6 @@ function viewHome(){
 }
 
 // ====== ПРОФИЛЬ ======
-function heatmap(){
-  const days = Store.state.game.days, goal = Game.goal();
-  const weeks = 53, end = new Date(); end.setHours(12, 0, 0, 0);
-  // начинаем с понедельника, чтобы строки сетки были днями недели
-  const start = new Date(end); start.setDate(end.getDate() - (weeks - 1) * 7);
-  while (start.getDay() !== 1) start.setDate(start.getDate() - 1);
-  let cells = '';
-  for (const d = new Date(start); d <= end || d.getDay() !== 1; d.setDate(d.getDate() + 1)){
-    if (d > end){ cells += '<i class="fut"></i>'; continue; }
-    const xp = days[dayKey(d)] || 0;
-    const lv = !xp ? '' : xp >= goal * 2 ? 'l4' : xp >= goal ? 'l3' : xp >= goal / 2 ? 'l2' : 'l1';
-    cells += `<i class="${lv}" title="${d.toLocaleDateString('ru-RU')}: ${xp} XP"></i>`;
-  }
-  return `<div class="heat-wrap"><div class="heat">${cells}</div></div><div class="heat-legend">меньше <i style="background:var(--line)"></i><i class="l1" style="background:color-mix(in srgb,var(--ok) 30%,var(--line))"></i><i style="background:color-mix(in srgb,var(--ok) 55%,var(--line))"></i><i style="background:color-mix(in srgb,var(--ok) 80%,var(--line))"></i><i style="background:var(--ok)"></i> больше</div>`;
-}
 function viewProfile(){
   const pr = Store.state.profile, L = Game.level(), s = Game.streak(), ctx = Game.context();
   const got = Object.keys(Store.state.game.achievements).length;
@@ -172,7 +163,7 @@ function viewProfile(){
    <div class="kpi"><b>🔥 ${s.current}</b><span>серия (рекорд ${s.best})</span></div>
    <div class="kpi"><b>${activeDays}</b><span>дней с занятиями</span></div>
   </div>
-  <h2>Активность</h2><p class="small">Последний год. Насыщенность — сколько XP набрано за день относительно дневной цели.</p>${heatmap()}
+  <h2>Активность</h2><p class="small">Последний год. Насыщенность — сколько XP набрано за день относительно дневной цели.</p>${heatmapHtml(Store.state.game.days, Game.goal())}
   <h2 style="margin-top:28px">Курсы</h2>
   <div class="tbl"><table><tr><th>Курс</th><th>Прогресс</th><th>Уроки</th><th>Тесты</th><th>Экзамен</th></tr>${COURSES.map(c => { const p = courseProgress(c.id); return `<tr><td><a href="${c.path}">${c.icon} ${esc(c.title)}</a></td><td>${p.pct}%</td><td>${p.done}/${p.lessons}</td><td>${p.passed}/${p.modules}</td><td>${p.exam ? p.exam.bestScore + '%' : '—'}</td></tr>`; }).join('')}</table></div>
   <h2 style="margin-top:28px" id="achievements">Достижения · ${got} из ${ACHIEVEMENTS.length}</h2>
@@ -253,10 +244,14 @@ function mountData(){
 Store.load(); applyTheme(); Game.sync(true);
 render(); Store.restoreHandle();
 let accountStatus = Account.status;
-Account.onChange(() => {
+Account.onChange(async () => {
   renderStatus(); renderSide();
   // страницу аккаунта перерисовываем, только когда меняется сам статус входа, — иначе сотрём то, что вводят в форму
-  if (Account.status !== accountStatus){ accountStatus = Account.status; if ((location.hash || '').startsWith('#/account')) render(); }
+  if (Account.status !== accountStatus){
+    accountStatus = Account.status;
+    if (/^#\/(account|friends)/.test(location.hash || '')) render();
+    await Social.refresh(); renderSide();
+  }
 });
 Account.init();
 Store.onChange(kind => {

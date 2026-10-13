@@ -249,3 +249,19 @@ export function confetti(n = 100){
   };
   frame();
 }
+
+// Карта активности за год: days — { "YYYY-MM-DD": XP }
+export function heatmapHtml(days, goal){
+  const weeks = 53, end = new Date(); end.setHours(12, 0, 0, 0);
+  // начинаем с понедельника, чтобы строки сетки были днями недели
+  const start = new Date(end); start.setDate(end.getDate() - (weeks - 1) * 7);
+  while (start.getDay() !== 1) start.setDate(start.getDate() - 1);
+  let cells = '';
+  for (const d = new Date(start); d <= end || d.getDay() !== 1; d.setDate(d.getDate() + 1)){
+    if (d > end){ cells += '<i class="fut"></i>'; continue; }
+    const xp = days[dayKey(d)] || 0;
+    const lv = !xp ? '' : xp >= goal * 2 ? 'l4' : xp >= goal ? 'l3' : xp >= goal / 2 ? 'l2' : 'l1';
+    cells += `<i class="${lv}" title="${d.toLocaleDateString('ru-RU')}: ${xp} XP"></i>`;
+  }
+  return `<div class="heat-wrap"><div class="heat">${cells}</div></div><div class="heat-legend">меньше <i style="background:var(--line)"></i><i class="l1" style="background:color-mix(in srgb,var(--ok) 30%,var(--line))"></i><i style="background:color-mix(in srgb,var(--ok) 55%,var(--line))"></i><i style="background:color-mix(in srgb,var(--ok) 80%,var(--line))"></i><i style="background:var(--ok)"></i> больше</div>`;
+}
