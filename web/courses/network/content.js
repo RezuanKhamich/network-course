@@ -2,7 +2,7 @@
 // Загружается до assets/js/engine.js; константы видны движку как глобальные.
 // ====== КОНТЕНТ КУРСА ======
 // Типы вопросов: single | multiple | order | match | input | analyze
-const MODULES = [
+export const MODULES = [
 {
  id: 0, title: 'Общая картина', short: 'Модели, инкапсуляция, метрики',
  lessons: [
@@ -406,7 +406,7 @@ Vlan  Mac Address      Type     Ports
 ];
 
 // Модули в разработке — показываются на карте курса
-const UPCOMING = [
+export const UPCOMING = [
  { id:4, title:'IPv6', short:'Адресация, SLAAC, NDP, dual stack' },
  { id:5, title:'Маршрутизация', short:'Таблицы, OSPF, BGP, anycast, traceroute' },
  { id:6, title:'Устройство интернета', short:'Tier 1–3, IXP, RIR, сбои BGP' },
@@ -418,7 +418,7 @@ const UPCOMING = [
  { id:12, title:'Диагностика', short:'dig, curl, ss, tcpdump, Wireshark' }
 ];
 
-const GLOSSARY = [
+export const GLOSSARY = [
  ['ARP','Протокол поиска MAC-адреса по IP внутри локальной сети.','2-4'],
  ['Bandwidth','Пропускная способность: сколько бит в секунду проходит по каналу.','0-4'],
  ['BDP','Bandwidth-delay product: объём данных «в полёте», нужный для полной загрузки канала.','0-4'],

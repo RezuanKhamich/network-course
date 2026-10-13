@@ -1,5 +1,5 @@
 // Модуль 3. Аутентификация и управление доступом
-MODULES.push({
+export default {
  id: 3, title: 'Аутентификация и управление доступом', short: 'Кто вы и что вам можно: MFA, SSO, Kerberos, LDAP, привилегии',
  lessons: [
  { id: '3-1', title: 'Аутентификация, авторизация и MFA', topics: ['authentication-vs-authorization', 'local-auth', 'mfa--2fa'], html: `
@@ -150,4 +150,4 @@ User deploy may run the following commands:
   { id:'t3-11', type:'single', prompt:'Какой протокол проверяет пользователей при подключении к корпоративному Wi-Fi WPA2-Enterprise?', options:['RADIUS (802.1X)','Kerberos','NTP','SMB'], answer:0, explanation:'Точка доступа передаёт учётные данные RADIUS-серверу, а тот сверяется с каталогом.', difficulty:1 },
   { id:'t3-12', type:'single', prompt:'Что защищает сервисные учётки от Kerberoasting?', options:['Длинные случайные пароли или управляемые учётки gMSA','Отключение NTP','Порт 88 на нестандартном номере','Короткий срок жизни TGT пользователя'], answer:0, explanation:'Kerberoasting — офлайн-перебор пароля по билету; длинный случайный пароль делает перебор бессмысленным.', difficulty:3 }
  ]
-});
+};

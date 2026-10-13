@@ -1,5 +1,9 @@
 // Код, специфичный для курса «AI-агенты»: настройки, виджеты, сквозной сценарий, шпаргалки.
-const COURSE = {
+import { $, esc } from '../../assets/js/storage.js';
+import { Game } from '../../assets/js/game.js';
+import { findLesson } from '../../assets/js/engine.js';
+import { RES } from './content.js';
+export const COURSE = {
   id: 'ai-agents',
   title: 'AI-агенты для разработчиков',
   tagline: 'От того, как LLM предсказывает следующий токен, до агентов с инструментами, памятью, MCP, оценкой и защитой от prompt injection. Теория, код, интерактивные схемы и тесты после каждого модуля. Программа основана на роадмапе roadmap.sh/ai-agents.',
@@ -8,7 +12,7 @@ const COURSE = {
 };
 
 const RES_LABEL = { article:'статья', video:'видео', official:'документация', course:'курс', opensource:'код', book:'книга', podcast:'подкаст', roadmap:'роадмап', feed:'лента' };
-function readMore(l){
+export function readMore(l){
   const links = (l.topics || []).flatMap(t => (RES[t] ? RES[t].links : []));
   if (!links.length) return '';
   const seen = new Set();
@@ -37,7 +41,7 @@ function approxTokens(text){
 }
 function chunk(s, n){ const r = []; for (let i = 0; i < s.length; i += n) r.push(s.slice(i, i + n)); return r; }
 
-const WIDGETS = {
+export const WIDGETS = {
   tokens(el){
     el.className = 'widget';
     const t = uid('tk'), pi = uid('pi'), po = uid('po'), on = uid('on');
@@ -340,7 +344,7 @@ const WIDGETS = {
   }
 };
 
-function viewTools(){
+export function viewTools(){
   return `<div class="crumbs"><a href="#/">главная</a> / инструменты</div><h1>Инструменты</h1>
   <h2 style="margin-top:26px">Токены и стоимость запроса</h2><p class="small">Подробно — урок 1.2 и 1.3.</p><div data-widget="tokens"></div>
   <h2 style="margin-top:26px">Temperature и top-p</h2><p class="small">Подробно — урок 1.4.</p><div data-widget="sampling"></div>
@@ -370,12 +374,12 @@ const JOURNEY = [
  { t:'Трассировка и оценка', l:'Наблюдаемость', d:'Каждый шаг, промпт, вызов и стоимость записаны в трейс. Эти трейсы используют для отладки и наборов оценки, чтобы проверять агента после изменений промпта или модели.', lesson:'11-1' }
 ];
 let journeyStep = 0;
-function viewJourney(){
+export function viewJourney(){
   return `<div class="crumbs"><a href="#/">главная</a> / сквозной сценарий</div><h1>Как агент выполняет задачу</h1>
   <p style="margin:10px 0 20px;max-width:75ch">Что происходит от запроса пользователя до результата — по шагам. Каждый шаг ведёт в урок, где он разобран подробно.</p>
   <div class="journey"><ol class="jlist" id="jlist"></ol><div class="jcard" id="jcard"></div></div>`;
 }
-function mountJourney(){
+export function mountJourney(){
   const draw = () => {
     $('#jlist').innerHTML = JOURNEY.map((s, i) => `<li><button class="${i === journeyStep ? 'on' : ''} ${i < journeyStep ? 'past' : ''}" data-i="${i}"><span class="port">${String(i + 1).padStart(2, '0')}</span><span>${esc(s.t)}</span></button></li>`).join('');
     const s = JOURNEY[journeyStep];
@@ -390,7 +394,7 @@ function mountJourney(){
 }
 
 // ====== ШПАРГАЛКИ ======
-function viewCheats(){
+export function viewCheats(){
   const t = (head, rows) => `<div class="tbl"><table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
   const pre = s => `<pre><code>${esc(s)}</code></pre>`;
   return `<div class="crumbs"><a href="#/">главная</a> / шпаргалки</div><h1>Шпаргалки</h1>

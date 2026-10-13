@@ -2,7 +2,7 @@
 // Загружается до assets/js/engine.js; константы видны движку как глобальные.
 // ====== КОНТЕНТ КУРСА ======
 // Типы вопросов: single | multiple | order | match | input | analyze
-const MODULES = [
+export const MODULES = [
 {
  id: 0, title: 'Что такое DevOps', short: 'Культура, жизненный цикл, метрики DORA',
  lessons: [
@@ -1372,9 +1372,9 @@ syft registry.example.com/shop:3f9c2e1 -o cyclonedx-json > sbom.json</code></pre
 }
 ];
 
-const UPCOMING = [];
+export const UPCOMING = [];
 
-const GLOSSARY = [
+export const GLOSSARY = [
  ['DevOps','Культура и практики сквозной ответственности команды за поставку и работу сервиса.','0-1'],
  ['CALMS','Culture, Automation, Lean, Measurement, Sharing — модель составляющих DevOps.','0-2'],
  ['Shift left','Перенос проверок на более ранние этапы разработки.','0-3'],

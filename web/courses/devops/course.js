@@ -1,5 +1,8 @@
 // Код, специфичный для курса «DevOps»: настройки, виджеты, сквозной сценарий, шпаргалки.
-const COURSE = {
+import { $, esc } from '../../assets/js/storage.js';
+import { Game } from '../../assets/js/game.js';
+import { findLesson } from '../../assets/js/engine.js';
+export const COURSE = {
   id: 'devops',
   title: 'DevOps для разработчиков',
   tagline: 'От коммита до продакшена: как код собирается, тестируется, упаковывается в контейнер, выкатывается и живёт под наблюдением. Короткая теория, реальные конфиги и тесты после каждого модуля.',
@@ -39,7 +42,7 @@ const ROLLOUT_STEPS = [
   { n:'готово', c:'v2✓ v2✓ v2✓ v2✓', e:'Все реплики на v2. Старый ReplicaSet сохранён с 0 подов — kubectl rollout undo вернёт его за секунды.' }
 ];
 
-const WIDGETS = {
+export const WIDGETS = {
   pipeline(el){ stepWidget(el, PIPELINE_STEPS); },
   rollout(el){ stepWidget(el, ROLLOUT_STEPS); },
   slo(el){
@@ -108,7 +111,7 @@ const WIDGETS = {
   }
 };
 
-function viewTools(){
+export function viewTools(){
   return `<div class="crumbs"><a href="#/">главная</a> / инструменты</div><h1>Инструменты</h1>
   <h2 style="margin-top:26px">Калькулятор SLO и бюджета ошибок</h2><div data-widget="slo"></div>
   <h2 style="margin-top:26px">Кэш слоёв Docker</h2><p class="small">Подробно — в модуле 5.</p><div data-widget="layers"></div>
@@ -133,12 +136,12 @@ const JOURNEY = [
  { t:'Постмортем', l:'Learn', d:'Безобвинительный разбор: хронология, причины, задачи. Добавили контрактный тест с платёжным сервисом — цикл замкнулся.', lesson:'11-3' }
 ];
 let journeyStep = 0;
-function viewJourney(){
+export function viewJourney(){
   return `<div class="crumbs"><a href="#/">главная</a> / сквозной сценарий</div><h1>Путь коммита в прод</h1>
   <p style="margin:10px 0 20px;max-width:75ch">Одна небольшая фича от задачи до постмортема: что происходит на каждом этапе поставки. Каждый шаг ведёт в урок, где он разобран подробно.</p>
   <div class="journey"><ol class="jlist" id="jlist"></ol><div class="jcard" id="jcard"></div></div>`;
 }
-function mountJourney(){
+export function mountJourney(){
   const draw = () => {
     $('#jlist').innerHTML = JOURNEY.map((s, i) => `<li><button class="${i === journeyStep ? 'on' : ''} ${i < journeyStep ? 'past' : ''}" data-i="${i}"><span class="port">${String(i + 1).padStart(2, '0')}</span><span>${esc(s.t)}</span><span class="tag muted">${esc(s.l.split(' · ')[0])}</span></button></li>`).join('');
     const s = JOURNEY[journeyStep];
@@ -151,7 +154,7 @@ function mountJourney(){
 }
 
 // ====== ШПАРГАЛКИ ======
-function viewCheats(){
+export function viewCheats(){
   const t = (head, rows) => `<div class="tbl"><table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
   return `<div class="crumbs"><a href="#/">главная</a> / шпаргалки</div><h1>Шпаргалки</h1>
   <h2 style="margin-top:26px">Linux</h2>${t(['Команда','Что делает'], [['<code>systemctl status app</code>','Состояние сервиса'],['<code>journalctl -u app -f</code>','Логи сервиса в реальном времени'],['<code>ps aux --sort=-%mem | head</code>','Самые прожорливые процессы'],['<code>df -h</code> / <code>du -sh *</code>','Место на дисках / в каталоге'],['<code>free -h</code>','Память'],['<code>ss -tlnp</code>','Слушающие порты и процессы'],['<code>chmod 640 f</code>','Права rw-r-----'],['<code>tail -f /var/log/syslog</code>','Следить за логом']])}

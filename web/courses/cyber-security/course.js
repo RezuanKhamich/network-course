@@ -1,17 +1,18 @@
 // Код, специфичный для курса «Информационная безопасность»: настройки, виджеты, сквозной сценарий, шпаргалки.
-const COURSE = {
+import { $, esc } from '../../assets/js/storage.js';
+import { Game } from '../../assets/js/game.js';
+import { findLesson } from '../../assets/js/engine.js';
+import { RES } from './content.js';
+export const COURSE = {
   id: 'cyber-security',
   title: 'Информационная безопасность для разработчиков',
   tagline: 'Как атакуют приложения, сети и людей и как от этого защищаться: аутентификация, криптография, OWASP, харденинг, мониторинг, реагирование на инциденты и облако. Каждая атака — по схеме «как работает → как заметить → как защититься». Программа основана на роадмапе roadmap.sh/cyber-security.',
   journeyLabel: 'Разбор инцидента',
   brand: '<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M13 2l9 3.5v6.5c0 5.6-3.8 10-9 12-5.2-2-9-6.4-9-12V5.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 13l3 3 5-6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
-// Модули из программы, которые ещё не написаны, показываются в карте курса как «скоро»
-const UPCOMING = PLAN.filter(p => !MODULES.some(m => m.id === p.id));
-MODULES.sort((a, b) => a.id - b.id);
 
 const RES_LABEL = { article:'статья', video:'видео', official:'документация', course:'курс', opensource:'код', book:'книга', podcast:'подкаст', roadmap:'роадмап', feed:'лента' };
-function readMore(l){
+export function readMore(l){
   const links = (l.topics || []).flatMap(t => (RES[t] ? RES[t].links : []));
   if (!links.length) return '';
   const seen = new Set();
@@ -29,7 +30,7 @@ function humanTime(sec){
   return 'меньше секунды';
 }
 
-const WIDGETS = {
+export const WIDGETS = {
   // Классификация инцидентов по триаде CIA
   cia(el){
     el.className = 'widget';
@@ -233,7 +234,7 @@ const WIDGETS = {
   }
 };
 
-function viewTools(){
+export function viewTools(){
   const w = (title, lesson, id) => {
     const L = findLesson(lesson);
     return `<h2 style="margin-top:26px">${title}</h2><p class="small">${L ? `Подробно — урок ${lesson.replace('-', '.')} «${esc(L.title)}».` : ''}</p><div data-widget="${id}"></div>`;
@@ -265,12 +266,12 @@ const JOURNEY = [
  { t:'Восстановление и выводы', l:'recovery · lessons learned', d:'Пароли и ключи сменены, хосты переустановлены из чистых образов, данные — из резервных копий. На разборе решают: MFA для администраторов, запрет макросов, сегментация сети, обучение бухгалтерии и правило в SIEM, которое сработало бы на день раньше.', lesson:'10-1' }
 ];
 let journeyStep = 0;
-function viewJourney(){
+export function viewJourney(){
   return `<div class="crumbs"><a href="#/">главная</a> / сквозной сценарий</div><h1>Разбор инцидента</h1>
   <p style="margin:10px 0 20px;max-width:75ch">Один типичный инцидент от разведки до выводов — по шагам. Каждый шаг ведёт в урок, где тема разобрана подробно.</p>
   <div class="journey"><ol class="jlist" id="jlist"></ol><div class="jcard" id="jcard"></div></div>`;
 }
-function mountJourney(){
+export function mountJourney(){
   const draw = () => {
     $('#jlist').innerHTML = JOURNEY.map((s, i) => `<li><button class="${i === journeyStep ? 'on' : ''} ${i < journeyStep ? 'past' : ''}" data-i="${i}"><span class="port">${String(i + 1).padStart(2, '0')}</span><span>${esc(s.t)}</span></button></li>`).join('');
     const s = JOURNEY[journeyStep];
@@ -286,7 +287,7 @@ function mountJourney(){
 }
 
 // ====== ШПАРГАЛКИ ======
-function viewCheats(){
+export function viewCheats(){
   const t = (head, rows) => `<div class="tbl"><table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
   const pre = s => `<pre><code>${esc(s)}</code></pre>`;
   return `<div class="crumbs"><a href="#/">главная</a> / шпаргалки</div><h1>Шпаргалки</h1>

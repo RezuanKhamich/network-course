@@ -1,5 +1,5 @@
 // Модуль 13. Безопасность в облаке
-MODULES.push({
+export default {
  id: 13, title: 'Безопасность в облаке', short: 'Модели облака, разделённая ответственность, IaC, serverless и хранилища',
  lessons: [
  { id: '13-1', title: 'Облако и on-premises: модели и типы', topics: ['cloud-skills-and-knowledge', 'understand-the-differences-between-cloud-and-on-premises', 'saas', 'paas', 'iaas', 'private', 'public', 'hybrid'], html: `
@@ -122,4 +122,4 @@ MODULES.push({
   { id:'t13-11', type:'single', prompt:'Что включить, чтобы бэкапы в S3 нельзя было удалить даже при компрометации учётки администратора?', options:['Object Lock в режиме compliance','Публичный доступ на чтение','Ускоренную передачу','Статический хостинг сайта'], answer:0, explanation:'Object Lock запрещает удаление и перезапись до истечения срока хранения.', difficulty:3 },
   { id:'t13-12', type:'order', prompt:'Расположите шаги безопасного деплоя изменений инфраструктуры.', options:['Изменение в репозитории','Pull request с ревью и проверками IaC','Применение пайплайном от имени роли','Проверка журналов и мониторинга после выката'], answer:[0,1,2,3], explanation:'Ручные изменения в консоли обходят ревью и создают дрейф конфигурации.', difficulty:1 }
  ]
-});
+};

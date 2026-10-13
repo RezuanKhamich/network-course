@@ -2,7 +2,7 @@
 // Чтобы добавить курс: создайте папку courses/<id>/ по образцу существующих и допишите запись сюда.
 // lessons и modules нужны главной странице, чтобы считать прогресс, не загружая контент курса;
 // движок курса обновляет их в Store при каждом открытии (см. engine.js), так что опечатка здесь не критична.
-const COURSES = [
+export const COURSES = [
   {
     id: 'network',
     title: 'Сети для разработчиков',
@@ -44,4 +44,4 @@ const COURSES = [
     tags: ['CI/CD', 'Docker', 'K8s', 'IaC']
   }
 ];
-const findCourse = id => COURSES.find(c => c.id === id);
+export const findCourse = id => COURSES.find(c => c.id === id);

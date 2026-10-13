@@ -1,5 +1,5 @@
 // Модуль 2. Сети глазами защитника
-MODULES.push({
+export default {
  id: 2, title: 'Сети глазами защитника', short: 'Адресация, устройства, протоколы, порты и инструменты диагностики',
  lessons: [
  { id: '2-1', title: 'Модель OSI, IP-адресация и подсети', topics: ['networking-knowledge', 'basics-of-computer-networking', 'understand-the-osi-model', 'basics-of-subnetting', 'public-vs-private-ip-addresses', 'ip', 'cidr', 'subnet-mask', 'default-gateway', 'localhost', 'loopback'], html: `
@@ -162,4 +162,4 @@ iptables -A INPUT -p tcp --dport 22 -j DROP</code></pre>
   { id:'t2-11', type:'single', prompt:'Какая команда Windows покажет PID процесса для каждого сетевого соединения?', options:['netstat -ano','ipconfig /all','tracert','arp -a'], answer:0, explanation:'Флаг -o добавляет PID, по нему процесс находится в диспетчере задач или Get-Process.', difficulty:1 },
   { id:'t2-12', type:'single', prompt:'В каком сегменте должен находиться публичный почтовый шлюз?', options:['В DMZ','Во внутренней сети рядом с контроллером домена','В гостевом Wi-Fi','В сети хранения данных'], answer:0, explanation:'Всё, что принимает соединения из интернета, выносится в DMZ.', difficulty:1 }
  ]
-});
+};

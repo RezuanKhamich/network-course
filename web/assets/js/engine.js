@@ -1,16 +1,20 @@
 // ====== ДВИЖОК КУРСА ======
-// Общий для всех курсов SPA на hash-роутинге. Ожидает глобальные объекты курса:
+// Общий для всех курсов SPA на hash-роутинге. Курс передаёт в startCourse():
 // COURSE (настройки), MODULES, UPCOMING, GLOSSARY (content.js), WIDGETS, viewTools, viewJourney,
 // mountJourney, viewCheats и, по желанию, readMore (course.js).
+import { Store, LS_KEY, LS_BACKUP, $, esc, shuffle, toast, fmtTime, plural, lsGet, lsSet, applyTheme, cycleTheme } from './storage.js';
+import { Game, PASS, XP, SITE_ROOT, confetti } from './game.js';
+
+let COURSE, MODULES, UPCOMING, GLOSSARY, WIDGETS, viewTools, viewJourney, mountJourney, viewCheats, readMore;
 
 // Прогресс текущего курса. Геттер, потому что Store.state заменяется при импорте и синхронизации вкладок.
 const P = { get state(){ return Store.course(COURSE.id); } };
 
 const allLessons = () => MODULES.flatMap(m => m.lessons.map(l => ({ ...l, module:m })));
-const findLesson = id => allLessons().find(l => l.id === id);
+export const findLesson = id => allLessons().find(l => l.id === id);
 const findModule = id => MODULES.find(m => m.id === +id);
 const allModsSorted = () => [...MODULES, ...UPCOMING.map(u => ({ ...u, soon:true }))].sort((x, y) => x.id - y.id);
-const HUB = SITE_ROOT + 'index.html';
+const HUB = SITE_ROOT;
 
 function moduleStats(m){
   const done = m.lessons.filter(l => P.state.lessons[l.id] && P.state.lessons[l.id].completed).length;
@@ -124,7 +128,7 @@ function banners(){
 document.addEventListener('click', e => {
   const act = e.target.closest('[data-act]'); if (!act) return;
   const k = act.dataset.act;
-  if (k === 'load-newer'){ Store.apply(Store.newerFileData, 'replace'); Store.newerFileData = null; toast('Прогресс загружен из файла.'); render(); }
+  if (k === 'load-newer'){ Store.apply(Store.newerFileData, 'replace'); Game.sync(true); Store.newerFileData = null; toast('Прогресс загружен из файла.'); render(); }
   if (k === 'skip-newer'){ Store.newerFileData = null; Store.writeFile(); render(); }
 });
 
@@ -426,17 +430,18 @@ function mountProgress(){
 }
 
 // ====== СТАРТ ======
-Store.load(); applyTheme();
-{
+export function startCourse(cfg){
+  ({ COURSE, MODULES, UPCOMING = [], GLOSSARY, WIDGETS, viewTools, viewJourney, mountJourney, viewCheats, readMore } = cfg);
+  Store.load(); applyTheme();
   // Каталог на главной сайта считает проценты по этим числам, не загружая контент курса
   const meta = { lessons:allLessons().length, modules:MODULES.length }; const cur = P.state.meta;
   if (!cur || cur.lessons !== meta.lessons || cur.modules !== meta.modules){ P.state.meta = meta; Store.save('game'); }
+  Game.sync(true);
+  render(); Store.restoreHandle();
+  Store.onChange(kind => {
+    if (kind === 'external'){ renderSide(); renderStatus(); return; }
+    renderStatus();
+    // restoreHandle нашёл более свежий файл — показываем баннер, если пользователь на главной курса
+    if (Store.newerFileData && (location.hash || '#/') === '#/' && !document.querySelector('[data-act="load-newer"]')) render();
+  });
 }
-Game.sync(true);
-render(); Store.restoreHandle();
-Store.onChange(kind => {
-  if (kind === 'external'){ renderSide(); renderStatus(); return; }
-  renderStatus();
-  // restoreHandle нашёл более свежий файл — показываем баннер, если пользователь на главной курса
-  if (Store.newerFileData && (location.hash || '#/') === '#/' && !document.querySelector('[data-act="load-newer"]')) render();
-});

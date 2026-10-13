@@ -2,18 +2,21 @@
 // XP, уровни, серия дней, дневная цель и достижения.
 // Всё выводится из прогресса курсов: Game.sync() идемпотентно начисляет XP по ключам
 // (урок, вопрос, тест…), поэтому повторная отметка урока, импорт или слияние файлов не дают XP дважды.
-const PASS = 70;
-const SITE_ROOT = window.SITE_ROOT || '';
+import { Store, emptyCourse, dayKey, esc } from './storage.js';
+import { COURSES, findCourse } from './courses.js';
 
-const XP = { lesson:20, check:5, test:100, perfect:50, exam:300, examPerfect:150, goal:15, journey:30 };
-const TIER_XP = { bronze:25, silver:50, gold:100 };
-const RANKS = [[1,'Новичок'],[3,'Стажёр'],[5,'Джуниор'],[8,'Мидл'],[11,'Сеньор'],[14,'Лид'],[17,'Архитектор'],[20,'Гуру']];
-const AVATARS = ['🦉','🦊','🐱','🐼','🐧','🦄','🐙','🐢','🐝','🦖','👾','🤖','🐸','🧙','🦁','🚀'];
+export const PASS = 70;
+export const SITE_ROOT = import.meta.env.BASE_URL;
+
+export const XP = { lesson:20, check:5, test:100, perfect:50, exam:300, examPerfect:150, goal:15, journey:30 };
+export const TIER_XP = { bronze:25, silver:50, gold:100 };
+export const RANKS = [[1,'Новичок'],[3,'Стажёр'],[5,'Джуниор'],[8,'Мидл'],[11,'Сеньор'],[14,'Лид'],[17,'Архитектор'],[20,'Гуру']];
+export const AVATARS = ['🦉','🦊','🐱','🐼','🐧','🦄','🐙','🐢','🐝','🦖','👾','🤖','🐸','🧙','🦁','🚀'];
 
 // Сколько XP нужно, чтобы достичь уровня L: шаг растёт на 50 XP с каждым уровнем
-const xpForLevel = L => 100 * (L - 1) + 25 * (L - 1) * (L - 2);
+export const xpForLevel = L => 100 * (L - 1) + 25 * (L - 1) * (L - 2);
 
-function courseProgress(id){
+export function courseProgress(id){
   const c = Store.state.courses[id] || emptyCourse();
   const meta = c.meta || findCourse(id) || { lessons:1, modules:1 };
   const plan = (findCourse(id) || {}).planned || {};
@@ -33,12 +36,12 @@ function courseProgress(id){
 }
 
 // Все тесты курса сданы; для курса, который ещё пишется, считаются все модули программы
-const allTestsPassed = (x, id) => {
+export const allTestsPassed = (x, id) => {
   const p = x.course[id], c = findCourse(id);
   return !!p && p.passed >= Math.max(p.modules, (c && c.planned && c.planned.modules) || 0);
 };
 
-const ACHIEVEMENTS = [
+export const ACHIEVEMENTS = [
   { id:'first-lesson', icon:'📖', title:'Первый шаг', desc:'Пройдите первый урок', tier:'bronze', test:x => x.lessons >= 1 },
   { id:'lessons-10', icon:'📚', title:'Втянулся', desc:'Пройдите 10 уроков', tier:'bronze', test:x => x.lessons >= 10, goal:x => [x.lessons, 10] },
   { id:'lessons-50', icon:'🏃', title:'Марафонец', desc:'Пройдите 50 уроков', tier:'silver', test:x => x.lessons >= 50, goal:x => [x.lessons, 50] },
@@ -76,7 +79,7 @@ const ACHIEVEMENTS = [
   { id:'comeback', icon:'🔙', title:'Возвращение', desc:'Вернитесь к учёбе после перерыва в неделю и больше', tier:'bronze', hidden:true, test:x => x.flags.comeback }
 ];
 
-const Game = {
+export const Game = {
   queue: [],
   totalXP(){ return Object.values(Store.state.game.awarded).reduce((a, v) => a + (v.xp || 0), 0); },
   level(xp = this.totalXP()){
@@ -220,7 +223,7 @@ const Game = {
     const L = this.level(), s = this.streak(), today = this.today(), goal = this.goal();
     const gp = Math.min(100, Math.round(today / goal * 100));
     const pr = Store.state.profile;
-    return `<a class="player" href="${SITE_ROOT}index.html#/profile" title="Профиль и достижения">
+    return `<a class="player" href="${SITE_ROOT}#/profile" title="Профиль и достижения">
       <span class="ava">${esc(pr.avatar || '🦉')}</span>
       <span class="pl-main"><span class="pl-top"><b>Ур. ${L.level}</b><span class="muted">${L.into}/${L.need} XP</span></span><span class="xpbar"><i style="width:${L.pct}%"></i></span></span>
       <span class="pl-streak ${s.current ? 'on' : ''} ${s.atRisk ? 'risk' : ''}" title="${s.atRisk ? 'Серия прервётся, если сегодня не заниматься' : 'Дней подряд'}">🔥${s.current}</span>
@@ -230,7 +233,7 @@ const Game = {
 };
 
 // Небольшой фейерверк из конфетти на canvas, без библиотек
-function confetti(n = 100){
+export function confetti(n = 100){
   if (!Store.state.settings.effects || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const c = document.createElement('canvas'); c.className = 'confetti';
   const W = c.width = innerWidth, H = c.height = innerHeight; document.body.appendChild(c);

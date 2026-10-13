@@ -1,4 +1,7 @@
 // ====== ГЛАВНАЯ САЙТА: каталог, профиль, данные ======
+import { Store, FS_SUPPORTED, LS_BACKUP, $, esc, toast, fmtTime, plural, dayKey, lsGet, applyTheme, cycleTheme } from './storage.js';
+import { COURSES, findCourse } from './courses.js';
+import { Game, ACHIEVEMENTS, AVATARS, PASS, TIER_XP, XP, confetti, courseProgress } from './game.js';
 
 // Ссылки старой одностраничной версии курса «Сети» (index.html#/l/0-1 и т. п.) ведут в новый курс
 {
@@ -217,7 +220,7 @@ function mountData(){
   on('unlink', () => Store.unlink()); on('reqAccess', () => Store.requestAccess()); on('saveNow', async () => { await Store.writeFile(); toast('Сохранено в файл.'); render(); });
   on('export', () => Store.exportFile());
   const f = $('#impFile'); if (f) f.onchange = () => { if (f.files[0]) Store.importFile(f.files[0], d => { pendingImport = d; render(); }); };
-  const take = mode => { Store.apply(pendingImport || Store.newerFileData, mode); pendingImport = null; Store.newerFileData = null; toast(mode === 'merge' ? 'Прогресс объединён.' : 'Прогресс заменён.'); render(); };
+  const take = mode => { Store.apply(pendingImport || Store.newerFileData, mode); Game.sync(true); pendingImport = null; Store.newerFileData = null; toast(mode === 'merge' ? 'Прогресс объединён.' : 'Прогресс заменён.'); render(); };
   on('impReplace', () => take('replace')); on('impMerge', () => take('merge'));
   on('impCancel', () => { if (!pendingImport && Store.newerFileData) Store.writeFile(); pendingImport = null; Store.newerFileData = null; render(); });
   document.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => { Store.state.settings.dailyGoal = +b.dataset.goal; Store.save(); Game.sync(); render(); });

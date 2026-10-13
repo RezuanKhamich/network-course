@@ -1,5 +1,8 @@
 // Код, специфичный для курса «Сети»: настройки, виджеты, сквозной сценарий, шпаргалки.
-const COURSE = {
+import { $, esc } from '../../assets/js/storage.js';
+import { Game } from '../../assets/js/game.js';
+import { findLesson } from '../../assets/js/engine.js';
+export const COURSE = {
   id: 'network',
   title: 'Сети для разработчиков',
   tagline: 'От кабеля до HTTP/3: как данные на самом деле доходят от браузера до сервера. Короткая теория, схемы, реальные команды и тесты после каждого модуля.',
@@ -35,7 +38,7 @@ const TLS_STEPS = [
   { from:'Клиент', to:'Сервер', q:'', a:'🔒 Finished', e:'Контрольная сумма рукопожатия: никто не подменил сообщения по пути.' },
   { from:'Клиент', to:'Сервер', q:'🔒 Finished + GET / HTTP/2', a:'', e:'Клиент подтверждает рукопожатие и сразу отправляет первый запрос. Прошёл ровно один RTT.' }
 ];
-const WIDGETS = {
+export const WIDGETS = {
   encap(el){
     const layers = [
       { n:'Прикладной (HTTP)', h:'GET /index.html HTTP/1.1', c:'var(--accent)' },
@@ -156,7 +159,7 @@ const WIDGETS = {
   }
 };
 
-function viewTools(){
+export function viewTools(){
   return `<div class="crumbs"><a href="#/">главная</a> / инструменты</div><h1>Инструменты</h1>
   <h2 style="margin-top:26px">Калькулятор подсетей</h2><div data-widget="subnet"></div>
   <h2 style="margin-top:26px">IPv6: сокращение и разбор адреса</h2><div data-widget="ipv6"></div>
@@ -183,12 +186,12 @@ const JOURNEY = [
  { t:'Ответ и рендер', l:'L7 · браузер', d:'Сервер отвечает 200 OK, HTML приходит сжатым. Браузер строит страницу, а для следующих запросов к тому же хосту переиспользует соединение: без DNS, TCP и TLS.', lesson:'9-3' }
 ];
 let journeyStep = 0;
-function viewJourney(){
+export function viewJourney(){
   return `<div class="crumbs"><a href="#/">главная</a> / сквозной сценарий</div><h1>Открываем сайт</h1>
   <p style="margin:10px 0 20px;max-width:75ch">Всё, что происходит между нажатием Enter и появлением страницы, — по шагам и по уровням. Каждый шаг ведёт в урок, где он разобран подробно.</p>
   <div class="journey"><ol class="jlist" id="jlist"></ol><div class="jcard" id="jcard"></div></div>`;
 }
-function mountJourney(){
+export function mountJourney(){
   const draw = () => {
     $('#jlist').innerHTML = JOURNEY.map((s, i) => `<li><button class="${i === journeyStep ? 'on' : ''} ${i < journeyStep ? 'past' : ''}" data-i="${i}"><span class="port">${String(i + 1).padStart(2, '0')}</span><span>${esc(s.t)}</span><span class="tag muted">${esc(s.l.split(' · ')[0])}</span></button></li>`).join('');
     const s = JOURNEY[journeyStep];
@@ -201,7 +204,7 @@ function mountJourney(){
 }
 
 // ====== ШПАРГАЛКИ ======
-function viewCheats(){
+export function viewCheats(){
   const t = (head, rows) => `<div class="tbl"><table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
   return `<div class="crumbs"><a href="#/">главная</a> / шпаргалки</div><h1>Шпаргалки</h1>
   <h2 style="margin-top:26px">Известные порты</h2>${t(['Порт','Протокол','Транспорт'], [['20/21','FTP','TCP'],['22','SSH, SFTP','TCP'],['25','SMTP','TCP'],['53','DNS','UDP/TCP'],['67/68','DHCP','UDP'],['80','HTTP','TCP'],['123','NTP','UDP'],['143 / 993','IMAP / IMAPS','TCP'],['443','HTTPS, HTTP/3','TCP / UDP'],['465 / 587','SMTP с TLS / submission','TCP'],['3306','MySQL','TCP'],['5432','PostgreSQL','TCP'],['6379','Redis','TCP'],['8080','HTTP (альтернативный)','TCP'],['27017','MongoDB','TCP']])}

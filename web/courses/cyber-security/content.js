@@ -1,8 +1,25 @@
-// Контент курса ИБ. Модули лежат в modules/mNN.js и добавляют себя в MODULES;
+// Контент курса ИБ. Каждый модуль лежит в modules/mNN.js;
 // PLAN — программа целиком: модули, которых ещё нет в MODULES, показываются как «скоро».
 // Структура и привязка к roadmap.sh: docs/cyber-security/structure.json.
-const MODULES = [];
-const PLAN = [
+import m00 from './modules/m00.js';
+import m01 from './modules/m01.js';
+import m02 from './modules/m02.js';
+import m03 from './modules/m03.js';
+import m04 from './modules/m04.js';
+import m05 from './modules/m05.js';
+import m06 from './modules/m06.js';
+import m07 from './modules/m07.js';
+import m08 from './modules/m08.js';
+import m09 from './modules/m09.js';
+import m10 from './modules/m10.js';
+import m11 from './modules/m11.js';
+import m12 from './modules/m12.js';
+import m13 from './modules/m13.js';
+export { GLOSSARY } from './glossary.js';
+export { RES } from './resources.js';
+
+export const MODULES = [m00, m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13];
+export const PLAN = [
  {
   id: 0,
   title: "Введение в безопасность",
@@ -74,3 +91,4 @@ const PLAN = [
   short: "Модели облака, разделённая ответственность, IaC, serverless и хранилища"
  }
 ];
+export const UPCOMING = PLAN.filter(p => !MODULES.some(m => m.id === p.id));

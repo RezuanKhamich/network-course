@@ -1,22 +1,22 @@
 // ====== ХРАНЕНИЕ ПРОГРЕССА ======
 // Один объект состояния на все курсы. Лежит в localStorage (общий для всех страниц сайта,
 // т. к. они на одном origin) и, по желанию, автоматически пишется в JSON-файл через File System Access API.
-const APP_ID = 'dev-courses';
-const APP_VERSION = 2;
-const LS_KEY = 'dev-courses-progress';
-const LS_BACKUP = 'dev-courses-last-backup';
-const FILE_NAME = 'dev-courses-progress.json';
-const FS_SUPPORTED = typeof window.showSaveFilePicker === 'function';
+export const APP_ID = 'dev-courses';
+export const APP_VERSION = 2;
+export const LS_KEY = 'dev-courses-progress';
+export const LS_BACKUP = 'dev-courses-last-backup';
+export const FILE_NAME = 'dev-courses-progress.json';
+export const FS_SUPPORTED = typeof window.showSaveFilePicker === 'function';
 // Ключи и id файлов из старых одностраничных версий курсов (version 1)
-const LEGACY = { 'network-course':'network', 'ai-agents-course':'ai-agents' };
+export const LEGACY = { 'network-course':'network', 'ai-agents-course':'ai-agents' };
 
-function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
-function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
-const clone = o => JSON.parse(JSON.stringify(o));
-const dayKey = (d = new Date()) => { d = new Date(d); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+export function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+export function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+export const clone = o => JSON.parse(JSON.stringify(o));
+export const dayKey = (d = new Date()) => { d = new Date(d); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 
-function emptyCourse(){ return { lessons:{}, tests:{}, finalExam:null, checks:{}, unlockAll:false }; }
-function emptyState(){
+export function emptyCourse(){ return { lessons:{}, tests:{}, finalExam:null, checks:{}, unlockAll:false }; }
+export function emptyState(){
   return {
     app:APP_ID, version:APP_VERSION, savedAt:new Date().toISOString(),
     settings:{ theme:'system', dailyGoal:50, effects:true },
@@ -26,7 +26,7 @@ function emptyState(){
   };
 }
 
-const Store = {
+export const Store = {
   state: emptyState(),
   handle: null,
   fileStatus: FS_SUPPORTED ? 'none' : 'unsupported', // none | ok | denied | error | unsupported
@@ -207,7 +207,7 @@ const Store = {
     const keep = this.state.settings;
     this.state = mode === 'merge' ? this.merge(this.state, data) : this.normalize(data);
     if (mode === 'merge') this.state.settings = { ...this.state.settings, ...keep };
-    applyTheme(); if (window.Game) Game.sync(true); this.save();
+    applyTheme(); this.save();
   },
   reset(courseId){
     if (courseId){ this.state.courses[courseId] = emptyCourse(); }
@@ -217,24 +217,24 @@ const Store = {
 };
 
 // IndexedDB для дескриптора файла
-function idb(){ return new Promise((res, rej) => { const r = indexedDB.open(APP_ID, 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-async function idbSet(k, v){ try { const db = await idb(); await new Promise((res, rej) => { const tx = db.transaction('kv','readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); } catch(e){} }
-async function idbGet(k){ try { const db = await idb(); return await new Promise((res, rej) => { const r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch(e){ return null; } }
+export function idb(){ return new Promise((res, rej) => { const r = indexedDB.open(APP_ID, 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+export async function idbSet(k, v){ try { const db = await idb(); await new Promise((res, rej) => { const tx = db.transaction('kv','readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); } catch(e){} }
+export async function idbGet(k){ try { const db = await idb(); return await new Promise((res, rej) => { const r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch(e){ return null; } }
 
 // ====== ОБЩИЕ УТИЛИТЫ ======
-const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
-function fmtTime(d){ return d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' }); }
-function plural(n, one, few, many){ const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; }
+export const $ = s => document.querySelector(s);
+export const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+export function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+export function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+export function fmtTime(d){ return d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' }); }
+export function plural(n, one, few, many){ const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; }
 
-function applyTheme(){
+export function applyTheme(){
   const t = Store.state.settings.theme;
   if (t === 'system') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', t);
 }
-function cycleTheme(){
+export function cycleTheme(){
   const order = ['system','light','dark']; const cur = Store.state.settings.theme;
   Store.state.settings.theme = order[(order.indexOf(cur) + 1) % 3];
   applyTheme(); Store.save();

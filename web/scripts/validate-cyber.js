@@ -1,10 +1,9 @@
-// Проверка контента курса ИБ: node docs/cyber-security/validate.js
+// Проверка контента курса ИБ: npm run validate
 // Сверяет модули со structure.json, формат и id вопросов, длину уроков, ссылки глоссария и наличие ссылок roadmap.sh.
-const fs=require('fs'),vm=require('vm');const path=require('path');const dir=path.join(__dirname,'../../courses/cyber-security');
-const ctx={};vm.createContext(ctx);
-const load=f=>vm.runInContext(fs.readFileSync(dir+'/'+f,'utf8').replace(/^const (\w+)/gm,'var $1'),ctx,{filename:f});
-load('content.js');for(const f of fs.readdirSync(dir+'/modules').sort())load('modules/'+f);load('glossary.js');load('resources.js');
-const st=require('./structure.json');
+import { readFileSync } from 'node:fs';
+const { MODULES, GLOSSARY, RES } = await import('../courses/cyber-security/content.js');
+const st = JSON.parse(readFileSync(new URL('../../docs/cyber-security/structure.json', import.meta.url), 'utf8'));
+const ctx = { MODULES, GLOSSARY, RES, __w: [] };
 const errs=[];const ids=new Set();const E=m=>errs.push(m);
 const chkQ=(q,where)=>{
   if(ids.has(q.id))E('dup id '+q.id);ids.add(q.id);
@@ -30,7 +29,7 @@ for(const m of ctx.MODULES){
     l.check.forEach((q,j)=>{if(q.id!==`q${l.id}${'ab'[j]}`)E('check id '+q.id);chkQ(q)});
     len+=l.html.length;n++;
     if(l.html.length<1400||l.html.length>4200)E(l.id+' html length '+l.html.length);
-    for(const w of l.html.matchAll(/data-widget="(\w+)"/g))(ctx.__w=ctx.__w||[]).push(w[1]);
+    for(const w of l.html.matchAll(/data-widget="(\w+)"/g))ctx.__w.push(w[1]);
     for(const t of l.topics)if(!ctx.RES[t])E('no RES '+t);
   });
   if(m.test.length!==12)E('m'+m.id+' tests '+m.test.length);

@@ -1,5 +1,5 @@
 // Модуль 6. Сетевые и беспроводные атаки
-MODULES.push({
+export default {
  id: 6, title: 'Сетевые и беспроводные атаки', short: 'MITM, спуфинг, DoS, атаки на Wi-Fi и VLAN',
  lessons: [
  { id: '6-1', title: 'MITM, спуфинг и отравление DNS', topics: ['mitm', 'spoofing', 'dns-poisoning'], html: `
@@ -176,4 +176,4 @@ def verify(body: bytes, ts: str, sig: str, secret: bytes, seen: set) -&gt; bool:
   { id:'t6-11', type:'single', prompt:'Как защититься от VLAN hopping через double tagging?', options:['Не использовать native VLAN на транках для пользовательских портов, сделать его неиспользуемым','Включить DTP на всех портах','Использовать WPA3','Включить NAT'], answer:0, explanation:'Атака опирается на совпадение внешней метки с native VLAN.', difficulty:3 },
   { id:'t6-12', type:'single', prompt:'Группа безопасности облачной базы данных разрешает 0.0.0.0/0 на порт 5432. Что это означает?', options:['База доступна из всего интернета — сегментации нет','Доступ разрешён только из VPC','Порт закрыт','Это настройка по умолчанию, она безопасна'], answer:0, explanation:'Доступ к базе нужно разрешить только из подсети или группы безопасности приложения.', difficulty:1 }
  ]
-});
+};
