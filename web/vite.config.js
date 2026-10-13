@@ -7,6 +7,9 @@ const courses = readdirSync(resolve(root, 'courses'), { withFileTypes: true }).f
 
 export default defineConfig({
   base: process.env.VITE_BASE || '/',
+  // в разработке API на том же origin, что и сайт, как на продакшене за nginx: cookie и проверка Origin работают одинаково
+  server: { proxy: { '/api': 'http://127.0.0.1:3000' } },
+  preview: { proxy: { '/api': 'http://127.0.0.1:3000' } },
   build: {
     // чанк курса — это текст всех уроков, он грузится одним куском на странице курса
     chunkSizeWarningLimit: 1000,
