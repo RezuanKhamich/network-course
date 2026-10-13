@@ -159,6 +159,8 @@ else
 fi
 ln -sf "$site" /etc/nginx/sites-enabled/devcourses.conf
 nginx -t && systemctl reload nginx
+# api.env мог поменяться (APP_ORIGIN, COOKIE_SECURE) — перечитываем, если API уже работает
+systemctl try-restart devcourses-api
 
 step "Готово: $origin"
 if [[ -n $DOMAIN ]]; then
