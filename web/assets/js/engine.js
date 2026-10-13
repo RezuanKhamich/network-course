@@ -127,7 +127,8 @@ function banners(){
   const last = lsGet(LS_BACKUP);
   const done = overall().done;
   const stale = !last ? done > 3 : (Date.now() - new Date(last)) > 7 * 864e5;
-  if (Account.status !== 'user' && Store.fileStatus !== 'ok' && stale){
+  // пока статус входа грузится, не пугаем: баннер дорисуется в Account.onChange
+  if (Account.status !== 'user' && Account.status !== 'loading' && Store.fileStatus !== 'ok' && stale){
     html += `<div class="banner"><span>Прогресс хранится только в этом браузере. Войдите в аккаунт, чтобы он сохранялся на сервере, или сохраните его в файл.</span><span class="row"><a class="btn" href="${HUB}#/account">Войти</a><a class="btn ghost" href="${HUB}#/data">Сохранить в файл</a></span></div>`;
   }
   const s = Game.streak();
@@ -148,7 +149,7 @@ function viewHome(){
   const nextModTest = MODULES.find(m => isUnlocked(m) && !moduleStats(m).passed && moduleStats(m).done === m.lessons.length);
   const cont = nextModTest ? `#/t/${nextModTest.id}` : (next ? `#/l/${next.id}` : '#/exam');
   const contLbl = nextModTest ? `тест модуля «${nextModTest.title}»` : (next ? next.title : 'финальный экзамен');
-  let html = banners() + `<section class="hero"><div class="crumbs"><a href="${HUB}">все курсы</a> / курс · ${MODULES.length + UPCOMING.length} модулей</div>
+  let html = `<div id="banners">${banners()}</div><section class="hero"><div class="crumbs"><a href="${HUB}">все курсы</a> / курс · ${MODULES.length + UPCOMING.length} модулей</div>
   <h1>${esc(COURSE.title)}</h1>
   <p>${esc(COURSE.tagline)}</p>
   <div class="stats"><div class="stat"><b>${o.pct}%</b><span>курса пройдено</span></div><div class="stat"><b>${o.done}/${o.lessons}</b><span>уроков</span></div><div class="stat"><b>${o.passed}/${MODULES.length}</b><span>тестов сдано</span></div></div>
@@ -527,7 +528,7 @@ export function startCourse(cfg){
   if (!cur || cur.lessons !== meta.lessons || cur.modules !== meta.modules){ P.state.meta = meta; Store.save('game'); }
   Game.sync(true);
   render(); Store.restoreHandle();
-  Account.onChange(() => { renderStatus(); renderSide(); });
+  Account.onChange(() => { renderStatus(); renderSide(); const b = $('#banners'); if (b) b.innerHTML = banners(); });
   Account.init();
   Store.onChange(kind => {
     if (kind === 'external' || kind === 'sync'){ renderSide(); renderStatus(); return; }
