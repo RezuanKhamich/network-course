@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Ежедневный дамп базы. Локально хранятся 14 дней; если задан /etc/devcourses/backup.env,
+# копия уходит во внешнее хранилище через rclone (любое S3-совместимое хранилище).
+set -euo pipefail
+umask 077
+
+dir=/var/backups/devcourses
+file="$dir/devcourses-$(date +%F-%H%M).dump"
+
+runuser -u postgres -- pg_dump --format=custom devcourses > "$file.tmp"
+mv "$file.tmp" "$file"
+find "$dir" -name 'devcourses-*.dump' -mtime +14 -delete
+
+if [[ -f /etc/devcourses/backup.env ]]; then
+  # shellcheck source=/dev/null
+  source /etc/devcourses/backup.env
+  if [[ -n "${BACKUP_RCLONE_REMOTE:-}" ]]; then
+    rclone copy --config /etc/devcourses/rclone.conf "$file" "$BACKUP_RCLONE_REMOTE"
+  fi
+fi
+
+echo "backup ok: $file ($(stat -c %s "$file") bytes)"

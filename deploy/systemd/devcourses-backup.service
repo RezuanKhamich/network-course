@@ -1,0 +1,7 @@
+[Unit]
+Description=Dev courses database backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/devcourses-backup
