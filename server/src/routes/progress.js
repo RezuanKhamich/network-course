@@ -1,5 +1,6 @@
 import { tx } from '../db.js';
 import { isUniqueViolation } from './common.js';
+import { recordProgress } from '../stats.js';
 
 const conflict = (reply, row) => reply.code(409).send({
   error: 'conflict', message: 'Прогресс изменился на другом устройстве',
@@ -32,6 +33,7 @@ export default async function progressRoutes(app){
         const q = row
           ? await c.query('UPDATE progress SET data = $2, version = version + 1, updated_at = now() WHERE user_id = $1 RETURNING version, updated_at', [req.user.id, data])
           : await c.query('INSERT INTO progress (user_id, data, version) VALUES ($1, $2, 1) RETURNING version, updated_at', [req.user.id, data]);
+        await recordProgress(c, req.user.id, data, !row);
         return { saved: q.rows[0] };
       });
       if (res.saved) return { version: res.saved.version, updatedAt: res.saved.updated_at };

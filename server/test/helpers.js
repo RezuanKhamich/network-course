@@ -37,6 +37,7 @@ export function client(app){
     get: url => call('GET', url),
     post: (url, body, headers) => call('POST', url, body, headers),
     put: (url, body) => call('PUT', url, body),
+    patch: (url, body) => call('PATCH', url, body),
     del: (url, body) => call('DELETE', url, body),
     get sid(){ return sid; },
     set sid(v){ sid = v; }

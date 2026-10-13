@@ -7,13 +7,15 @@ import { isPwned } from './passwords.js';
 import authRoutes from './routes/auth.js';
 import accountRoutes from './routes/account.js';
 import progressRoutes from './routes/progress.js';
+import friendsRoutes from './routes/friends.js';
 
 const FIELD_MESSAGES = {
   email: 'Некорректный email',
   password: 'Пароль должен быть от 10 до 128 символов',
   newPassword: 'Пароль должен быть от 10 до 128 символов',
   consent: 'Нужно согласие на обработку персональных данных',
-  token: 'Ссылка недействительна или устарела'
+  token: 'Ссылка недействительна или устарела',
+  nickname: 'Ник: от 3 до 20 символов — латинские буквы, цифры и _'
 };
 
 export async function buildApp({ config, pool, mailer, pwned = isPwned, logger = true }){
@@ -84,5 +86,6 @@ export async function buildApp({ config, pool, mailer, pwned = isPwned, logger =
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(accountRoutes, { prefix: '/api' });
   await app.register(progressRoutes, { prefix: '/api' });
+  await app.register(friendsRoutes, { prefix: '/api' });
   return app;
 }
