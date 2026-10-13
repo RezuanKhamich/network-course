@@ -1,0 +1,20 @@
+# База для локальной разработки и тестов. Продакшен-база настраивается на сервере отдельно.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: devcourses
+      POSTGRES_PASSWORD: devcourses
+      POSTGRES_DB: devcourses
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./server/db/init-test-db.sql:/docker-entrypoint-initdb.d/10-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devcourses"]
+      interval: 2s
+      retries: 30
+
+volumes:
+  db-data:
