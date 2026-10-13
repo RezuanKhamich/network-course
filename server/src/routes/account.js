@@ -11,6 +11,13 @@ export default async function accountRoutes(app){
 
   app.get('/me', { preHandler: app.requireAuth }, async req => ({ user: await loadMe(db, req.user.id) }));
 
+  // Проверка входа при загрузке страницы: гость — это не ошибка, поэтому 200 с user: null
+  app.get('/session', async (req, reply) => {
+    const s = await sessions.lookup(db, req);
+    if (!s && req.cookies[config.cookieName]) sessions.clear(reply);
+    return { user: s ? await loadMe(db, s.userId) : null };
+  });
+
   app.post('/auth/password', {
     preHandler: app.requireAuth,
     config: { rateLimit: userLimit },

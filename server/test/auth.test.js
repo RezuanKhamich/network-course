@@ -119,6 +119,22 @@ test('перебор пароля упирается в лимит', async () =>
   assert.equal(codes[10], 429);
 });
 
+test('за прокси подменённый X-Forwarded-For не обходит лимит перебора', async () => {
+  await env.close();
+  env = await setup({ env: { TRUST_PROXY: '127.0.0.1' } });
+  await registerAndVerify(env, 'a@example.com');
+  const c = client(env.app);
+  const codes = [];
+  for (let i = 0; i < 11; i++){
+    // клиент пишет в заголовок что угодно, nginx дописывает настоящий адрес последним
+    const r = await c.post('/api/auth/login', { email: 'a@example.com', password: 'guess ' + i }, { 'x-forwarded-for': `10.0.0.${i}, 203.0.113.9` });
+    codes.push(r.statusCode);
+  }
+  assert.equal(codes[10], 429);
+  const ips = (await env.pool.query(`SELECT DISTINCT host(ip) ip FROM auth_events WHERE type = 'login_failed'`)).rows.map(r => r.ip);
+  assert.deepEqual(ips, ['203.0.113.9'], 'в журнал попадает настоящий адрес клиента');
+});
+
 test('восстановление пароля завершает все старые сессии', async () => {
   const old = await registerAndVerify(env, 'a@example.com');
   const anon = client(env.app);
@@ -185,4 +201,17 @@ test('без сессии закрытые маршруты отвечают 401
   }
   c.sid = 'forged-session-token';
   assert.equal((await c.get('/api/me')).statusCode, 401);
+});
+
+test('/api/session: гость получает user: null без ошибки, вошедший — свои данные', async () => {
+  const guest = await client(env.app).get('/api/session');
+  assert.equal(guest.statusCode, 200);
+  assert.deepEqual(guest.json(), { user: null });
+  const c = await registerAndVerify(env, 'a@example.com');
+  assert.equal((await c.get('/api/session')).json().user.email, 'a@example.com');
+  await c.post('/api/auth/logout');
+  c.sid = 'stale-token';
+  const stale = await c.get('/api/session');
+  assert.deepEqual(stale.json(), { user: null });
+  assert.equal(c.sid, null, 'недействительная cookie стирается');
 });

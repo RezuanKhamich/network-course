@@ -58,10 +58,10 @@ export const Account = {
     await this.refresh();
   },
   async refresh(){
-    const r = await api('GET', '/me');
-    if (r.ok) return this.signedIn(r.data.user);
+    const r = await api('GET', '/session');
+    if (r.ok && r.data.user) return this.signedIn(r.data.user);
     this.user = null;
-    this.status = r.status === 401 ? 'guest' : 'offline';
+    this.status = r.ok ? 'guest' : 'offline';
     this.emit();
   },
 
