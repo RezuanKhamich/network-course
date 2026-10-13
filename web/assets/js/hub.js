@@ -1,4 +1,5 @@
 // ====== ГЛАВНАЯ САЙТА: каталог, профиль, данные ======
+import './pwa.js';
 import { Store, FS_SUPPORTED, LS_BACKUP, $, esc, toast, fmtTime, plural, dayKey, lsGet, applyTheme, cycleTheme } from './storage.js';
 import { COURSES, findCourse } from './courses.js';
 import { Game, ACHIEVEMENTS, AVATARS, PASS, TIER_XP, XP, confetti, courseProgress, heatmapHtml, nextAchievements } from './game.js';

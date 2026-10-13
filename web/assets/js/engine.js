@@ -2,6 +2,7 @@
 // Общий для всех курсов SPA на hash-роутинге. Курс передаёт в startCourse():
 // COURSE (настройки), MODULES, UPCOMING, GLOSSARY (content.js), WIDGETS, viewTools, viewJourney,
 // mountJourney, viewCheats и, по желанию, readMore (course.js).
+import './pwa.js';
 import { Store, LS_KEY, LS_BACKUP, $, esc, shuffle, toast, fmtTime, plural, lsGet, lsSet, applyTheme, cycleTheme } from './storage.js';
 import { Game, PASS, XP, SITE_ROOT, confetti, nextAchievements } from './game.js';
 import { recordAnswer, dueKeys, deckStats, review, qidOf, todayAnswers, weekAnswers, BOXES, REVIEW_XP } from './review.js';
