@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: devcourses
+          POSTGRES_PASSWORD: devcourses
+          POSTGRES_DB: devcourses_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U devcourses"
+          --health-interval 2s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: '*/package-lock.json'
+
+      - name: Frontend — lint, content validation, build
+        working-directory: web
+        run: |
+          npm ci
+          npm run check
+
+      - name: Server — integration tests
+        working-directory: server
+        env:
+          TEST_DATABASE_URL: postgres://devcourses:devcourses@127.0.0.1:5432/devcourses_test
+        run: |
+          npm ci
+          npm test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+          retention-days: 7
+
+  deploy:
+    needs: test
+    # выкладка включается переменной репозитория DEPLOY_ENABLED=true, когда сервер готов (docs/deploy.md)
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    environment: production
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    env:
+      HOST: ${{ vars.DEPLOY_HOST }}
+      DOMAIN: ${{ vars.DEPLOY_DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+
+      - name: SSH key and pinned host key
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Upload server and install dependencies
+        run: |
+          rsync -az --delete --exclude node_modules --exclude test --exclude .env server/ "deploy@$HOST:/srv/devcourses/server/"
+          ssh "deploy@$HOST" 'cd /srv/devcourses/server && npm ci --omit=dev --no-audit --no-fund'
+
+      # API перезапускается раньше статики: новый фронтенд может рассчитывать на новые маршруты
+      - name: Restart API (migrations run on start)
+        run: ssh "deploy@$HOST" 'sudo /usr/bin/systemctl restart devcourses-api && sleep 2 && sudo /usr/bin/systemctl is-active devcourses-api'
+
+      - name: Upload static site
+        # --delay-updates: новые файлы подменяются разом в конце, страница не увидит половину выкладки
+        run: rsync -az --delete-after --delay-updates web/dist/ "deploy@$HOST:/srv/devcourses/web/"
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 20); do
+            curl -fsS "https://$DOMAIN/api/health" && exit 0
+            sleep 3
+          done
+          exit 1
