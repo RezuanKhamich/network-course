@@ -4,6 +4,7 @@
 // mountJourney, viewCheats и, по желанию, readMore (course.js).
 import { Store, LS_KEY, LS_BACKUP, $, esc, shuffle, toast, fmtTime, plural, lsGet, lsSet, applyTheme, cycleTheme } from './storage.js';
 import { Game, PASS, XP, SITE_ROOT, confetti } from './game.js';
+import { Account } from './sync.js';
 
 let COURSE, MODULES, UPCOMING, GLOSSARY, WIDGETS, viewTools, viewJourney, mountJourney, viewCheats, readMore;
 
@@ -42,7 +43,9 @@ $('#menuBtn').onclick = () => $('#side').classList.toggle('open');
 function renderStatus(){
   const el = $('#saveStatus'); el.className = 'status'; el.href = HUB + '#/data';
   let txt;
-  switch (Store.fileStatus){
+  const pill = Account.pill();
+  if (pill){ if (pill.cls) el.classList.add(pill.cls); el.href = HUB + '#/account'; txt = pill.text; }
+  else switch (Store.fileStatus){
     case 'ok': el.classList.add('ok'); txt = 'Сохранено в файл' + (Store.lastFileSave ? ' · ' + fmtTime(Store.lastFileSave) : ''); break;
     case 'denied': el.classList.add('warn'); txt = 'Нет доступа к файлу — нажмите'; break;
     case 'error': el.classList.add('warn'); txt = 'Ошибка записи в файл'; break;
@@ -52,7 +55,7 @@ function renderStatus(){
   el.lastElementChild.textContent = txt;
   $('#player').innerHTML = Game.chip();
 }
-$('#saveStatus').addEventListener('click', e => { if (Store.fileStatus === 'denied'){ e.preventDefault(); Store.requestAccess(); } });
+$('#saveStatus').addEventListener('click', e => { if (!Account.pill() && Store.fileStatus === 'denied'){ e.preventDefault(); Store.requestAccess(); } });
 
 // ====== НАВИГАЦИЯ ======
 function renderSide(){
@@ -69,7 +72,7 @@ function renderSide(){
   }
   html += '<div class="nav-label">Практика</div>' + link('#/journey', '<span class="port">→</span>' + esc(COURSE.journeyLabel)) + link('#/exam', '<span class="port">∑</span>Финальный экзамен') + link('#/tools', '<span class="port">⚙</span>Инструменты');
   html += '<div class="nav-label">Справка</div>' + link('#/glossary', '<span class="port">A</span>Глоссарий') + link('#/cheats', '<span class="port">#</span>Шпаргалки') + link('#/progress', '<span class="port">↓</span>Прогресс курса');
-  html += `<div class="nav-label">Профиль</div><a href="${HUB}#/profile"><span class="port">★</span>Достижения</a>`;
+  html += `<div class="nav-label">Профиль</div><a href="${HUB}#/profile"><span class="port">★</span>Достижения</a><a href="${HUB}#/account"><span class="port">@</span>${Account.user ? 'Аккаунт' : 'Вход и регистрация'}</a>`;
   html += '</nav>';
   $('#side').innerHTML = html;
 }
@@ -118,8 +121,8 @@ function banners(){
   const last = lsGet(LS_BACKUP);
   const done = overall().done;
   const stale = !last ? done > 3 : (Date.now() - new Date(last)) > 7 * 864e5;
-  if (Store.fileStatus !== 'ok' && stale){
-    html += `<div class="banner"><span>Прогресс хранится только в этом браузере. Сохраните его в файл, чтобы не потерять.</span><a class="btn ghost" href="${HUB}#/data">Сохранить в файл</a></div>`;
+  if (Account.status !== 'user' && Store.fileStatus !== 'ok' && stale){
+    html += `<div class="banner"><span>Прогресс хранится только в этом браузере. Войдите в аккаунт, чтобы он сохранялся на сервере, или сохраните его в файл.</span><span class="row"><a class="btn" href="${HUB}#/account">Войти</a><a class="btn ghost" href="${HUB}#/data">Сохранить в файл</a></span></div>`;
   }
   const s = Game.streak();
   if (s.atRisk && s.current >= 2) html += `<div class="banner streak"><span>🔥 Серия ${s.current} ${plural(s.current, 'день', 'дня', 'дней')} подряд прервётся в полночь. Пройдите урок или ответьте на пару вопросов, чтобы её сохранить.</span></div>`;
@@ -438,8 +441,10 @@ export function startCourse(cfg){
   if (!cur || cur.lessons !== meta.lessons || cur.modules !== meta.modules){ P.state.meta = meta; Store.save('game'); }
   Game.sync(true);
   render(); Store.restoreHandle();
+  Account.onChange(() => { renderStatus(); renderSide(); });
+  Account.init();
   Store.onChange(kind => {
-    if (kind === 'external'){ renderSide(); renderStatus(); return; }
+    if (kind === 'external' || kind === 'sync'){ renderSide(); renderStatus(); return; }
     renderStatus();
     // restoreHandle нашёл более свежий файл — показываем баннер, если пользователь на главной курса
     if (Store.newerFileData && (location.hash || '#/') === '#/' && !document.querySelector('[data-act="load-newer"]')) render();
