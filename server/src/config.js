@@ -7,14 +7,16 @@ export function loadConfig(env = process.env){
   };
   const appOrigin = new URL(required('APP_ORIGIN')).origin;
   const cookieSecure = env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : production;
-  if (production && !env.SMTP_URL) throw new Error('В продакшене нужен SMTP_URL');
+  // MAIL_TRANSPORT=log — временный режим без почты (сервер без домена): письма пишутся в журнал
+  if (production && !env.SMTP_URL && env.MAIL_TRANSPORT !== 'log') throw new Error('В продакшене нужен SMTP_URL (или MAIL_TRANSPORT=log)');
   return {
     production,
     databaseUrl: required('DATABASE_URL'),
     appOrigin,
     host: env.HOST || '127.0.0.1',
     port: Number(env.PORT || 3000),
-    trustProxy: env.TRUST_PROXY === 'true',
+    // адрес прокси, которому верим в X-Forwarded-For; 'true' доверяло бы любой цепочке — и IP можно было бы подделать
+    trustProxy: !env.TRUST_PROXY || env.TRUST_PROXY === 'false' ? false : env.TRUST_PROXY === 'true' ? true : env.TRUST_PROXY,
     smtpUrl: env.SMTP_URL || null,
     mailFrom: env.MAIL_FROM || 'no-reply@localhost',
     pwnedCheck: env.PWNED_CHECK !== 'off',

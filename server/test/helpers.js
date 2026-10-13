@@ -7,7 +7,7 @@ import { resetMailThrottle } from '../src/routes/common.js';
 export const ORIGIN = 'http://localhost:5173';
 export const PASSWORD = 'correct horse battery';
 
-export async function setup({ pwned = async () => false } = {}){
+export async function setup({ pwned = async () => false, env = {} } = {}){
   const url = process.env.TEST_DATABASE_URL;
   if (!url) throw new Error('Для тестов нужен TEST_DATABASE_URL (см. .env.example)');
   const pool = createPool(url);
@@ -15,7 +15,7 @@ export async function setup({ pwned = async () => false } = {}){
   await pool.query('TRUNCATE users, sessions, email_tokens, progress, auth_events RESTART IDENTITY CASCADE');
   resetMailThrottle();
   const mails = [];
-  const config = loadConfig({ DATABASE_URL: url, APP_ORIGIN: ORIGIN });
+  const config = loadConfig({ DATABASE_URL: url, APP_ORIGIN: ORIGIN, ...env });
   const app = await buildApp({ config, pool, mailer: { send: async m => { mails.push(m); } }, pwned, logger: false });
   const close = async () => { await app.close(); await pool.end(); };
   return { app, pool, mails, config, close };
