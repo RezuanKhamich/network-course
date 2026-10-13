@@ -3,7 +3,8 @@
 // COURSE (настройки), MODULES, UPCOMING, GLOSSARY (content.js), WIDGETS, viewTools, viewJourney,
 // mountJourney, viewCheats и, по желанию, readMore (course.js).
 import { Store, LS_KEY, LS_BACKUP, $, esc, shuffle, toast, fmtTime, plural, lsGet, lsSet, applyTheme, cycleTheme } from './storage.js';
-import { Game, PASS, XP, SITE_ROOT, confetti } from './game.js';
+import { Game, PASS, XP, SITE_ROOT, confetti, nextAchievements } from './game.js';
+import { recordAnswer, dueKeys, deckStats, review, qidOf, todayAnswers, weekAnswers, BOXES, REVIEW_XP } from './review.js';
 import { Account } from './sync.js';
 
 let COURSE, MODULES, UPCOMING, GLOSSARY, WIDGETS, viewTools, viewJourney, mountJourney, viewCheats, readMore;
@@ -16,6 +17,9 @@ export const findLesson = id => allLessons().find(l => l.id === id);
 const findModule = id => MODULES.find(m => m.id === +id);
 const allModsSorted = () => [...MODULES, ...UPCOMING.map(u => ({ ...u, soon:true }))].sort((x, y) => x.id - y.id);
 const HUB = SITE_ROOT;
+// Превью награды: «+100 XP» или «✓ 100 XP», если уже получено
+const earned = key => !!Store.state.game.awarded[COURSE.id + ':' + key];
+const reward = (key, xp, label = '') => `<span class="xp-tag ${earned(key) ? 'got' : ''}" title="${earned(key) ? 'уже получено' : 'можно получить'}">${earned(key) ? '✓' : '+'}${xp} XP${label}</span>`;
 
 function moduleStats(m){
   const done = m.lessons.filter(l => P.state.lessons[l.id] && P.state.lessons[l.id].completed).length;
@@ -70,7 +74,7 @@ function renderSide(){
     const led = s.passed ? 'on' : (s.done ? 'part' : '');
     html += link('#/m/' + m.id, `<span class="led ${led}"></span><span class="port">${String(m.id).padStart(2,'0')}</span>${esc(m.title)}${un ? '' : ' 🔒'}`, un ? '' : 'locked');
   }
-  html += '<div class="nav-label">Практика</div>' + link('#/journey', '<span class="port">→</span>' + esc(COURSE.journeyLabel)) + link('#/exam', '<span class="port">∑</span>Финальный экзамен') + link('#/tools', '<span class="port">⚙</span>Инструменты');
+  html += '<div class="nav-label">Практика</div>' + link('#/journey', '<span class="port">→</span>' + esc(COURSE.journeyLabel)) + link('#/review', '<span class="port">↻</span>Повторение' + (dueKeys(COURSE.id).length ? ` <span class="badge">${dueKeys(COURSE.id).length}</span>` : '')) + link('#/exam', '<span class="port">∑</span>Финальный экзамен') + link('#/tools', '<span class="port">⚙</span>Инструменты');
   html += '<div class="nav-label">Справка</div>' + link('#/glossary', '<span class="port">A</span>Глоссарий') + link('#/cheats', '<span class="port">#</span>Шпаргалки') + link('#/progress', '<span class="port">↓</span>Прогресс курса');
   html += `<div class="nav-label">Профиль</div><a href="${HUB}#/profile"><span class="port">★</span>Достижения</a><a href="${HUB}#/account"><span class="port">@</span>${Account.user ? 'Аккаунт' : 'Вход и регистрация'}</a>`;
   html += '</nav>';
@@ -95,11 +99,12 @@ function render(){
   else if (r === 'glossary') { v.innerHTML = viewGlossary(); mountGlossary(); }
   else if (r === 'cheats') v.innerHTML = viewCheats();
   else if (r === 'progress') { v.innerHTML = viewProgress(); mountProgress(); }
+  else if (r === 'review') { v.innerHTML = '<div id="testRoot"></div>'; viewReview(); }
   else v.innerHTML = '<h1>Страница не найдена</h1><p><a href="#/">На главную</a></p>';
   rememberPlace(r, a);
-  window.scrollTo(0, 0);
 }
-window.addEventListener('hashchange', render);
+// наверх — только при переходе на другую страницу; перерисовка на месте (урок отмечен, настройка изменена) прокрутку не трогает
+window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
 
 // Запоминаем, где остановились, чтобы на главной сайта была кнопка «Продолжить»
 function rememberPlace(r, a){
@@ -149,6 +154,7 @@ function viewHome(){
   <div class="meter" aria-label="Прогресс"><i style="width:${o.pct}%"></i></div>
   <div class="row" style="margin-top:20px"><a class="btn" href="${cont}">${o.done ? 'Продолжить' : 'Начать обучение'} →</a><a class="btn ghost" href="#/journey">${esc(COURSE.journeyLabel)}</a><a class="btn ghost" href="#/tools">Инструменты</a></div>
   ${o.done ? `<p class="small" style="margin-top:10px">Дальше: ${esc(contLbl)}</p>` : ''}</section>
+  ${reviewCard()}
   <h2 style="margin-bottom:14px">Карта курса</h2><div class="mods">`;
   for (const m of allModsSorted()){
     if (m.soon){ html += `<a class="mod soon" href="#/m/${m.id}"><div class="num"><span>МОДУЛЬ ${String(m.id).padStart(2,'0')}</span><span class="tag muted">скоро</span></div><h3>${esc(m.title)}</h3><p>${esc(m.short)}</p></a>`; continue; }
@@ -173,7 +179,7 @@ function viewModule(id){
     html += `<a href="#/l/${l.id}"><span class="led ${d ? 'on' : ''}"></span><span class="port">${m.id}.${i + 1}</span><span class="grow">${esc(l.title)}</span>${d ? '<span class="tag ok">пройден</span>' : `<span class="tag muted">+${XP.lesson} XP</span>`}</a>`;
   });
   html += '</div><h2 style="margin:28px 0 10px">Тест модуля</h2>';
-  html += `<p class="small">${m.test.length} вопросов, порог — ${PASS}%. За сдачу +${XP.test} XP, за 100% ещё +${XP.perfect} XP. ${s.test ? `Лучший результат: <b>${s.test.bestScore}%</b>, попыток: ${s.test.attempts}.` : 'Ещё не проходили.'}</p><div class="row"><a class="btn" href="#/t/${m.id}">${s.test ? 'Пройти снова' : 'Начать тест'}</a>${s.test && s.test.wrongQuestionIds.length ? `<a class="btn ghost" href="#/t/${m.id}/errors">Повторить ошибки (${s.test.wrongQuestionIds.length})</a>` : ''}</div>`;
+  html += `<p class="small">${m.test.length} вопросов, порог — ${PASS}%. Награда: ${reward('t:m' + m.id, XP.test, ' за сдачу')} ${reward('tp:m' + m.id, XP.perfect, ' за 100%')}. ${s.test ? `Лучший результат: <b>${s.test.bestScore}%</b>, попыток: ${s.test.attempts}.` : 'Ещё не проходили.'}</p><div class="row"><a class="btn" href="#/t/${m.id}">${s.test ? 'Пройти снова' : 'Начать тест'}</a>${s.test && s.test.wrongQuestionIds.length ? `<a class="btn ghost" href="#/t/${m.id}/errors">Повторить ошибки (${s.test.wrongQuestionIds.length})</a>` : ''}</div>`;
   return html;
 }
 
@@ -187,12 +193,12 @@ function viewLesson(id){
   const extra = typeof readMore === 'function' ? readMore(l) : '';
   return `<div class="crumbs"><a href="#/">главная</a> / <a href="#/m/${l.module.id}">${esc(l.module.title.toLowerCase())}</a> / урок ${l.module.id}.${i + 1}</div>
   <h1>${esc(l.title)}</h1><div class="lesson-grid"><div style="min-width:0"><article class="prose" style="margin-top:18px">${l.html}${extra}</article>
-  <h2 style="margin-top:34px" id="selfcheck">Самопроверка</h2><p class="small">+${XP.check} XP за каждый верный ответ.</p><div id="checkRoot"></div>
+  <h2 style="margin-top:34px" id="selfcheck">Самопроверка</h2><p class="small">+${XP.check} XP за каждый верный ответ — один раз за вопрос. Ошибки попадут в повторение.</p><div id="checkRoot"></div>
   <div class="row" style="margin-top:24px;justify-content:space-between">
    ${prev ? `<a class="btn ghost" href="#/l/${prev.id}">← ${esc(prev.title)}</a>` : '<span></span>'}
    <span class="row"><button class="btn ${done ? 'ghost' : ''}" id="doneBtn">${done ? '✓ Урок пройден' : `Отметить как пройденный · +${XP.lesson} XP`}</button>
-   ${next ? `<a class="btn ghost" href="#/l/${next.id}">Далее →</a>` : `<a class="btn ghost" href="#/t/${l.module.id}">К тесту модуля →</a>`}</span></div></div>
-  <aside class="toc"><div class="nav-label">Модуль ${l.module.id}</div>${ls.map((x, j) => `<a href="#/l/${x.id}" class="${x.id === id ? 'active' : ''}"><span class="led ${P.state.lessons[x.id] && P.state.lessons[x.id].completed ? 'on' : ''}" style="margin-top:7px"></span>${esc(x.title)}</a>`).join('')}<a href="#/t/${l.module.id}"><span class="port">✓</span>Тест модуля</a><div class="nav-label" style="margin-top:12px">На странице</div><div id="tocSecs"></div></aside></div>`;
+   ${next ? `<a class="btn ghost" href="#/l/${next.id}">Далее →</a>` : `<a class="btn ghost" href="#/t/${l.module.id}">К тесту модуля · ${earned('t:m' + l.module.id) ? '✓' : '+' + XP.test + ' XP'} →</a>`}</span></div></div>
+  <aside class="toc"><div class="nav-label">Модуль ${l.module.id}</div>${ls.map((x, j) => `<a href="#/l/${x.id}" class="${x.id === id ? 'active' : ''}"><span class="led ${P.state.lessons[x.id] && P.state.lessons[x.id].completed ? 'on' : ''}" style="margin-top:7px"></span>${esc(x.title)}</a>`).join('')}<a href="#/t/${l.module.id}"><span class="port">✓</span>Тест модуля</a>${nextAchHtml()}<div class="nav-label" style="margin-top:12px">На странице</div><div id="tocSecs"></div></aside></div>`;
 }
 function mountLesson(id){
   const l = findLesson(id); if (!l || !isUnlocked(l.module)) return;
@@ -234,15 +240,16 @@ function mountQuestion(el, q, n, total, mode){
   el.className = 'q';
   el.innerHTML = `<div class="qh"><span>ВОПРОС ${n}/${total}</span><span>${typeLbl}</span></div><p class="qp">${esc(q.prompt)}</p>${q.code ? `<pre><code>${esc(q.code)}</code></pre>` : ''}<div class="qb">${body}</div>${mode === 'instant' ? '<div class="row" style="margin-top:12px"><button class="btn ghost chk">Проверить</button></div>' : ''}<div class="fbw"></div>`;
   if (q.type === 'order') renderOrder(st);
-  if (mode === 'instant') el.querySelector('.chk').onclick = () => { if (!hasResponse(st)){ toast('Сначала выберите ответ.'); return; } const ok = grade(st); showFeedback(st, ok); el.querySelector('.chk').disabled = true; if (ok) awardCheck(q, el.querySelector('.chk')); };
+  if (mode === 'instant') el.querySelector('.chk').onclick = () => { if (!hasResponse(st)){ toast('Сначала выберите ответ.'); return; } const ok = grade(st); showFeedback(st, ok); el.querySelector('.chk').disabled = true; answerCheck(q, ok, el.querySelector('.chk')); };
   return st;
 }
-// Верный ответ в самопроверке урока: +XP один раз за вопрос
-function awardCheck(q, anchor){
+// Самопроверка урока: верный ответ — +XP один раз за вопрос; любой ответ двигает вопрос в колоде повторения
+function answerCheck(q, ok, anchor){
   const c = P.state; if (!c.checks) c.checks = {};
-  if (c.checks[q.id]) return;
-  c.checks[q.id] = new Date().toISOString();
+  if (ok && !c.checks[q.id]) c.checks[q.id] = new Date().toISOString();
+  recordAnswer(COURSE.id, q.id, ok);
   Game.track(() => Store.save(), anchor);
+  renderSide();
 }
 function renderOrder(st){
   const box = st.el.querySelector('.ordlist');
@@ -311,6 +318,7 @@ function startTest(id, errorsOnly){
   if (!qs.length){ location.hash = '#/m/' + m.id; return; }
   runQuiz(root, shuffle(qs), {
     title: (errorsOnly ? 'Работа над ошибками: ' : 'Тест: ') + m.title,
+    rewards: errorsOnly ? 'Верные ответы на вопросы из колоды повторения засчитываются в повторение.' : `Награда: ${reward('t:m' + m.id, XP.test, ' за сдачу')} ${reward('tp:m' + m.id, XP.perfect, ' за 100%')}. Ошибки попадут в повторение, верные ответы на вопросы из колоды — засчитаются.`,
     crumbs: `<a href="#/">главная</a> / <a href="#/m/${m.id}">${esc(m.title.toLowerCase())}</a> / тест`,
     onFinish: (score, wrong) => {
       const key = 'm' + m.id; const old = P.state.tests[key];
@@ -337,12 +345,14 @@ function viewExamIntro(){
   const n = Math.min(40, pool.length);
   root.innerHTML = `<div class="crumbs"><a href="#/">главная</a> / экзамен</div><h1>Финальный экзамен</h1>
   <p style="margin-top:10px">${n} случайных вопросов из всех открытых модулей, 60 минут. Порог — ${PASS}%. Всего в банке ${pool.length} вопросов.</p>
+  <p class="small">Награда: ${reward('exam', XP.exam, ' за сдачу')} ${reward('examp', XP.examPerfect, ' за 100%')}</p>
   ${fe ? `<p class="small">Лучший результат: <b>${fe.bestScore}%</b>, попыток: ${fe.attempts}.</p>` : ''}
   <button class="btn" id="examGo">Начать экзамен</button>`;
   $('#examGo').onclick = () => {
     const qs = shuffle(pool).slice(0, n);
     const started = Date.now(), deadline = started + 60 * 60 * 1000;
     runQuiz(root, qs, { title:'Финальный экзамен', crumbs:'<a href="#/">главная</a> / экзамен', deadline,
+      rewards: `Награда: ${reward('exam', XP.exam, ' за сдачу')} ${reward('examp', XP.examPerfect, ' за 100%')}`,
       onFinish: (score) => {
         const o = P.state.finalExam;
         P.state.finalExam = { bestScore:Math.max(score, o ? o.bestScore : 0), attempts:(o ? o.attempts : 0) + 1, lastAttemptAt:new Date().toISOString() };
@@ -354,7 +364,7 @@ function viewExamIntro(){
 }
 
 function runQuiz(root, qs, opts){
-  root.innerHTML = `<div class="crumbs">${opts.crumbs}</div><div class="row" style="justify-content:space-between"><h1>${esc(opts.title)}</h1>${opts.deadline ? '<span class="timer" id="timer"></span>' : ''}</div><p class="small" style="margin-top:6px">${qs.length} вопросов. Ответы проверяются после нажатия «Завершить».</p><div id="qs"></div><div class="row" style="margin-top:20px"><button class="btn" id="finish">Завершить тест</button><span class="small" id="answeredCnt"></span></div>`;
+  root.innerHTML = `<div class="crumbs">${opts.crumbs}</div><div class="row" style="justify-content:space-between"><h1>${esc(opts.title)}</h1>${opts.deadline ? '<span class="timer" id="timer"></span>' : ''}</div><p class="small" style="margin-top:6px">${qs.length} вопросов. Ответы проверяются после нажатия «Завершить».</p>${opts.rewards ? `<p class="small">${opts.rewards}</p>` : ''}<div id="qs"></div><div class="row" style="margin-top:20px"><button class="btn" id="finish">Завершить тест</button><span class="small" id="answeredCnt"></span></div>`;
   const box = $('#qs');
   const states = qs.map((q, i) => { const c = document.createElement('div'); box.appendChild(c); return mountQuestion(c, q, i + 1, qs.length, 'test'); });
   const upd = () => { const a = states.filter(hasResponse).length; $('#answeredCnt').textContent = `Отвечено ${a} из ${qs.length}`; };
@@ -363,7 +373,7 @@ function runQuiz(root, qs, opts){
   const finish = () => {
     if (finished) return; finished = true; clearInterval(examTimer);
     let ok = 0; const wrong = [];
-    states.forEach(st => { const g = grade(st); showFeedback(st, g); if (g) ok++; else wrong.push(st.q.id); });
+    states.forEach(st => { const g = grade(st); showFeedback(st, g); if (g) ok++; else wrong.push(st.q.id); recordAnswer(COURSE.id, st.q.id, g, !!opts.review); });
     const score = Math.round(ok / qs.length * 100);
     let res;
     const gained = Game.track(() => { res = opts.onFinish(score, wrong); }, $('#finish'));
@@ -388,6 +398,81 @@ function runQuiz(root, qs, opts){
     const tick = () => { const left = Math.max(0, opts.deadline - Date.now()); const mm = Math.floor(left / 60000), ss = Math.floor(left % 60000 / 1000); const t = $('#timer'); if (t) t.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; if (!left){ toast('Время вышло.'); finish(); } };
     tick(); examTimer = setInterval(tick, 1000);
   }
+}
+
+// ====== ПОВТОРЕНИЕ ======
+// Все вопросы курса по id: тесты модулей и самопроверка уроков
+function questionBank(){
+  const bank = new Map();
+  for (const m of MODULES){
+    for (const q of m.test) bank.set(q.id, { ...q, lessonId: guessLesson(m, q), module: m });
+    for (const l of m.lessons) for (const q of l.check) bank.set(q.id, { ...q, lessonId: l.id, module: m });
+  }
+  return bank;
+}
+// Для «Повторить пройденное»: вопросы пройденных уроков и сданных модулей, которых нет в колоде
+function studiedPool(){
+  const deck = review().items, out = [];
+  for (const q of questionBank().values()){
+    if (deck[COURSE.id + '/' + q.id]) continue;
+    const lessonDone = P.state.lessons[q.lessonId] && P.state.lessons[q.lessonId].completed;
+    if (lessonDone || moduleStats(q.module).passed) out.push(q);
+  }
+  return out;
+}
+function weekMeter(){
+  const w = weekAnswers(), goal = REVIEW_XP.weekGoal, done = w >= goal;
+  return `<div class="rv-week"><div class="row" style="justify-content:space-between"><b>Повторение недели</b><span class="small">${Math.min(w, goal)}/${goal} верных ответов · ${done ? '✓ бонус получен' : `+${REVIEW_XP.weekBonus} XP`}</span></div><div class="meter"><i style="width:${Math.min(100, Math.round(w / goal * 100))}%"></i></div></div>`;
+}
+function reviewCard(){
+  const st = deckStats(COURSE.id), pool = studiedPool().length;
+  if (!st.total && !pool) return '';
+  return `<section class="card rv-card"><div><h2 style="font-size:1.1rem">↻ Повторение</h2>
+   <p class="small">${st.due ? `Сегодня к повторению: <b>${st.due}</b> ${plural(st.due, 'вопрос', 'вопроса', 'вопросов')}.` : st.total ? `На сегодня всё повторено. В колоде ${st.total}.` : 'Ошибок нет — можно освежить пройденное.'}</p></div>
+   ${weekMeter()}
+   <a class="btn ${st.due ? '' : 'ghost'}" href="#/review">${st.due ? `Повторить (${st.due})` : 'Открыть повторение'}</a></section>`;
+}
+function nextAchHtml(){
+  const [n] = nextAchievements(1);
+  if (!n) return '';
+  return `<div class="nav-label" style="margin-top:14px">Ближайшее достижение</div><div class="toc-ach" title="${esc(n.a.desc)}"><span>${n.a.icon}</span><span><b>${esc(n.a.title)}</b><small>${n.cur} / ${n.max}</small><span class="meter"><i style="width:${Math.round(n.r * 100)}%"></i></span></span></div>`;
+}
+
+function viewReview(){
+  const root = $('#testRoot'), bank = questionBank();
+  // вопросы, которых больше нет в курсе (контент поменялся), из колоды убираем
+  const items = review().items;
+  const stale = Object.keys(items).filter(k => k.startsWith(COURSE.id + '/') && !bank.has(qidOf(k)));
+  if (stale.length){ stale.forEach(k => delete items[k]); Store.save(); }
+  const st = deckStats(COURSE.id), due = dueKeys(COURSE.id), pool = studiedPool();
+  const todayLeft = Math.max(0, REVIEW_XP.dailyAnswers - todayAnswers());
+  const maxF = Math.max(1, ...st.forecast);
+  const dayName = i => i === 0 ? 'сегодня' : i === 1 ? 'завтра' : new Date(Date.now() + i * 864e5).toLocaleDateString('ru-RU', { weekday: 'short' });
+  root.innerHTML = `<div class="crumbs"><a href="#/">главная</a> / повторение</div><h1>Повторение</h1>
+  <p class="small" style="margin-top:8px">Вопросы, на которые вы ответили неверно, возвращаются через 1, 3, 7 и 21 день. Верный ответ переносит вопрос в следующую коробку, неверный — в начало. Прошёл все коробки — вопрос усвоен и уходит из колоды.</p>
+  <div class="rv-top">
+   <div class="card">${weekMeter()}<p class="small" style="margin-top:10px">За верный ответ при повторении +${REVIEW_XP.answer} XP, до ${REVIEW_XP.dailyAnswers} ответов в день: сегодня осталось ${todayLeft}. Перепройденные тесты тоже считаются, если в них попались вопросы из колоды.</p></div>
+   <div class="card"><b>Колода · ${st.total}</b><div class="rv-boxes">${st.boxes.map((n, i) => `<div class="rv-box"><span class="rv-n">${n}</span><span class="rv-stack"><i style="height:${st.total ? Math.round(n / st.total * 100) : 0}%"></i></span><small>${BOXES[i]}</small></div>`).join('<span class="rv-arrow">→</span>')}<span class="rv-arrow">→</span><div class="rv-box done"><span class="rv-n">✓</span><span class="rv-stack"></span><small>усвоено</small></div></div></div>
+  </div>
+  <h2 style="margin:24px 0 8px">Прогноз на неделю</h2>
+  <div class="rv-forecast">${st.forecast.map((n, i) => `<div class="${i === 0 ? 'rv-today' : ''}" title="${n} ${plural(n, 'вопрос', 'вопроса', 'вопросов')}"><span class="rv-bar"><i style="height:${Math.round(n / maxF * 100)}%"></i></span><b>${n}</b><small>${dayName(i)}</small></div>`).join('')}</div>
+  <div class="row" style="margin-top:22px">
+   ${due.length ? `<button class="btn" id="rvDue">Повторить сейчас · ${Math.min(due.length, 20)} ${plural(Math.min(due.length, 20), 'вопрос', 'вопроса', 'вопросов')}</button>` : '<span class="small">На сегодня колода пуста.</span>'}
+   ${pool.length ? `<button class="btn ghost" id="rvStudied">Повторить пройденное · ${Math.min(pool.length, 10)} случайных</button>` : ''}
+  </div>
+  ${!st.total && !pool.length ? '<div class="note">Пройдите уроки или тест модуля — здесь появятся вопросы для повторения.</div>' : ''}`;
+  const run = (qs, title) => runQuiz(root, qs, {
+    title, review: true, crumbs: '<a href="#/">главная</a> / <a href="#/review">повторение</a>',
+    rewards: `+${REVIEW_XP.answer} XP за верный ответ (сегодня осталось ${todayLeft}). Неверные вернутся завтра.`,
+    onFinish: (score, wrong) => {
+      Store.save();
+      return { msg: wrong.length ? `Неверные (${wrong.length}) вернутся завтра.` : 'Всё верно!', back: '#/review' };
+    }
+  });
+  const go = $('#rvDue');
+  if (go) go.onclick = () => run(shuffle(due.map(k => bank.get(qidOf(k))).filter(Boolean)).slice(0, 20), 'Повторение');
+  const st2 = $('#rvStudied');
+  if (st2) st2.onclick = () => run(shuffle(pool).slice(0, 10), 'Повторение пройденного');
 }
 
 // ====== ВИДЖЕТЫ ======

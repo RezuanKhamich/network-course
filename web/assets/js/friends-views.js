@@ -188,6 +188,8 @@ export async function mountFriend(view, render, id){
   const f = r.data;
   const mine = new Set(Object.keys(Store.state.game.achievements));
   const onlyThem = ACHIEVEMENTS.filter(a => f.achievements.includes(a.id) && !mine.has(a.id));
+  // по статистике, которую сервер пересчитал сам, — подделать нельзя
+  const certs = COURSES.filter(c => { const t = f.courses[c.id]; return t && t.tests >= t.modulesTotal && t.exam >= 70; });
   view.innerHTML = `${crumbs('<a href="#/friends">друзья</a> / ' + esc(f.nickname))}
   <div class="profile-head" style="margin-top:12px">${ava(f.avatar, 'huge')}<div style="min-width:0;flex:1"><h1>${esc(f.nickname)}</h1><div class="small">Уровень ${f.level} · ${ago(f.lastActiveAt)}</div></div></div>
   <div class="kpis">
@@ -203,6 +205,7 @@ export async function mountFriend(view, render, id){
     return `<tr><td>${c.icon} ${esc(c.title)}</td><td>${t.lessons}/${t.lessonsTotal} уроков · ${t.tests}/${t.modulesTotal} тестов${t.exam ? ` · 🎓 ${t.exam}%` : ''}</td><td>${m.done}/${m.lessons} уроков · ${m.passed}/${m.modules} тестов${m.examPassed ? ' · 🎓' : ''}</td></tr>`;
   }).join('')}</table></div>
   <h2 style="margin-top:28px">Активность</h2><p class="small">XP по дням за последний год.</p>${heatmapHtml(f.days, Game.goal())}
+  ${certs.length ? `<h2 style="margin-top:28px">Сертификаты</h2><div class="fr-achs">${certs.map(c => `<span class="fr-ach" title="Игровой сертификат: все тесты модулей и экзамен сданы">🎓 ${esc(c.title)}</span>`).join('')}</div>` : ''}
   ${onlyThem.length ? `<h2 style="margin-top:28px">Есть у ${esc(f.nickname)}, нет у вас</h2><div class="fr-achs">${onlyThem.map(a => `<span class="fr-ach" title="${esc(a.desc)}">${a.icon} ${esc(a.title)}</span>`).join('')}</div>` : ''}
   <h2 style="margin-top:28px">Дружба</h2>
   ${confirmRemove ? `<div class="confirm">Удалить ${esc(f.nickname)} из друзей? Друг не получит уведомления, но вы пропадёте из рейтингов друг друга.<div class="row" style="margin-top:10px"><button class="btn danger" id="rmYes">Удалить</button><button class="btn ghost" id="rmNo">Отмена</button></div></div>` : '<button class="btn danger" id="rm">Удалить из друзей</button>'}`;

@@ -4,6 +4,7 @@
 // (урок, вопрос, тест…), поэтому повторная отметка урока, импорт или слияние файлов не дают XP дважды.
 import { Store, emptyCourse, dayKey, esc } from './storage.js';
 import { COURSES, findCourse } from './courses.js';
+import { reviewAwards } from './review.js';
 
 export const PASS = 70;
 export const SITE_ROOT = import.meta.env.BASE_URL;
@@ -69,6 +70,8 @@ export const ACHIEVEMENTS = [
   { id:'streak-30', icon:'☄️', title:'Привычка', desc:'Занимайтесь 30 дней подряд', tier:'gold', test:x => x.streakBest >= 30, goal:x => [x.streakBest, 30] },
   { id:'goal-1', icon:'🎯', title:'Цель дня', desc:'Выполните дневную цель по XP', tier:'bronze', test:x => x.goals >= 1 },
   { id:'goal-10', icon:'🏹', title:'Целеустремлённость', desc:'Выполните дневную цель 10 раз', tier:'silver', test:x => x.goals >= 10, goal:x => [x.goals, 10] },
+  { id:'review-week', icon:'🧠', title:'Повторение — мать учения', desc:'Выполните недельную цель повторения', tier:'bronze', test:x => x.reviewWeeks >= 1 },
+  { id:'review-4', icon:'📆', title:'Ничего не забыл', desc:'Выполните недельную цель повторения 4 раза', tier:'silver', test:x => x.reviewWeeks >= 4, goal:x => [x.reviewWeeks, 4] },
   { id:'level-5', icon:'⬆️', title:'Уровень 5', desc:'Наберите опыт до 5 уровня', tier:'bronze', test:x => x.level >= 5, goal:x => [x.level, 5] },
   { id:'level-10', icon:'🚀', title:'Уровень 10', desc:'Наберите опыт до 10 уровня', tier:'silver', test:x => x.level >= 10, goal:x => [x.level, 10] },
   { id:'level-15', icon:'🛸', title:'Уровень 15', desc:'Наберите опыт до 15 уровня', tier:'gold', test:x => x.level >= 15, goal:x => [x.level, 15] },
@@ -145,7 +148,8 @@ export const Game = {
       if (st && Object.values(st.tests).some(t => t.bestScore >= PASS && t.attempts >= 3)) persistent = true;
     }
     const goals = Object.keys(Store.state.game.awarded).filter(k => k.startsWith('goal:')).length;
-    return { course, lessons, lessonsTotal, passed, perfect, exams, checks, started, persistent, goals,
+    const reviewWeeks = Object.keys(Store.state.game.awarded).filter(k => k.startsWith('rvw:')).length;
+    return { course, lessons, lessonsTotal, passed, perfect, exams, checks, started, persistent, goals, reviewWeeks,
       level:this.level().level, streakBest:this.streak().best, flags:Store.state.game.flags };
   },
 
@@ -164,6 +168,7 @@ export const Game = {
       if (c.finalExam && c.finalExam.bestScore === 100) aw(`${cid}:examp`, XP.examPerfect, c.finalExam.lastAttemptAt);
       if (st.game.flags[cid + ':journey']) aw(`${cid}:journey`, XP.journey);
     }
+    for (const [k, xp, when] of reviewAwards(st.review && st.review.log)) aw(k, xp, when);
     const today = dayKey();
     if (this.today() >= this.goal()) aw(`goal:${today}`, XP.goal);
     // достижения могут давать XP, а XP — открывать новые достижения: крутим до устойчивого состояния
@@ -264,4 +269,12 @@ export function heatmapHtml(days, goal){
     cells += `<i class="${lv}" title="${d.toLocaleDateString('ru-RU')}: ${xp} XP"></i>`;
   }
   return `<div class="heat-wrap"><div class="heat">${cells}</div></div><div class="heat-legend">меньше <i style="background:var(--line)"></i><i class="l1" style="background:color-mix(in srgb,var(--ok) 30%,var(--line))"></i><i style="background:color-mix(in srgb,var(--ok) 55%,var(--line))"></i><i style="background:color-mix(in srgb,var(--ok) 80%,var(--line))"></i><i style="background:var(--ok)"></i> больше</div>`;
+}
+
+// Ближайшие достижения с измеримым прогрессом — по доле выполненного
+export function nextAchievements(n){
+  const ctx = Game.context(); const got = Store.state.game.achievements;
+  return ACHIEVEMENTS.filter(a => !got[a.id] && !a.hidden && a.goal)
+    .map(a => { const [cur, max] = a.goal(ctx); return { a, cur:Math.min(cur, max), max, r:cur / max }; })
+    .sort((x, y) => y.r - x.r).slice(0, n);
 }

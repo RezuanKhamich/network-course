@@ -171,3 +171,45 @@ input[aria-invalid=true]{border-color:var(--bad)}
 .fr-feed li > small{grid-column:2/4;color:var(--muted);font-size:.78rem}
 .fr-achs{display:flex;flex-wrap:wrap;gap:8px}
 .fr-ach{padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:.88rem}
+
+/* ---- превью наград ---- */
+.xp-tag{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font:600 12px/20px var(--f-mono);white-space:nowrap}
+.xp-tag.got{background:var(--ok-soft);color:var(--ok)}
+.toc-ach{display:flex;gap:10px;align-items:flex-start;padding:4px 0}
+.toc-ach > span:first-child{font-size:20px}
+.toc-ach > span:last-child{display:grid;gap:2px;min-width:0;flex:1}
+.toc-ach small{color:var(--muted);font-size:.78rem}
+.toc-ach .meter{height:5px;margin:0}
+
+/* ---- повторение ---- */
+.rv-card{display:grid;grid-template-columns:1fr minmax(220px,1.2fr) auto;gap:18px;align-items:center;margin-bottom:24px}
+@media (max-width:760px){.rv-card{grid-template-columns:1fr}}
+.rv-week .meter{height:7px;margin-top:6px}
+.rv-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:16px}
+.rv-boxes{display:flex;align-items:flex-end;gap:4px;margin-top:12px;overflow-x:auto}
+.rv-box{display:grid;justify-items:center;gap:4px;min-width:48px}
+.rv-box small{color:var(--muted);font-size:.72rem;white-space:nowrap}
+.rv-n{font:600 15px var(--f-mono)}
+.rv-stack{display:flex;align-items:flex-end;width:28px;height:56px;border-radius:6px;background:var(--line);overflow:hidden}
+.rv-stack i{display:block;width:100%;background:var(--accent);border-radius:6px}
+.rv-box.done .rv-stack{background:var(--ok-soft)}
+.rv-box.done .rv-n{color:var(--ok)}
+.rv-arrow{color:var(--muted);padding-bottom:30px}
+.rv-forecast{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;max-width:520px}
+.rv-forecast > div{display:grid;justify-items:center;gap:3px}
+.rv-forecast small{color:var(--muted);font-size:.75rem}
+.rv-bar{display:flex;align-items:flex-end;width:100%;max-width:40px;height:64px;border-radius:6px;background:var(--line);overflow:hidden}
+.rv-bar i{display:block;width:100%;background:var(--accent)}
+.rv-forecast .rv-today .rv-bar i{background:var(--warn)}
+.rv-hub{display:grid;gap:10px}
+.rv-hub ul{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.rv-hub li{display:flex;justify-content:space-between;gap:10px}
+
+/* ---- игровые сертификаты ---- */
+.certs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.cert{position:relative;border:2px solid var(--accent);border-radius:14px;padding:18px 18px 14px;background:linear-gradient(135deg,var(--accent-soft),var(--panel) 60%);display:grid;gap:6px}
+.cert.locked{border-style:dashed;border-color:var(--line);background:var(--panel);opacity:.75}
+.cert .ci{font-size:30px}
+.cert small{color:var(--muted);font-size:.78rem}
+.cert .seal{position:absolute;top:12px;right:14px;font-size:26px}
+.cert-disclaimer{font-size:.72rem;color:var(--muted);border-top:1px solid var(--line);padding-top:6px;margin-top:4px}

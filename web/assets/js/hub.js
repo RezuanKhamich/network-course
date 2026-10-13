@@ -1,8 +1,9 @@
 // ====== ГЛАВНАЯ САЙТА: каталог, профиль, данные ======
 import { Store, FS_SUPPORTED, LS_BACKUP, $, esc, toast, fmtTime, plural, dayKey, lsGet, applyTheme, cycleTheme } from './storage.js';
 import { COURSES, findCourse } from './courses.js';
-import { Game, ACHIEVEMENTS, AVATARS, PASS, TIER_XP, XP, confetti, courseProgress, heatmapHtml } from './game.js';
+import { Game, ACHIEVEMENTS, AVATARS, PASS, TIER_XP, XP, confetti, courseProgress, heatmapHtml, nextAchievements } from './game.js';
 import { Account } from './sync.js';
+import { dueKeys, weekAnswers, REVIEW_XP } from './review.js';
 import { Social, takeInviteFromHash, mountFriends, mountFriend } from './friends-views.js';
 import { takeTokenFromHash, viewAccount, mountAccount, viewVerify, mountVerify, viewReset, mountReset, viewForgot, mountForgot, viewPrivacy } from './account-views.js';
 
@@ -95,12 +96,6 @@ function quests(){
     { done: xp >= goal, text: `Наберите дневную цель: ${Math.min(xp, goal)}/${goal} XP` }
   ];
 }
-function nextAchievements(n){
-  const ctx = Game.context(); const got = Store.state.game.achievements;
-  return ACHIEVEMENTS.filter(a => !got[a.id] && !a.hidden && a.goal)
-    .map(a => { const [cur, max] = a.goal(ctx); return { a, cur:Math.min(cur, max), max, r:cur / max }; })
-    .sort((x, y) => y.r - x.r).slice(0, n);
-}
 function achCard(a, opts = {}){
   const at = Store.state.game.achievements[a.id];
   const hide = a.hidden && !at;
@@ -110,6 +105,30 @@ function achCard(a, opts = {}){
 }
 
 // ====== ГЛАВНАЯ ======
+// Повторение по всем курсам: недельная цель и сколько вопросов ждёт в каждом курсе
+function reviewHub(){
+  const w = weekAnswers(), goal = REVIEW_XP.weekGoal;
+  const due = COURSES.map(c => ({ c, n: dueKeys(c.id).length })).filter(x => x.n);
+  if (!due.length && !w && !Object.keys(Store.state.review.items).length) return '';
+  return `<div class="card rv-hub" style="margin-bottom:24px"><div class="row" style="justify-content:space-between"><h2 style="font-size:1.1rem">↻ Повторение недели</h2><span class="small">${Math.min(w, goal)}/${goal} верных ответов · ${w >= goal ? '✓ бонус получен' : `+${REVIEW_XP.weekBonus} XP`}</span></div>
+   <div class="meter" style="height:7px"><i style="width:${Math.min(100, Math.round(w / goal * 100))}%"></i></div>
+   ${due.length ? `<ul>${due.map(x => `<li><a href="${x.c.path}#/review">${x.c.icon} ${esc(x.c.title)}</a><span class="small">${x.n} ${plural(x.n, 'вопрос', 'вопроса', 'вопросов')} сегодня</span></li>`).join('')}</ul>` : '<p class="small">На сегодня всё повторено. Можно освежить пройденное в разделе «Повторение» любого курса.</p>'}</div>`;
+}
+
+// ====== ИГРОВЫЕ СЕРТИФИКАТЫ ======
+// Выдаются, когда сданы все тесты модулей и финальный экзамен. Не документ — награда внутри сайта.
+const CERT_NOTE = 'Игровой сертификат сайта. Не является документом об образовании или квалификации.';
+function certificates(){
+  return `<div class="certs">${COURSES.map(c => {
+    const p = courseProgress(c.id);
+    const got = p.passed >= p.modules && p.examPassed;
+    const at = got && (Store.state.game.awarded[c.id + ':exam'] || {}).at;
+    const name = Store.state.profile.name;
+    return got
+      ? `<div class="cert"><span class="seal">🎓</span><span class="ci">${c.icon}</span><small>Сертификат о прохождении курса</small><b>${esc(c.title)}</b>${name ? `<span>${esc(name)}</span>` : ''}<small>Экзамен ${p.exam.bestScore}% · ${p.modules} тестов модулей сдано${at ? ' · ' + new Date(at).toLocaleDateString('ru-RU') : ''}</small><div class="cert-disclaimer">${CERT_NOTE}</div></div>`
+      : `<div class="cert locked"><span class="ci">${c.icon}</span><small>Сертификат курса</small><b>${esc(c.title)}</b><small>Тесты модулей ${p.passed}/${p.modules} · экзамен ${p.examPassed ? '✓' : p.exam ? p.exam.bestScore + '%' : '—'}</small><div class="meter" style="height:5px"><i style="width:${Math.round((p.passed + (p.examPassed ? 1 : 0)) / (p.modules + 1) * 100)}%"></i></div></div>`;
+  }).join('')}</div>`;
+}
 function viewHome(){
   const L = Game.level(), s = Game.streak(), xp = Game.today(), goal = Game.goal();
   const name = Store.state.profile.name;
@@ -128,6 +147,7 @@ function viewHome(){
     <h2 style="font-size:1.1rem;margin-top:20px">Ближайшие достижения</h2>
     <ul class="quests">${nextAchievements(3).map(x => `<li><span style="font-size:20px">${x.a.icon}</span><span style="flex:1;min-width:0"><b style="font-weight:600">${esc(x.a.title)}</b> <span class="small">${x.cur}/${x.max}</span><span class="meter" style="display:block;height:5px;margin-top:4px"><i style="width:${Math.round(x.r * 100)}%"></i></span></span></li>`).join('') || '<li class="small">Все открытые достижения получены!</li>'}</ul>
    </div></section>`;
+  html += reviewHub();
   if (lc) html += `<div class="continue"><div><small>Вы остановились здесь · ${esc(lc.title)}</small><b>${esc(last.title)}</b></div><a class="btn" href="${lc.path}${last.hash}">Продолжить →</a></div>`;
   html += `<h2 style="margin-bottom:14px">Курсы</h2><div class="courses">`;
   for (const c of COURSES){
@@ -166,6 +186,7 @@ function viewProfile(){
   <h2>Активность</h2><p class="small">Последний год. Насыщенность — сколько XP набрано за день относительно дневной цели.</p>${heatmapHtml(Store.state.game.days, Game.goal())}
   <h2 style="margin-top:28px">Курсы</h2>
   <div class="tbl"><table><tr><th>Курс</th><th>Прогресс</th><th>Уроки</th><th>Тесты</th><th>Экзамен</th></tr>${COURSES.map(c => { const p = courseProgress(c.id); return `<tr><td><a href="${c.path}">${c.icon} ${esc(c.title)}</a></td><td>${p.pct}%</td><td>${p.done}/${p.lessons}</td><td>${p.passed}/${p.modules}</td><td>${p.exam ? p.exam.bestScore + '%' : '—'}</td></tr>`; }).join('')}</table></div>
+  <h2 style="margin-top:28px" id="certificates">Сертификаты</h2><p class="small">Сдайте все тесты модулей и финальный экзамен курса.${Store.state.profile.name ? '' : ' Укажите имя выше — оно появится на сертификате.'}</p>${certificates()}
   <h2 style="margin-top:28px" id="achievements">Достижения · ${got} из ${ACHIEVEMENTS.length}</h2>
   <div class="ach-filter">${[['all','Все'],['got','Полученные'],['left','Ещё не получены']].map(([k, l]) => `<button class="btn ${achFilter === k ? '' : 'ghost'} small-btn" data-filter="${k}">${l}</button>`).join('')}</div>
   <div class="achs">${list.map(a => achCard(a)).join('') || '<p class="small">Пока пусто — всё впереди.</p>'}</div>

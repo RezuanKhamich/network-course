@@ -1,4 +1,5 @@
 // ====== ХРАНЕНИЕ ПРОГРЕССА ======
+import { mergeReview } from './review.js';
 // Один объект состояния на все курсы. Лежит в localStorage (общий для всех страниц сайта,
 // т. к. они на одном origin) и, по желанию, автоматически пишется в JSON-файл через File System Access API.
 export const APP_ID = 'dev-courses';
@@ -22,7 +23,7 @@ export function emptyState(){
     settings:{ theme:'system', dailyGoal:50, effects:true },
     profile:{ name:'', avatar:'🦉', createdAt:new Date().toISOString() },
     game:{ awarded:{}, days:{}, achievements:{}, flags:{} },
-    courses:{}, last:null
+    courses:{}, last:null, review:{ items:{}, log:{} }
   };
 }
 
@@ -62,7 +63,7 @@ export const Store = {
   },
   normalize(p){
     const e = emptyState();
-    const out = { ...e, ...p, settings:{ ...e.settings, ...(p.settings || {}) }, profile:{ ...e.profile, ...(p.profile || {}) }, game:{ ...e.game, ...(p.game || {}) }, courses:{} };
+    const out = { ...e, ...p, settings:{ ...e.settings, ...(p.settings || {}) }, profile:{ ...e.profile, ...(p.profile || {}) }, game:{ ...e.game, ...(p.game || {}) }, review:{ items:{ ...(p.review?.items || {}) }, log:{ ...(p.review?.log || {}) } }, courses:{} };
     for (const [id, c] of Object.entries(p.courses || {})) out.courses[id] = { ...emptyCourse(), ...c };
     return out;
   },
@@ -201,6 +202,7 @@ export const Store = {
     Object.assign(g.flags, h.flags || {});
     if (!out.profile.name && b.profile && b.profile.name) out.profile = { ...out.profile, ...b.profile };
     if (b.last && (!out.last || b.last.at > out.last.at)) out.last = b.last;
+    out.review = mergeReview(out.review, b.review);
     return out;
   },
   apply(data, mode){
@@ -212,6 +214,8 @@ export const Store = {
   reset(courseId){
     if (courseId){ this.state.courses[courseId] = emptyCourse(); }
     else { const s = this.state.settings, pr = this.state.profile; this.state = emptyState(); this.state.settings = s; this.state.profile = pr; }
+    // сброс курса убирает и его вопросы из колоды повторения
+    if (courseId) for (const k of Object.keys(this.state.review.items)) if (k.startsWith(courseId + '/')) delete this.state.review.items[k];
     this.save();
   }
 };
