@@ -37,6 +37,8 @@ jobs:
         run: |
           npm ci
           npm run check
+          npm run catalog
+          git diff --exit-code ../server/src/catalog.json || { echo "Каталог курсов устарел: выполните npm run catalog в web/ и закоммитьте server/src/catalog.json"; exit 1; }
 
       - name: Server — integration tests
         working-directory: server
