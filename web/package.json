@@ -8,7 +8,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "validate": "node scripts/validate-cyber.js",
-    "check": "npm run lint && npm run validate && npm run build"
+    "check": "npm run lint && npm run validate && npm run build",
+    "catalog": "node scripts/build-catalog.js"
   },
   "devDependencies": {
     "eslint": "^9.39.0",
