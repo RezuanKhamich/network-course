@@ -70,6 +70,21 @@ npm run dev
 | `npm run validate` | проверка контента курса ИБ |
 | `npm run check` | всё сразу: lint, validate, build |
 
+### Сервер (аккаунты и синхронизация прогресса)
+
+Нужен Docker для локальной базы PostgreSQL.
+
+```bash
+docker compose up -d db
+cd server
+cp .env.example .env
+npm install
+npm run migrate
+npm run dev
+```
+
+API поднимется на http://127.0.0.1:3000, а dev-сервер Vite проксирует к нему `/api`. Без `SMTP_URL` письма (подтверждение регистрации, сброс пароля) выводятся в консоль сервера. Тесты гоняются на отдельной базе `devcourses_test`: `npm test`.
+
 ## Публикация
 
 `npm run build` складывает готовый сайт в `web/dist/` — это обычная статика, её может отдавать любой веб-сервер (nginx, хостинг). Если сайт живёт не в корне домена, укажите путь при сборке: `VITE_BASE=/путь/ npm run build`.
