@@ -198,8 +198,8 @@ function mountLesson(id){
   const l = findLesson(id); if (!l || !isUnlocked(l.module)) return;
   mountWidgets($('#view'));
   const secs = [...document.querySelectorAll('.prose h3'), $('#selfcheck')];
-  $('#tocSecs').innerHTML = secs.map((h, i) => { h.id = h.id || 'sec' + i; return `<a class="sub" href="javascript:void 0" data-sec="${h.id}">${esc(h.textContent)}</a>`; }).join('');
-  $('#tocSecs').onclick = e => { const t = e.target.closest('[data-sec]'); if (t) document.getElementById(t.dataset.sec).scrollIntoView({ behavior:'smooth' }); };
+  $('#tocSecs').innerHTML = secs.map((h, i) => { h.id = h.id || 'sec' + i; return `<a class="sub" href="${location.hash}" data-sec="${h.id}">${esc(h.textContent)}</a>`; }).join('');
+  $('#tocSecs').onclick = e => { const t = e.target.closest('[data-sec]'); if (t){ e.preventDefault(); document.getElementById(t.dataset.sec).scrollIntoView({ behavior:'smooth' }); } };
   const root = $('#checkRoot');
   l.check.forEach((q, i) => { const c = document.createElement('div'); root.appendChild(c); mountQuestion(c, q, i + 1, l.check.length, 'instant'); });
   $('#doneBtn').onclick = e => {
