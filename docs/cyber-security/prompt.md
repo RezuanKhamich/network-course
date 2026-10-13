@@ -120,11 +120,12 @@ difficulty 1, 6 — difficulty 2, 2 — difficulty 3.
 ## Промт: course.js (виджеты, сценарий, шпаргалки)
 
 ```text
-Напиши файл courses/cyber-security/course.js для сайта с курсами. Ориентир по стилю и API —
-courses/ai-agents/course.js и courses/network/course.js (приложены). Глобальные утилиты движка:
-$, esc, shuffle, toast, findLesson, Game, Store, P.
+Напиши файл web/courses/cyber-security/course.js для сайта с курсами. Ориентир по стилю и API —
+web/courses/ai-agents/course.js и web/courses/network/course.js (приложены). Это ES-модуль:
+утилиты импортируются из ../../assets/js/storage.js ($, esc, shuffle, toast, Store),
+../../assets/js/game.js (Game) и ../../assets/js/engine.js (findLesson), RES — из ./content.js.
 
-Файл должен объявить:
+Файл должен экспортировать (export):
 1. const COURSE = { id:'cyber-security', title:'Информационная безопасность для разработчиков',
    tagline:'…', journeyLabel:'Разбор инцидента', brand:'<svg 26×26 щит, акцент var(--accent)>' }
 2. const WIDGETS = { cia, perm, hash, brute, certchain, firewall, logtriage,
@@ -141,7 +142,7 @@ $, esc, shuffle, toast, findLesson, Game, Store, P.
 5. function viewCheats() — шпаргалки из раздела «Шпаргалки».
 6. RES_LABEL и readMore(l) как в курсе AI-агентов: блок «Читать дальше» по l.topics из RES.
 
-Стили виджетов, которых нет в assets/css/base.css, — в courses/cyber-security/course.css.
+Стили виджетов, которых нет в web/assets/css/base.css, — в web/courses/cyber-security/course.css.
 ```
 
 ---
@@ -160,22 +161,22 @@ $, esc, shuffle, toast, findLesson, Game, Store, P.
 
 ## Сборка курса
 
-Файлы курса лежат в `courses/cyber-security/`:
+Файлы курса лежат в `web/courses/cyber-security/`:
 
 | Файл | Что внутри |
 |---|---|
-| `content.js` | `const MODULES = []` и `PLAN` — вся программа; ненаписанные модули показываются как «скоро» |
-| `modules/mNN.js` | `MODULES.push({…})` — по файлу на модуль, результат промта выше |
-| `glossary.js` | `const GLOSSARY = [...]`, дополняется с каждым модулем |
-| `resources.js` | `const RES` — ссылки «Читать дальше», собраны скриптом из тем roadmap.sh |
+| `content.js` | импортирует модули в `MODULES`, задаёт `PLAN` — всю программу; ненаписанные модули показываются как «скоро» |
+| `modules/mNN.js` | `export default {…}` — по файлу на модуль, результат промта выше |
+| `glossary.js` | `export const GLOSSARY = [...]`, дополняется с каждым модулем |
+| `resources.js` | `export const RES` — ссылки «Читать дальше», собраны скриптом из тем roadmap.sh |
 | `course.js`, `course.css`, `theme.css` | настройки курса, виджеты, сценарий, шпаргалки, стили |
-| `index.html` | подключает файлы; новый модуль добавляется строкой `<script src="modules/mNN.js">` |
+| `main.js` | точка входа страницы: передаёт контент и `course.js` в движок |
 
 Порядок добавления модуля:
 
 1. Сгенерировать модуль по промту и сохранить как `modules/mNN.js`.
-2. Подключить его в `index.html` перед `glossary.js`.
+2. Импортировать его в `content.js` и добавить в массив `MODULES` по порядку номеров.
 3. Добавить термины модуля в `glossary.js` и виджеты модуля в `course.js` (и в `viewTools`).
-4. Обновить `lessons` и `modules` курса в `assets/js/courses.js` (поле `planned` не трогать).
-5. Запустить `node docs/cyber-security/validate.js` — должно вывести `OK`.
+4. Обновить `lessons` и `modules` курса в `web/assets/js/courses.js`.
+5. Запустить `npm run check` в папке `web/` — валидатор должен вывести `OK`, линтер и сборка пройти без ошибок.
 6. Пройти уроки, тест модуля и виджеты в браузере.
