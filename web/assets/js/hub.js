@@ -2,6 +2,8 @@
 import { Store, FS_SUPPORTED, LS_BACKUP, $, esc, toast, fmtTime, plural, dayKey, lsGet, applyTheme, cycleTheme } from './storage.js';
 import { COURSES, findCourse } from './courses.js';
 import { Game, ACHIEVEMENTS, AVATARS, PASS, TIER_XP, XP, confetti, courseProgress } from './game.js';
+import { Account } from './sync.js';
+import { takeTokenFromHash, viewAccount, mountAccount, viewVerify, mountVerify, viewReset, mountReset, viewForgot, mountForgot, viewPrivacy } from './account-views.js';
 
 // Ссылки старой одностраничной версии курса «Сети» (index.html#/l/0-1 и т. п.) ведут в новый курс
 {
@@ -15,9 +17,11 @@ $('#menuBtn').onclick = () => $('#side').classList.toggle('open');
 let newerNotified = false, pendingImport = null, confirmReset = false, achFilter = 'all', avatarPicker = false;
 
 function renderStatus(){
-  const el = $('#saveStatus'); el.className = 'status';
+  const el = $('#saveStatus'); el.className = 'status'; el.href = '#/data';
   let txt;
-  switch (Store.fileStatus){
+  const pill = Account.pill();
+  if (pill){ if (pill.cls) el.classList.add(pill.cls); el.href = '#/account'; txt = pill.text; }
+  else switch (Store.fileStatus){
     case 'ok': el.classList.add('ok'); txt = 'Сохранено в файл' + (Store.lastFileSave ? ' · ' + fmtTime(Store.lastFileSave) : ''); break;
     case 'denied': el.classList.add('warn'); txt = 'Нет доступа к файлу — нажмите'; break;
     case 'error': el.classList.add('warn'); txt = 'Ошибка записи в файл'; break;
@@ -27,13 +31,13 @@ function renderStatus(){
   el.lastElementChild.textContent = txt;
   $('#player').innerHTML = Game.chip();
 }
-$('#saveStatus').addEventListener('click', e => { if (Store.fileStatus === 'denied'){ e.preventDefault(); Store.requestAccess(); } });
+$('#saveStatus').addEventListener('click', e => { if (!Account.pill() && Store.fileStatus === 'denied'){ e.preventDefault(); Store.requestAccess(); } });
 
 function renderSide(){
   const h = location.hash || '#/';
   const link = (href, label) => `<a href="${href}" class="${h === href ? 'active' : ''}">${label}</a>`;
   let html = `<a class="brand" href="#/"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="4" width="22" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 10l3 3-3 3M12 16h7" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Курсы для разработчиков</a>`;
-  html += '<nav class="nav">' + link('#/', '<span class="port">~</span>Главная') + link('#/profile', '<span class="port">★</span>Профиль и достижения') + link('#/data', '<span class="port">↓</span>Данные и настройки');
+  html += '<nav class="nav">' + link('#/', '<span class="port">~</span>Главная') + link('#/profile', '<span class="port">★</span>Профиль и достижения') + link('#/data', '<span class="port">↓</span>Данные и настройки') + link('#/account', '<span class="port">@</span>' + (Account.user ? 'Аккаунт' : 'Вход и регистрация'));
   html += '<div class="nav-label">Курсы</div>';
   for (const c of COURSES){
     const p = courseProgress(c.id);
@@ -50,9 +54,23 @@ function render(){
   if (!r){ v.innerHTML = viewHome(); }
   else if (r === 'profile'){ v.innerHTML = viewProfile(); mountProfile(); }
   else if (r === 'data'){ v.innerHTML = viewData(); mountData(); }
+  else if (r === 'account'){ v.innerHTML = viewAccount(); mountAccount(render); }
+  else if (r === 'privacy') v.innerHTML = viewPrivacy();
+  else if (r === 'auth') renderAuth(v);
   else v.innerHTML = '<h1>Страница не найдена</h1><p><a href="#/">На главную</a></p>';
 }
 window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+
+function renderAuth(v){
+  const t = takeTokenFromHash();
+  const kind = (location.hash || '').split('/')[2];
+  if (kind === 'verify'){
+    if (!t){ location.replace('#/account'); return; }
+    v.innerHTML = viewVerify(); mountVerify(t.token);
+  } else if (kind === 'reset'){ v.innerHTML = viewReset(t && t.token); mountReset(); }
+  else if (kind === 'forgot'){ v.innerHTML = viewForgot(); mountForgot(render); }
+  else location.replace('#/account');
+}
 
 // ---- сегодняшние задания: считаются по XP, начисленному сегодня ----
 function todayStats(){
@@ -200,7 +218,7 @@ function viewData(){
   }
   const st = Store.state.settings;
   return `<div class="crumbs"><a href="#/">главная</a> / данные</div><h1>Данные и настройки</h1>${imp}
-  <p class="small" style="margin-top:8px">Сайт статический: прогресс, XP и достижения хранятся только у вас — в браузере и, если хотите, в файле на диске.</p>
+  <p class="small" style="margin-top:8px">${Account.user ? `Прогресс синхронизируется с аккаунтом <a href="#/account">${esc(Account.user.email)}</a>. Файл и копии ниже — дополнительная страховка.` : 'Без входа прогресс, XP и достижения хранятся только у вас — в браузере и, если хотите, в файле на диске. <a href="#/account">Войдите</a>, чтобы синхронизировать их между устройствами.'}</p>
   <h2 style="margin-top:20px">Автосохранение в файл</h2>${fileBlock}
   <h2 style="margin-top:28px">Копия вручную</h2>
   <p class="small">Последняя копия: ${last ? new Date(last).toLocaleString('ru-RU') : 'ещё не сохранялась'}. Можно загрузить и файл прогресса из старых версий курсов — он будет перенесён.</p>
@@ -234,9 +252,16 @@ function mountData(){
 // ====== СТАРТ ======
 Store.load(); applyTheme(); Game.sync(true);
 render(); Store.restoreHandle();
+let accountStatus = Account.status;
+Account.onChange(() => {
+  renderStatus(); renderSide();
+  // страницу аккаунта перерисовываем, только когда меняется сам статус входа, — иначе сотрём то, что вводят в форму
+  if (Account.status !== accountStatus){ accountStatus = Account.status; if ((location.hash || '').startsWith('#/account')) render(); }
+});
+Account.init();
 Store.onChange(kind => {
   renderStatus();
   // на главной и в профиле всё зависит от прогресса — перерисовываем; на странице данных не трогаем поле ввода
-  if (kind === 'external' || (Store.newerFileData && location.hash === '#/data')) render();
+  if (((kind === 'external' || kind === 'sync') && !/^#\/(account|auth)/.test(location.hash)) || (Store.newerFileData && location.hash === '#/data')) render();
   else if (Store.newerFileData && !newerNotified && !(location.hash || '').startsWith('#/data')){ newerNotified = true; toast('В привязанном файле прогресс новее — откройте «Данные», чтобы загрузить его.'); }
 });
