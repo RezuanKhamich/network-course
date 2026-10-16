@@ -19,7 +19,7 @@ export const MODULES = [
 <tr><td>.NET (Core) 5, 6, 8, 9, 10…</td><td>Современная кроссплатформенная версия: Windows, Linux, macOS. LTS-релизы (8, 10) поддерживаются 3 года.</td></tr>
 <tr><td>BCL</td><td>Base Class Library — стандартная библиотека: коллекции, файлы, сеть, JSON, потоки.</td></tr>
 </table></div>
-<div class="note why"><b>Зачем это для ASP.NET.</b> ASP.NET Core — это просто набор библиотек поверх того же .NET. Всё, что вы узнаете в этом курсе — типы, коллекции, LINQ, async/await, DI — каждый день используется в контроллерах и сервисах веб-приложения.</div>
+<div class="note why"><b>Где применяется C#.</b> Консольные утилиты, фоновые сервисы, веб-бэкенды, desktop, игры на Unity, облачные функции. Этот курс — про сам язык и платформу .NET, без веб-фреймворка: всё, что здесь изучается, одинаково работает в любом типе приложений. Веб-разработка — в отдельном <a href="../aspnet/">курсе ASP.NET Core</a>, который опирается на этот.</div>
 <div class="note"><b>Курс опирается на курс ООП.</b> Здесь мы не объясняем заново, что такое инкапсуляция, полиморфизм, интерфейсы, SOLID и паттерны, — только то, как это записывается и работает в C#. Если эти слова пока незнакомы, сначала пройдите <a href="../oop/">курс «Объектно-ориентированное программирование»</a>; в уроках будут ссылки на нужные его разделы.</div>`,
  check: [
   { id:'q0-1a', type:'single', prompt:'Во что компилятор C# переводит исходный код?', options:['В промежуточный язык IL внутри сборки .dll','Сразу в машинный код x86','В JavaScript','В байткод Java'], answer:0, explanation:'Машинный код получается позже, JIT-компиляцией в CLR.' },
@@ -47,7 +47,7 @@ $ dotnet new list                 # все шаблоны: console, classlib, we
 <div class="note"><b>IDE.</b> Visual Studio (Windows), JetBrains Rider (все ОС) или VS Code с расширением C# Dev Kit. Все они под капотом вызывают тот же dotnet CLI.</div>`,
  check: [
   { id:'q0-2a', type:'single', prompt:'Какая команда создаёт новый консольный проект?', options:['dotnet new console','dotnet run console','dotnet create app','dotnet init'], answer:0, explanation:'dotnet new <шаблон> создаёт проект из шаблона.' },
-  { id:'q0-2b', type:'single', prompt:'Что нужно установить на сервер, чтобы только запускать готовое веб-приложение?', options:['ASP.NET Core Runtime','Полный .NET SDK обязательно','Visual Studio','Ничего'], answer:0, explanation:'SDK нужен для разработки и сборки; для запуска хватает runtime.' }
+  { id:'q0-2b', type:'single', prompt:'Что нужно установить на сервер, чтобы только запускать готовое приложение?', options:['.NET Runtime','Полный .NET SDK обязательно','Visual Studio','Ничего'], answer:0, explanation:'SDK нужен для разработки и сборки; для запуска хватает runtime.' }
  ]},
  { id:'0-3', title:'Первая программа', html:`
 <p>Шаблон <code>console</code> создаёт файл <code>Program.cs</code> из одной строки:</p>
@@ -72,7 +72,7 @@ class Program
 <li><code>static void Main</code> — точка входа. Может возвращать <code>int</code> (код выхода) или <code>Task</code> (для async).</li>
 <li><code>$"..."</code> — интерполированная строка: выражения в фигурных скобках подставляются в текст.</li>
 </ul>
-<div class="note why"><b>В ASP.NET.</b> <code>Program.cs</code> веб-приложения тоже пишется top-level statements: <code>var app = WebApplication.Create(args); app.MapGet("/", () =&gt; "Hi"); app.Run();</code></div>`,
+`,
  check: [
   { id:'q0-3a', type:'single', prompt:'Что такое top-level statements?', options:['Код без явного класса и Main — компилятор генерирует их сам','Глобальные переменные','Код, который выполняется до компиляции','Атрибуты верхнего уровня'], answer:0, explanation:'Такой файл в проекте может быть только один — он и есть точка входа.' },
   { id:'q0-3b', type:'input', prompt:'Что выведет Console.WriteLine($"{2 + 3}x");? Введите результат.', answer:['5x'], explanation:'Выражение в фигурных скобках вычисляется: 5, затем дописывается x.' }
@@ -92,23 +92,23 @@ class Program
   &lt;/ItemGroup&gt;
 &lt;/Project&gt;</code></pre>
 <ul>
-<li><b>Sdk</b> — тип проекта: <code>Microsoft.NET.Sdk</code> для консоли и библиотек, <code>Microsoft.NET.Sdk.Web</code> для ASP.NET.</li>
+<li><b>Sdk</b> — тип проекта: <code>Microsoft.NET.Sdk</code> для консоли и библиотек, <code>Microsoft.NET.Sdk.Worker</code> для фоновых сервисов; у веб-приложений свой SDK.</li>
 <li><b>TargetFramework</b> — под какую версию .NET собирать.</li>
 <li><b>Nullable</b> — включает анализ null-ссылок (модуль 4).</li>
 <li>Все <code>.cs</code>-файлы в папке проекта подключаются автоматически.</li>
 </ul>
-<p><b>Решение</b> (<code>.sln</code> / <code>.slnx</code>) объединяет несколько проектов. Типичная структура веб-приложения:</p>
+<p><b>Решение</b> (<code>.sln</code> / <code>.slnx</code>) объединяет несколько проектов. Типичная структура:</p>
 <pre><code>Shop.sln
-├─ src/Shop.Api        (webapi — контроллеры, Program.cs)
+├─ src/Shop.Cli        (console — точка входа, Program.cs)
 ├─ src/Shop.Core       (classlib — модели и бизнес-логика)
 └─ tests/Shop.Tests    (xunit)</code></pre>
 <pre><code>$ dotnet new sln -n Shop
 $ dotnet new classlib -o src/Shop.Core
 $ dotnet sln add src/Shop.Core
-$ dotnet add src/Shop.Api reference src/Shop.Core</code></pre>
+$ dotnet add src/Shop.Cli reference src/Shop.Core</code></pre>
 <div class="note"><b>Debug и Release.</b> Debug — без оптимизаций, с отладочной информацией. Release — оптимизированная сборка для продакшена. Публикуйте всегда Release.</div>`,
  check: [
-  { id:'q0-4a', type:'single', prompt:'Какой Sdk указывают в .csproj веб-приложения ASP.NET Core?', options:['Microsoft.NET.Sdk.Web','Microsoft.NET.Sdk','Microsoft.AspNet.Mvc','System.Web'], answer:0, explanation:'Web SDK подключает ASP.NET Core и настройки для веба.' },
+  { id:'q0-4a', type:'single', prompt:'Какой Sdk указывают в .csproj консольного приложения или библиотеки?', options:['Microsoft.NET.Sdk','Microsoft.NET.Sdk.Web','System.Console','Microsoft.Csproj'], answer:0, explanation:'Другие SDK (Web, Worker, Razor) добавляют настройки для своих типов приложений.' },
   { id:'q0-4b', type:'single', prompt:'Как один проект получает доступ к классам другого проекта решения?', options:['Через ProjectReference (dotnet add reference)','Копированием .cs-файлов','Через PackageReference на папку','Через using с путём к файлу'], answer:0, explanation:'Ссылка на проект добавляет его сборку в зависимости.' }
  ]}
  ],
@@ -173,7 +173,7 @@ string label = count == 1 ? "товар" : "товаров"; // тернарны
 <pre><code>string? city = user.Address?.City;   // ?. — если Address null, результат null
 string shown = city ?? "не указан";  // ?? — значение по умолчанию
 settings.Timeout ??= 30;              // ??= — присвоить, если null</code></pre>
-<p>Эти три оператора встречаются в каждом ASP.NET-проекте: данные из запроса и БД часто бывают неполными.</p>
+<p>Эти три оператора встречаются постоянно: данные из файлов, внешних API и БД часто бывают неполными.</p>
 <h3>Переполнение</h3>
 <pre><code>int max = int.MaxValue;
 int boom = max + 1;            // -2147483648, без ошибки!
@@ -360,7 +360,7 @@ foreach (var (name, price) in prices)
 IReadOnlyCollection&lt;T&gt;  // + Count
 IReadOnlyList&lt;T&gt;        // + доступ по индексу
 ICollection&lt;T&gt; / IList&lt;T&gt; // + изменение</code></pre>
-<div class="note why"><b>В ASP.NET</b> контроллер обычно возвращает <code>IEnumerable&lt;ProductDto&gt;</code> или <code>IReadOnlyList</code> — так вызывающий не может случайно изменить вашу внутреннюю коллекцию.</div>`,
+<div class="note why"><b>Публичные методы</b> обычно возвращают <code>IEnumerable&lt;T&gt;</code> или <code>IReadOnlyList&lt;T&gt;</code> — так вызывающий не может случайно изменить вашу внутреннюю коллекцию.</div>`,
  check: [
   { id:'q2-4a', type:'single', prompt:'Какая коллекция подходит для хранения уникальных тегов с быстрой проверкой наличия?', options:['HashSet<string>','List<string>','Queue<string>','string[]'], answer:0, explanation:'HashSet хранит уникальные значения и проверяет Contains за O(1).' },
   { id:'q2-4b', type:'single', prompt:'Что произойдёт при dict["нет-такого"] для Dictionary?', options:['KeyNotFoundException','Вернётся null','Вернётся 0','Ключ создастся автоматически'], answer:0, explanation:'Для безопасного чтения — TryGetValue.' }
@@ -406,11 +406,11 @@ p.Id = 2;   // ошибка компиляции: init-свойство</code></
 <tr><td><code>{ get; }</code></td><td>Задаётся только в конструкторе</td></tr>
 <tr><td><code>required</code></td><td>Компилятор требует задать при создании</td></tr>
 </table></div>
-<div class="note why"><b>В ASP.NET</b> классы-модели запросов и ответов (DTO) — это как раз классы с авто-свойствами. JSON-сериализатор и привязка моделей работают со свойствами, а не с полями.</div>
+<div class="note why"><b>Модели данных</b> (DTO, настройки, сообщения) — это как раз классы с авто-свойствами. System.Text.Json по умолчанию работает со свойствами, а не с полями (модуль 10).</div>
 <p>Соглашения об именовании: типы, методы, свойства — <code>PascalCase</code>; параметры и локальные переменные — <code>camelCase</code>; приватные поля — <code>_camelCase</code>; интерфейсы — <code>IName</code>.</p>`,
  check: [
   { id:'q3-1a', type:'single', prompt:'Что означает { get; init; } у свойства?', options:['Значение можно задать только при создании объекта','Свойство можно менять всегда','Свойство только для записи','Свойство статическое'], answer:0, explanation:'init разрешает присваивание в конструкторе и инициализаторе объекта.' },
-  { id:'q3-1b', type:'single', prompt:'Почему в DTO для ASP.NET используют свойства, а не публичные поля?', options:['Сериализатор и привязка моделей по умолчанию работают со свойствами','Поля в C# запрещены','Свойства занимают меньше памяти','Поля нельзя сделать публичными'], answer:0, explanation:'System.Text.Json по умолчанию игнорирует поля.' }
+  { id:'q3-1b', type:'single', prompt:'Почему в классах для JSON-сериализации используют свойства, а не публичные поля?', options:['System.Text.Json по умолчанию работает со свойствами','Поля в C# запрещены','Свойства занимают меньше памяти','Поля нельзя сделать публичными'], answer:0, explanation:'Поля сериализатор по умолчанию игнорирует.' }
  ]},
  { id:'3-2', title:'Конструкторы и создание объектов', html:`
 <p class="small">Теория: <a href="../oop/#/l/1-2">ООП 1.2 «Конструкторы»</a>.</p>
@@ -439,7 +439,7 @@ public class OrderService(IOrderRepository repo, ILogger&lt;OrderService&gt; log
         repo.Save(o);
     }
 }</code></pre>
-<p>Первичные конструкторы — самый частый способ писать сервисы в современном ASP.NET: зависимости приходят через DI (модуль 9) и сразу доступны в методах.</p>
+<p>Первичные конструкторы — самый частый способ писать сервисы в современном .NET: зависимости приходят через DI (модуль 9) и сразу доступны в методах.</p>
 <div class="tbl"><table><tr><th>Способ создания</th><th>Пример</th></tr>
 <tr><td>Конструктор</td><td><code>new Order(id)</code></td></tr>
 <tr><td>Target-typed new</td><td><code>Order o = new(id);</code></td></tr>
@@ -513,7 +513,7 @@ public class SqlOrderRepository : IOrderRepository, IDisposable
 }</code></pre>
 <h3>partial</h3>
 <p><code>partial class</code> разбивает класс на несколько файлов. Так генераторы кода (EF Core, Razor, source generators) дописывают свою часть к вашей.</p>
-<div class="note why"><b>В ASP.NET</b> почти каждый сервис регистрируется по интерфейсу: <code>services.AddScoped&lt;IOrderRepository, SqlOrderRepository&gt;()</code>. Это DIP из <a href="../oop/#/l/8-4">ООП 8.4</a> на практике.</div>`,
+<div class="note why"><b>DIP на практике.</b> Сервисы регистрируют в DI-контейнере по интерфейсу: <code>services.AddScoped&lt;IOrderRepository, SqlOrderRepository&gt;()</code> (модуль 9). Это DIP из <a href="../oop/#/l/8-4">ООП 8.4</a>.</div>`,
  check: [
   { id:'q3-4a', type:'single', prompt:'Чем static class отличается от обычного?', options:['Его нельзя создать и в нём только статические члены','Он быстрее','Его можно наследовать от нескольких классов','Он неизменяемый'], answer:0, explanation:'Подходит для чистых вспомогательных функций и методов расширения.' },
   { id:'q3-4b', type:'single', prompt:'Какой интерфейс нужен типу, чтобы его можно было использовать в using?', options:['IDisposable','IEnumerable','IComparable','ICloneable'], answer:0, explanation:'using вызывает Dispose() при выходе из блока.' }
@@ -574,7 +574,7 @@ a == b;                         // true — равенство по значен
 a.ToString();                   // "Money { Amount = 100, Currency = RUB }"
 var (amount, cur) = a;          // деконструкция</code></pre>
 <p>Компилятор генерирует для record: конструктор, init-свойства, <code>Equals</code>, <code>GetHashCode</code>, <code>==</code>, <code>ToString</code>, деконструкцию и поддержку <code>with</code>.</p>
-<div class="note why"><b>В ASP.NET</b> record — идеальный DTO: <code>public record CreateOrderRequest(Guid ProductId, int Quantity);</code> — одна строка, неизменяемый, корректно сравнивается.</div>
+<div class="note why"><b>DTO.</b> record — идеальный объект для передачи данных между слоями и для JSON: <code>public record OrderLine(Guid ProductId, int Quantity);</code> — одна строка, неизменяемый, корректно сравнивается.</div>
 <h3>enum</h3>
 <pre><code>public enum OrderStatus { New, Paid, Shipped, Cancelled }   // под капотом int: 0, 1, 2, 3
 
@@ -615,7 +615,7 @@ string s = nick!;            // ! — «поверь мне», подавляе�
     ArgumentNullException.ThrowIfNull(repo);
     ArgumentException.ThrowIfNullOrWhiteSpace(name);
 }</code></pre>
-<div class="note why"><b>В ASP.NET</b> nullable-аннотации влияют на валидацию: необязательное поле запроса объявляют <code>string?</code>, а обязательное — <code>string</code> или <code>required</code>. Метод поиска возвращает <code>Task&lt;Product?&gt;</code>, и контроллер обязан обработать «не найдено» → 404.</div>`,
+<div class="note why"><b>Честные сигнатуры.</b> Метод поиска возвращает <code>Task&lt;Product?&gt;</code>, и компилятор заставит вызывающий код обработать «не найдено». Необязательные поля моделей объявляйте <code>string?</code>, обязательные — <code>string</code> или <code>required</code>.</div>`,
  check: [
   { id:'q4-3a', type:'single', prompt:'Что означает тип string? при включённом Nullable?', options:['Строка, которая может быть null','Необязательный параметр','Пустая строка','Строка только для чтения'], answer:0, explanation:'Компилятор потребует проверку перед разыменованием.' },
   { id:'q4-3b', type:'single', prompt:'Что делает оператор ! в выражении nick!.Length?', options:['Подавляет предупреждение компилятора о возможном null','Проверяет на null и бросает исключение','Инвертирует значение','Делает строку обязательной'], answer:0, explanation:'Во время выполнения ничего не проверяется.' }
@@ -725,7 +725,7 @@ Total(cart, p =&gt; p.Price * 0.9m);</code></pre>
 Action inc = () =&gt; counter++;   // лямбда «захватила» переменную
 inc(); inc();
 Console.WriteLine(counter);     // 2</code></pre>
-<div class="note why"><b>В ASP.NET</b> лямбды повсюду: <code>app.MapGet("/products/{id}", (int id, IProductService s) =&gt; s.Get(id));</code>, настройка опций <code>services.AddCors(o =&gt; ...)</code>, middleware <code>app.Use(async (ctx, next) =&gt; ...)</code>.</div>`,
+<div class="note why"><b>Где встретите.</b> Лямбды повсюду: LINQ (модуль 6), сортировка <code>list.Sort((a, b) =&gt; a.Price.CompareTo(b.Price))</code>, настройка опций <code>services.AddHttpClient(c =&gt; ...)</code> (модули 9–10), обработчики событий.</div>`,
  check: [
   { id:'q5-2a', type:'single', prompt:'Какой делегат подходит для метода decimal Calc(Product p)?', options:['Func<Product, decimal>','Action<Product, decimal>','Func<decimal, Product>','Predicate<Product>'], answer:0, explanation:'Последний параметр Func — тип результата.' },
   { id:'q5-2b', type:'single', prompt:'Что такое замыкание?', options:['Лямбда, которая захватывает переменные из окружающего метода','Закрытый класс','Финальный метод','Метод без параметров'], answer:0, explanation:'Захваченная переменная живёт, пока жив делегат.' }
@@ -774,9 +774,9 @@ svc.OrderPlaced -= handler;     // отписка</code></pre>
 <p>На методах расширения построены:</p>
 <ul>
 <li><b>LINQ</b> — <code>Where</code>, <code>Select</code>, <code>OrderBy</code> это расширения <code>IEnumerable&lt;T&gt;</code> (модуль 6).</li>
-<li><b>Конфигурация ASP.NET</b> — <code>builder.Services.AddControllers()</code>, <code>app.UseAuthentication()</code>, <code>services.AddDbContext&lt;T&gt;()</code>.</li>
+<li><b>Регистрация сервисов</b> — <code>services.AddLogging()</code>, <code>services.AddHttpClient()</code>, <code>services.AddDbContext&lt;T&gt;()</code> (модули 9–10).</li>
 </ul>
-<pre><code>// Ваш модуль регистрирует свои сервисы одной строкой — частый приём в ASP.NET
+<pre><code>// Модуль регистрирует свои сервисы одной строкой — частый приём
 public static class OrdersModule
 {
     public static IServiceCollection AddOrders(this IServiceCollection services)
@@ -786,17 +786,17 @@ public static class OrdersModule
         return services;
     }
 }
-builder.Services.AddOrders();</code></pre>
+services.AddOrders();</code></pre>
 <div class="note">Методы расширения не получают доступа к приватным членам и не участвуют в полиморфизме. Если у типа есть свой метод с той же сигнатурой, вызовется он.</div>`,
  check: [
   { id:'q5-4a', type:'single', prompt:'Что делает this перед первым параметром статического метода?', options:['Превращает метод в метод расширения для типа этого параметра','Делает метод экземплярным','Передаёт параметр по ссылке','Ничего'], answer:0, explanation:'Тогда можно писать value.Method().' },
-  { id:'q5-4b', type:'single', prompt:'Чем являются builder.Services.AddControllers() и app.UseRouting() в ASP.NET?', options:['Методами расширения','Конструкторами','Событиями','Атрибутами'], answer:0, explanation:'Каждая библиотека добавляет свои расширения.' }
+  { id:'q5-4b', type:'single', prompt:'Чем являются services.AddLogging() и services.AddHttpClient()?', options:['Методами расширения IServiceCollection','Конструкторами','Событиями','Атрибутами'], answer:0, explanation:'Каждая библиотека добавляет свои расширения.' }
  ]}
  ],
  test: [
   { id:'t5-1', type:'match', prompt:'Сопоставьте делегат и сигнатуру.', pairs:[['Action<string>','string → void'],['Func<int>','() → int'],['Func<string, int>','string → int'],['Predicate<int>','int → bool']], explanation:'У Func результат — последний параметр типа.', difficulty:1 },
   { id:'t5-2', type:'analyze', prompt:'Что выведет код?', code:'var actions = new List<Action>();\nfor (int i = 0; i < 3; i++)\n{\n    int copy = i;\n    actions.Add(() => Console.Write(copy));\n}\nforeach (var a in actions) a();', options:['012','333','222','000'], answer:0, explanation:'Каждая лямбда захватила свою переменную copy.', difficulty:3 },
-  { id:'t5-3', type:'single', prompt:'Где в .NET используют методы расширения массово?', options:['LINQ и настройка ASP.NET','Только в тестах','В конструкторах','В enum'], answer:0, explanation:'Where/Select и AddXxx/UseXxx.', difficulty:1 },
+  { id:'t5-3', type:'single', prompt:'Где в .NET используют методы расширения массово?', options:['LINQ и регистрация сервисов в DI','Только в тестах','В конструкторах','В enum'], answer:0, explanation:'Where/Select и AddXxx.', difficulty:1 },
   { id:'t5-4', type:'single', prompt:'Что нельзя сделать в методе расширения?', options:['Обратиться к private-членам расширяемого типа','Вернуть значение','Принять дополнительные параметры','Вызвать другие методы'], answer:0, explanation:'Это обычный статический метод снаружи типа.', difficulty:2 },
   { id:'t5-5', type:'single', prompt:'Какое ограничение позволит написать new T() внутри обобщённого метода?', options:['where T : new()','where T : class','where T : struct не нужно','where T : notnull'], answer:0, explanation:'new() требует конструктор без параметров.', difficulty:2 },
   { id:'t5-6', type:'single', prompt:'Почему долгоживущий издатель события может вызвать утечку памяти?', options:['Он хранит ссылки на подписчиков, и те не собираются GC','События хранятся на диске','Делегаты нельзя удалить','Каждое событие создаёт поток'], answer:0, explanation:'Отписывайтесь через -=.', difficulty:2 },
@@ -914,7 +914,7 @@ var page = await db.Products
 // Ошибка: AsEnumerable/ToList раньше фильтра — вся таблица уходит в память
 var bad = db.Products.ToList().Where(p =&gt; p.Price &lt; 1000);</code></pre>
 <div class="note warn"><b>Не всё переводится в SQL.</b> Вызов вашего метода внутри <code>Where</code> для IQueryable может вызвать исключение «could not be translated». Фильтруйте выражениями над свойствами.</div>
-<div class="note why"><b>В ASP.NET</b> почти каждый GET-эндпойнт со списком — это LINQ к EF Core: фильтр по параметрам запроса, сортировка, <code>Skip/Take</code> и <code>Select</code> в DTO. Модуль 10 вернётся к этому.</div>`,
+<div class="note why"><b>Правило.</b> Фильтр, сортировку, <code>Skip/Take</code> и <code>Select</code> в DTO пишите до <code>ToListAsync</code> — тогда работу выполнит база данных. Модуль 10 вернётся к EF Core.</div>`,
  check: [
   { id:'q6-4a', type:'single', prompt:'Что произойдёт при db.Orders.ToList().Where(o => o.Total > 1000)?', options:['Вся таблица загрузится в память, фильтр выполнится в C#','Фильтр выполнится в SQL','Ошибка компиляции','Загрузятся только подходящие строки'], answer:0, explanation:'После ToList работает уже IEnumerable.' },
   { id:'q6-4b', type:'single', prompt:'Во что EF Core превращает LINQ-запрос к IQueryable?', options:['В SQL-запрос к базе данных','В JavaScript','В цикл foreach','В JSON'], answer:0, explanation:'Через деревья выражений.' }
@@ -995,7 +995,7 @@ public class InsufficientStockException(string sku, int requested)
 <li>Не глотайте исключения: пустой <code>catch { }</code> прячет баги.</li>
 <li>Не ловите <code>Exception</code> посреди бизнес-логики — пусть дойдёт до верхнего уровня.</li>
 </ul>
-<div class="note why"><b>В ASP.NET</b> верхний уровень — middleware обработки ошибок. Он ловит необработанные исключения, логирует их и возвращает клиенту <code>500</code> или <code>ProblemDetails</code>. Свои доменные исключения часто переводят там в <code>400</code>/<code>404</code>/<code>409</code>.</div>`,
+<div class="note why"><b>Верхний уровень.</b> Необработанные исключения ловят в одном месте наверху приложения — в консольной программе это try/catch в <code>Main</code>: залогировать ошибку и вернуть ненулевой код выхода. Фреймворки (хост, веб) делают это за вас.</div>`,
  check: [
   { id:'q7-2a', type:'single', prompt:'Пользователь искал товар, которого нет. Что лучше?', options:['Вернуть null/пустой результат — это ожидаемая ситуация','Бросить Exception','Завершить программу','Записать в лог и молчать'], answer:0, explanation:'Исключения — для нарушений контракта.' },
   { id:'q7-2b', type:'single', prompt:'Что плохо в catch (Exception) { }?', options:['Исключение молча проглатывается, ошибка скрыта','Ничего','Это ошибка компиляции','Ловится слишком мало'], answer:0, explanation:'Баг станет невидимым.' }
@@ -1023,7 +1023,7 @@ await using var stream = new FileStream(path, FileMode.Create);</code></pre>
     public void Dispose() =&gt; File.Delete(Path);
 }</code></pre>
 <div class="note warn"><b>HttpClient — исключение из правила.</b> Создавать <code>new HttpClient()</code> в <code>using</code> на каждый запрос нельзя: закончатся сокеты. Используйте один экземпляр или <code>IHttpClientFactory</code> (модуль 10).</div>
-<div class="note why"><b>В ASP.NET</b> DI-контейнер сам вызывает <code>Dispose</code> у созданных им сервисов в конце запроса (для Scoped) — поэтому <code>DbContext</code> вручную обычно не освобождают.</div>`,
+<div class="note why"><b>DI и Dispose.</b> DI-контейнер сам вызывает <code>Dispose</code> у созданных им сервисов, когда закрывается их область (scope), — поэтому <code>DbContext</code> из контейнера вручную не освобождают.</div>`,
  check: [
   { id:'q7-3a', type:'single', prompt:'Во что разворачивается using var x = ...;?', options:['try/finally с вызовом x.Dispose() в конце области','Вызов GC.Collect()','Создание статической переменной','Импорт пространства имён'], answer:0, explanation:'Гарантированная очистка ресурса.' },
   { id:'q7-3b', type:'single', prompt:'Почему нельзя создавать HttpClient в using на каждый запрос?', options:['Сокеты освобождаются не сразу, и под нагрузкой они заканчиваются','HttpClient не реализует IDisposable','Так медленнее компилируется','Это запрещено лицензией'], answer:0, explanation:'Используйте IHttpClientFactory.' }
@@ -1044,7 +1044,7 @@ await using var stream = new FileStream(path, FileMode.Create);</code></pre>
 <li>Для серверов включён <b>Server GC</b> — отдельная куча на ядро и параллельная сборка.</li>
 </ul>
 <pre><code>$ dotnet-counters monitor -n MyApi   # live-метрики: gc-heap-size, gen-0-gc-count, alloc-rate</code></pre>
-<div class="note"><b>Span&lt;T&gt;</b> и <b>Memory&lt;T&gt;</b> позволяют работать с частью массива или строки без копирования. Ими построены быстрые части ASP.NET Core (парсинг HTTP, JSON), но в прикладном коде они нужны редко.</div>`,
+<div class="note"><b>Span&lt;T&gt;</b> и <b>Memory&lt;T&gt;</b> позволяют работать с частью массива или строки без копирования. Ими построены быстрые части самого .NET (парсинг, JSON), но в прикладном коде они нужны редко.</div>`,
  check: [
   { id:'q7-4a', type:'single', prompt:'Почему GC в .NET делит объекты на поколения?', options:['Большинство объектов живёт недолго, их выгодно собирать часто и быстро','Чтобы ограничить число объектов','Для сериализации','Так требует Windows'], answer:0, explanation:'Гипотеза поколений.' },
   { id:'q7-4b', type:'single', prompt:'Какой из вариантов — типичная утечка памяти в .NET?', options:['Статический Dictionary-кэш, в который только добавляют','Локальная переменная в методе','Использование using','Вызов ToString()'], answer:0, explanation:'Объекты остаются достижимыми навсегда.' }
@@ -1055,7 +1055,7 @@ await using var stream = new FileStream(path, FileMode.Create);</code></pre>
   { id:'t7-2', type:'single', prompt:'Какое исключение бросить, если метод Ship вызван для неоплаченного заказа?', options:['InvalidOperationException','ArgumentNullException','NullReferenceException','StackOverflowException'], answer:0, explanation:'Операция недопустима в текущем состоянии объекта.', difficulty:2 },
   { id:'t7-3', type:'single', prompt:'Что делает catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)?', options:['Ловит исключение, только если условие истинно','Ловит все HttpRequestException','Бросает новое исключение','Ошибка синтаксиса'], answer:0, explanation:'Фильтр исключений.', difficulty:2 },
   { id:'t7-4', type:'match', prompt:'Сопоставьте конструкцию и назначение.', pairs:[['finally','Код, выполняемый всегда'],['using','Гарантированный вызов Dispose'],['throw;','Проброс с сохранением стека'],['InnerException','Исходная причина ошибки']], explanation:'Основы обработки ошибок.', difficulty:1 },
-  { id:'t7-5', type:'single', prompt:'Кто в ASP.NET обычно обрабатывает необработанные исключения?', options:['Middleware обработки ошибок на верхнем уровне конвейера','Каждый метод сам','GC','База данных'], answer:0, explanation:'Он логирует и возвращает 500/ProblemDetails.', difficulty:1 },
+  { id:'t7-5', type:'single', prompt:'Где ловить необработанные исключения в консольном приложении?', options:['Один раз наверху: try/catch в Main с логированием и кодом выхода','В каждом методе','В сборщике мусора','Нигде'], answer:0, explanation:'Один обработчик наверху, а не catch повсюду.', difficulty:1 },
   { id:'t7-6', type:'single', prompt:'Зачем await using вместо using?', options:['Для объектов IAsyncDisposable, которые освобождаются асинхронно','Для ускорения','Для объектов без Dispose','Для статических полей'], answer:0, explanation:'Например, потоки и соединения.', difficulty:2 },
   { id:'t7-7', type:'single', prompt:'Стоит ли вызывать GC.Collect() после обработки каждого запроса?', options:['Нет, это ухудшит производительность','Да, это освобождает память','Да, иначе будет утечка','Только в Release'], answer:0, explanation:'GC сам решает, когда собирать.', difficulty:1 },
   { id:'t7-8', type:'multiple', prompt:'Какие ситуации лучше выразить возвращаемым значением, а не исключением? (несколько ответов)', options:['Товар по id не найден','Строка не парсится в число (TryParse)','Пользователь ввёл неверный пароль','Нет соединения с базой данных'], answer:[0,1,2], explanation:'Отказ БД — исключительная ситуация.', difficulty:2 }
@@ -1065,7 +1065,7 @@ await using var stream = new FileStream(path, FileMode.Create);</code></pre>
  id: 8, title: 'Асинхронность', short: 'Task, async/await, отмена, параллелизм, частые ошибки',
  lessons: [
  { id:'8-1', title:'Зачем async и что такое Task', html:`
-<p>Веб-сервер большую часть времени <b>ждёт</b>: ответа БД, другого сервиса, диска. Если поток при этом заблокирован, он не обслуживает других клиентов, и под нагрузкой потоки заканчиваются.</p>
+<p>Программа большую часть времени <b>ждёт</b>: ответа БД, другого сервиса, диска. Заблокированный поток в это время ничего не делает: в UI зависает интерфейс, в сервисе под нагрузкой заканчиваются потоки, а утилита выполняет запросы строго по одному.</p>
 <pre><code>// Синхронно: поток стоит и ждёт
 string html = client.GetString(url);        // поток занят 300 мс
 
@@ -1078,7 +1078,7 @@ string html = await client.GetStringAsync(url);</code></pre>
 <tr><td><code>ValueTask&lt;T&gt;</code></td><td>То же, но без выделения памяти, если результат часто готов сразу</td></tr>
 </table></div>
 <div data-widget="async"></div>
-<div class="note why"><b>В ASP.NET</b> асинхронные обработчики — стандарт: <code>public async Task&lt;IActionResult&gt; Get(int id)</code>. Благодаря этому сервер с небольшим пулом потоков держит тысячи одновременных запросов.</div>`,
+<div class="note why"><b>Где это важно.</b> В серверных приложениях небольшой пул потоков обслуживает тысячи одновременных операций, в UI-приложениях интерфейс не зависает во время загрузки, а в консольных утилитах можно выполнять десятки запросов параллельно.</div>`,
  check: [
   { id:'q8-1a', type:'single', prompt:'Что происходит с потоком на await при ожидании ответа сети?', options:['Он возвращается в пул и может обслуживать другую работу','Он блокируется до ответа','Он завершается навсегда','Создаётся новый процесс'], answer:0, explanation:'Продолжение выполнится позже, возможно на другом потоке.' },
   { id:'q8-1b', type:'single', prompt:'Какой тип вернёт асинхронный метод, получающий строку?', options:['Task<string>','string','async string','Thread<string>'], answer:0, explanation:'Task<T> — будущий результат типа T.' }
@@ -1109,7 +1109,7 @@ var userTask = GetUserAsync(id);
 var ordersTask = GetOrdersAsync(id);
 await Task.WhenAll(userTask, ordersTask);
 var user = userTask.Result;      // уже завершено — безопасно</code></pre>
-<div class="note warn"><b>Async до конца.</b> Если метод вызывает асинхронный код, он сам становится асинхронным, и так вверх по стеку до контроллера. Не останавливайте цепочку через <code>.Result</code> или <code>.Wait()</code>.</div>`,
+<div class="note warn"><b>Async до конца.</b> Если метод вызывает асинхронный код, он сам становится асинхронным, и так вверх по стеку до точки входа (<code>async Task Main</code>). Не останавливайте цепочку через <code>.Result</code> или <code>.Wait()</code>.</div>`,
  check: [
   { id:'q8-2a', type:'single', prompt:'Почему async void опасен?', options:['Исключение нельзя поймать вызывающим кодом, оно может уронить процесс','Он медленнее','Он не компилируется','Он всегда синхронный'], answer:0, explanation:'Используйте async Task.' },
   { id:'q8-2b', type:'single', prompt:'Как запустить два независимых запроса одновременно и дождаться обоих?', options:['Запустить оба и await Task.WhenAll(t1, t2)','await первый, потом await второй','Вызвать .Result у обоих','Использовать Thread.Sleep'], answer:0, explanation:'Время ≈ максимуму из двух, а не сумме.' }
@@ -1136,14 +1136,17 @@ await Task.Delay(1000, ct);       // асинхронная пауза, а не 
 <li>Отмена <b>кооперативная</b>: код сам проверяет токен или передаёт его методам, которые проверяют.</li>
 <li>Принимайте <code>CancellationToken ct = default</code> последним параметром и передавайте его во все вложенные async-вызовы.</li>
 </ul>
-<div class="note why"><b>В ASP.NET</b> токен приходит бесплатно: добавьте параметр <code>CancellationToken ct</code> в действие контроллера или Minimal API — он сработает, если клиент оборвёт соединение. EF Core и HttpClient принимают его во все методы.</div>`,
+<div class="note why"><b>Откуда берётся токен.</b> В хосте — <code>stoppingToken</code> фонового сервиса (урок 9.4), в консоли — Ctrl+C:</div>
+<pre><code>using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) =&gt; { e.Cancel = true; cts.Cancel(); };
+await RunAsync(cts.Token);</code></pre>`,
  check: [
   { id:'q8-3a', type:'single', prompt:'Как отменяется операция с CancellationToken?', options:['Кооперативно: код сам проверяет токен или передаёт его дальше','Поток принудительно убивается','Процесс перезапускается','Никак'], answer:0, explanation:'Принудительной остановки нет.' },
   { id:'q8-3b', type:'single', prompt:'Чем заменить Thread.Sleep(1000) в асинхронном коде?', options:['await Task.Delay(1000, ct)','Task.Wait(1000)','while (true) {}','GC.Collect()'], answer:0, explanation:'Delay не блокирует поток.' }
  ]},
  { id:'8-4', title:'Частые ошибки и потокобезопасность', html:`
 <h3>Блокировка асинхронного кода</h3>
-<pre><code>var data = GetDataAsync().Result;     // блокирует поток; в старых UI/ASP.NET — дедлок
+<pre><code>var data = GetDataAsync().Result;     // блокирует поток; в UI-приложениях — дедлок
 GetDataAsync().Wait();                // то же самое
 
 var data = await GetDataAsync();      // правильно</code></pre>
@@ -1152,7 +1155,7 @@ var data = await GetDataAsync();      // правильно</code></pre>
                                       // а запрос может закончиться раньше записи
 await SaveAsync(order);</code></pre>
 <h3>Общие данные из нескольких потоков</h3>
-<p>В ASP.NET один экземпляр Singleton-сервиса обслуживает запросы параллельно. Изменяемое состояние в нём должно быть потокобезопасным:</p>
+<p>Один экземпляр Singleton-сервиса могут вызывать сразу из нескольких потоков: параллельные задачи, фоновые обработчики. Изменяемое состояние в нём должно быть потокобезопасным:</p>
 <pre><code>// Плохо: Dictionary не потокобезопасен
 private readonly Dictionary&lt;string, int&gt; _hits = new();
 
@@ -1168,7 +1171,7 @@ lock (_lock) { /* короткая критическая секция, без a
 
 private readonly SemaphoreSlim _sem = new(1);
 await _sem.WaitAsync(ct); try { ... } finally { _sem.Release(); }   // асинхронный «lock»</code></pre>
-<div class="note"><b>CPU-нагрузка.</b> async ускоряет ожидание ввода-вывода, но не вычисления. Тяжёлые расчёты распараллеливают через <code>Parallel.ForEach</code> или <code>Task.Run</code> — но в ASP.NET обычно лучше вынести их в фоновую очередь.</div>`,
+<div class="note"><b>CPU-нагрузка.</b> async ускоряет ожидание ввода-вывода, но не вычисления. Тяжёлые расчёты распараллеливают через <code>Parallel.ForEach</code> или <code>Task.Run</code> — но в серверных приложениях обычно лучше вынести их в фоновую очередь.</div>`,
  check: [
   { id:'q8-4a', type:'single', prompt:'Что не так с var x = GetAsync().Result; в веб-приложении?', options:['Поток блокируется, растёт риск дедлоков и исчерпания пула потоков','Ничего','Ошибка компиляции','Результат всегда null'], answer:0, explanation:'Используйте await.' },
   { id:'q8-4b', type:'single', prompt:'Какую коллекцию использовать в Singleton-сервисе, который меняют параллельные запросы?', options:['ConcurrentDictionary','Dictionary','List','Array'], answer:0, explanation:'Она потокобезопасна.' }
@@ -1177,7 +1180,7 @@ await _sem.WaitAsync(ct); try { ... } finally { _sem.Release(); }   // асин�
  test: [
   { id:'t8-1', type:'analyze', prompt:'Сколько примерно займёт метод, если каждый вызов длится 1 с?', code:'var a = LoadAAsync();\nvar b = LoadBAsync();\nvar c = LoadCAsync();\nawait Task.WhenAll(a, b, c);', options:['≈1 с','≈3 с','≈0 с','≈2 с'], answer:0, explanation:'Все три выполняются одновременно.', difficulty:2 },
   { id:'t8-2', type:'single', prompt:'Какое имя дать асинхронному методу загрузки пользователя?', options:['GetUserAsync','GetUser','AsyncGetUser','GetUserTask'], answer:0, explanation:'Суффикс Async — соглашение .NET.', difficulty:1 },
-  { id:'t8-3', type:'single', prompt:'Где в ASP.NET взять токен отмены запроса?', options:['Добавить параметр CancellationToken в метод контроллера/эндпойнта','Создать new CancellationToken() в каждом методе','Из статического поля','Он недоступен'], answer:0, explanation:'Фреймворк связывает его с соединением клиента.', difficulty:1 },
+  { id:'t8-3', type:'single', prompt:'Как корректно остановить долгую операцию консольной утилиты по Ctrl+C?', options:['Отменить CancellationTokenSource в обработчике Console.CancelKeyPress и передавать токен вниз','Thread.Abort()','Environment.Exit(0) из любого места','Никак'], answer:0, explanation:'Кооперативная отмена: операции сами завершатся аккуратно.', difficulty:1 },
   { id:'t8-4', type:'single', prompt:'Почему нельзя использовать await внутри lock?', options:['Компилятор запрещает: продолжение может выполниться на другом потоке','Это медленно','lock не работает с async-методами вообще','Можно, ограничений нет'], answer:0, explanation:'Для асинхронной синхронизации — SemaphoreSlim.WaitAsync.', difficulty:3 },
   { id:'t8-5', type:'match', prompt:'Сопоставьте инструмент и задачу.', pairs:[['Task.WhenAll','Дождаться нескольких задач'],['CancellationTokenSource','Таймаут или отмена'],['Interlocked.Increment','Атомарный счётчик'],['SemaphoreSlim','Ограничить параллелизм в async-коде']], explanation:'Базовые примитивы.', difficulty:2 },
   { id:'t8-6', type:'single', prompt:'Что произойдёт с исключением внутри async Task-метода, если результат ожидают через await?', options:['Оно будет выброшено в точке await и поймано обычным try/catch','Потеряется','Уронит процесс сразу','Превратится в null'], answer:0, explanation:'Task хранит исключение.', difficulty:2 },
@@ -1186,7 +1189,7 @@ await _sem.WaitAsync(ct); try { ... } finally { _sem.Release(); }   // асин�
  ]
 },
 {
- id: 9, title: 'Мост к ASP.NET: хост, DI, конфигурация', short: 'Microsoft.Extensions: DI, время жизни, IConfiguration, IOptions, ILogger, Generic Host',
+ id: 9, title: 'Хост, DI и конфигурация', short: 'Microsoft.Extensions: DI, время жизни, IConfiguration, IOptions, ILogger, Generic Host',
  lessons: [
  { id:'9-1', title:'Внедрение зависимостей в .NET', html:`
 <p class="small">Теория: <a href="../oop/#/l/6-4">ООП 6.4 «Делегирование и внедрение зависимостей»</a>, <a href="../oop/#/l/8-4">ООП 8.4 «DIP»</a>. Здесь — встроенный DI-контейнер .NET, тот самый, что лежит в основе ASP.NET Core.</p>
@@ -1207,7 +1210,7 @@ public class OrderService(IOrderRepository repo, IClock clock)   // контей
     public Task PlaceAsync(Order o) =&gt; repo.SaveAsync(o with { CreatedAt = clock.Now });
 }</code></pre>
 <p>Контейнер смотрит на конструктор <code>OrderService</code>, находит зарегистрированные реализации параметров и создаёт весь граф объектов.</p>
-<div class="note why"><b>В ASP.NET</b> вместо <code>new ServiceCollection()</code> будет <code>builder.Services</code>, а <code>GetRequiredService</code> вызывать не придётся: контроллеры и эндпойнты получают сервисы через параметры.</div>`,
+<div class="note why"><b>В хосте</b> (урок 9.4) <code>ServiceCollection</code> создаётся за вас: регистрации пишут в <code>builder.Services</code>, а <code>GetRequiredService</code> вручную почти не нужен — сервисы получают зависимости через конструкторы.</div>`,
  check: [
   { id:'q9-1a', type:'single', prompt:'Как DI-контейнер узнаёт, что передать в конструктор OrderService?', options:['По типам параметров конструктора ищет зарегистрированные реализации','По именам параметров','Из файла конфигурации XML','Никак, нужно передавать вручную'], answer:0, explanation:'Регистрация «интерфейс → реализация».' },
   { id:'q9-1b', type:'single', prompt:'Что делает services.AddScoped<IRepo, SqlRepo>()?', options:['Регистрирует SqlRepo как реализацию IRepo со временем жизни Scoped','Создаёт SqlRepo сразу','Наследует SqlRepo от IRepo','Удаляет регистрацию'], answer:0, explanation:'Экземпляр создаётся по требованию.' }
@@ -1215,7 +1218,7 @@ public class OrderService(IOrderRepository repo, IClock clock)   // контей
  { id:'9-2', title:'Время жизни сервисов', html:`
 <div class="tbl"><table><tr><th>Время жизни</th><th>Экземпляр</th><th>Для чего</th></tr>
 <tr><td><code>Singleton</code></td><td>Один на всё приложение</td><td>Кэши, конфигурация, HttpClient-фабрика, часы</td></tr>
-<tr><td><code>Scoped</code></td><td>Один на область (в вебе — на HTTP-запрос)</td><td><code>DbContext</code>, репозитории, сервисы бизнес-логики</td></tr>
+<tr><td><code>Scoped</code></td><td>Один на область (scope): одна задача, одно сообщение из очереди</td><td><code>DbContext</code>, репозитории, сервисы бизнес-логики</td></tr>
 <tr><td><code>Transient</code></td><td>Новый при каждом запросе к контейнеру</td><td>Лёгкие сервисы без состояния</td></tr>
 </table></div>
 <div data-widget="lifetimes"></div>
@@ -1224,7 +1227,7 @@ public class OrderService(IOrderRepository repo, IClock clock)   // контей
 services.AddScoped&lt;AppDbContext&gt;();       // должен жить один запрос
 
 public class ReportCache(AppDbContext db) { }   // ошибка: Singleton держит Scoped</code></pre>
-<p>Singleton захватит первый <code>DbContext</code> и будет использовать его из всех запросов параллельно — а DbContext не потокобезопасен. В режиме разработки ASP.NET проверяет это и падает при старте с понятной ошибкой.</p>
+<p>Singleton захватит первый <code>DbContext</code> и будет использовать его из всех операций параллельно — а DbContext не потокобезопасен. С <code>ValidateScopes = true</code> (в хосте включено в окружении Development) контейнер обнаружит это и бросит исключение.</p>
 <div class="note"><b>Правило:</b> сервис может зависеть только от сервисов с таким же или более длинным временем жизни. Singleton → только Singleton; Scoped → Scoped и Singleton; Transient → любые.</div>`,
  check: [
   { id:'q9-2a', type:'single', prompt:'Какое время жизни у DbContext в веб-приложении?', options:['Scoped — один на запрос','Singleton','Transient','Static'], answer:0, explanation:'Отслеживание изменений привязано к единице работы — запросу.' },
@@ -1301,27 +1304,21 @@ public class QueueWorker(ILogger&lt;QueueWorker&gt; log) : BackgroundService
         }
     }
 }</code></pre>
-<p>Сравните с веб-приложением:</p>
-<pre><code>var builder = WebApplication.CreateBuilder(args);   // тот же хост + веб-сервер Kestrel
-builder.Services.AddScoped&lt;OrderService&gt;();
-var app = builder.Build();
-app.MapGet("/orders/{id}", (Guid id, OrderService s) =&gt; s.GetAsync(id));
-app.Run();</code></pre>
-<div class="note why"><b>Это и есть мост.</b> ASP.NET Core = Generic Host + HTTP-сервер + маршрутизация. Если вы понимаете DI, Options, ILogger и BackgroundService, Program.cs веб-приложения уже читается.</div>`,
+<div class="note why"><b>Шаблон <code>dotnet new worker</code></b> создаёт именно такое приложение: хост + BackgroundService. Это основа для фоновых обработчиков очередей, планировщиков и агентов. Тот же хост лежит и в основе веб-приложений.</div>`,
  check: [
   { id:'q9-4a', type:'single', prompt:'Почему logger.LogInformation("Заказ {Id}", id) лучше, чем $"Заказ {id}"?', options:['Значение сохраняется как отдельное поле — по нему можно искать и фильтровать','Так короче','Интерполяция не компилируется','Нет разницы'], answer:0, explanation:'Структурное логирование.' },
-  { id:'q9-4b', type:'single', prompt:'Чем WebApplication отличается от Generic Host?', options:['Это тот же хост с добавленным веб-сервером и маршрутизацией','Это совершенно другой механизм без DI','Он не поддерживает конфигурацию','Он работает только на Windows'], answer:0, explanation:'Все сервисы хоста доступны и в вебе.' }
+  { id:'q9-4b', type:'single', prompt:'Что происходит при Ctrl+C или SIGTERM в приложении на Generic Host?', options:['Хост отменяет stoppingToken и даёт сервисам корректно завершиться','Процесс убивается мгновенно','Ничего','Приложение перезапускается'], answer:0, explanation:'Корректная остановка — часть жизненного цикла хоста.' }
  ]}
  ],
  test: [
-  { id:'t9-1', type:'match', prompt:'Сопоставьте время жизни и пример сервиса.', pairs:[['Singleton','Кэш курсов валют на всё приложение'],['Scoped','DbContext на запрос'],['Transient','Лёгкий форматтер без состояния']], explanation:'Выбор по природе сервиса.', difficulty:1 },
+  { id:'t9-1', type:'match', prompt:'Сопоставьте время жизни и пример сервиса.', pairs:[['Singleton','Кэш курсов валют на всё приложение'],['Scoped','DbContext на одну задачу'],['Transient','Лёгкий форматтер без состояния']], explanation:'Выбор по природе сервиса.', difficulty:1 },
   { id:'t9-2', type:'order', prompt:'Расставьте источники конфигурации по приоритету (от низшего к высшему) по умолчанию.', options:['appsettings.json','appsettings.Production.json','Переменные окружения','Аргументы командной строки'], answer:[0,1,2,3], explanation:'Поздние перекрывают ранние.', difficulty:2 },
   { id:'t9-3', type:'analyze', prompt:'Что не так в регистрации?', code:'services.AddSingleton<PriceCache>();\nservices.AddScoped<ShopDbContext>();\n\npublic class PriceCache(ShopDbContext db) { ... }', options:['Singleton захватывает Scoped DbContext','Нужно AddTransient для DbContext','PriceCache должен быть static','Всё правильно'], answer:0, explanation:'Захваченная зависимость.', difficulty:2 },
   { id:'t9-4', type:'single', prompt:'Где хранить пароль SMTP при локальной разработке?', options:['В User Secrets','В appsettings.json в репозитории','В коде','В README'], answer:0, explanation:'Секреты — вне репозитория.', difficulty:1 },
   { id:'t9-5', type:'single', prompt:'Какой базовый класс удобен для фонового сервиса в хосте?', options:['BackgroundService','Controller','DbContext','Thread'], answer:0, explanation:'Реализуйте ExecuteAsync.', difficulty:1 },
   { id:'t9-6', type:'single', prompt:'Что сделает ValidateOnStart() у Options?', options:['Проверит настройки при запуске приложения, а не при первом использовании','Отключит валидацию','Перезагрузит конфигурацию','Зашифрует значения'], answer:0, explanation:'Ошибка конфигурации видна сразу.', difficulty:2 },
   { id:'t9-7', type:'single', prompt:'Как получить логгер в сервисе?', options:['Внедрить ILogger<T> через конструктор','Создать new Logger()','Использовать Console.WriteLine','Через статический класс Log'], answer:0, explanation:'Категория лога — имя типа T.', difficulty:1 },
-  { id:'t9-8', type:'multiple', prompt:'Что предоставляет Generic Host? (несколько ответов)', options:['DI-контейнер','Конфигурацию','Логирование','HTTP-маршрутизацию без дополнительных пакетов'], answer:[0,1,2], explanation:'Маршрутизацию добавляет ASP.NET Core.', difficulty:2 }
+  { id:'t9-8', type:'multiple', prompt:'Что предоставляет Generic Host? (несколько ответов)', options:['DI-контейнер','Конфигурацию','Логирование','HTTP-маршрутизацию без дополнительных пакетов'], answer:[0,1,2], explanation:'HTTP — уже задача веб-фреймворка.', difficulty:2 }
  ]
 },
 {
@@ -1347,7 +1344,7 @@ Directory.CreateDirectory(Path.GetDirectoryName(path)!);</code></pre>
     return await reader.ReadToEndAsync();
 }
 await ReadAllAsync(File.OpenRead("a.txt"));
-await ReadAllAsync(httpRequest.Body);       // в ASP.NET</code></pre>
+await ReadAllAsync(await response.Content.ReadAsStreamAsync());   // тело HTTP-ответа</code></pre>
 <p class="small">Обёртки над потоками (<code>StreamReader</code>, <code>GZipStream</code>, <code>BufferedStream</code>) — паттерн «Декоратор» из <a href="../oop/#/l/10-2">ООП 10.2</a>.</p>`,
  check: [
   { id:'q10-1a', type:'single', prompt:'Как правильно собрать путь к файлу?', options:['Path.Combine(dir, "data", "file.json")','dir + "/data/file.json"','dir + "\\\\data\\\\file.json"','string.Concat без разделителей'], answer:0, explanation:'Path учитывает разделители ОС.' },
@@ -1373,7 +1370,7 @@ ProductDto? dto = JsonSerializer.Deserialize&lt;ProductDto&gt;(json, options);</
     [JsonConverter(typeof(JsonStringEnumConverter))] public Role Role { get; set; }
 }</code></pre>
 <div class="note warn"><b>Не отдавайте наружу доменные сущности.</b> Сериализовав <code>User</code> целиком, легко случайно отправить клиенту хеш пароля или внутренние поля. Для API заводят отдельные DTO-record'ы.</div>
-<div class="note why"><b>В ASP.NET</b> сериализация происходит автоматически: вернули объект из эндпойнта — он стал JSON; параметр с <code>[FromBody]</code> — JSON из тела запроса стал объектом. Используются те же <code>JsonSerializerOptions</code> с <code>JsonSerializerDefaults.Web</code>.</div>`,
+<div class="note why"><b>Настройки по умолчанию.</b> <code>JsonSerializerDefaults.Web</code> (camelCase, без учёта регистра) — стандарт JSON в HTTP-API. Его же используют <code>ReadFromJsonAsync</code> и <code>PostAsJsonAsync</code> у HttpClient (урок 10.3).</div>`,
  check: [
   { id:'q10-2a', type:'single', prompt:'Что делает атрибут [JsonIgnore]?', options:['Исключает свойство из сериализации','Делает свойство обязательным','Переименовывает свойство','Шифрует значение'], answer:0, explanation:'Например, для хеша пароля.' },
   { id:'q10-2b', type:'single', prompt:'Почему API лучше возвращать DTO, а не доменную сущность?', options:['Чтобы контролировать, какие данные уходят клиенту, и не ломать API при изменении модели','DTO сериализуются быстрее','Сущности нельзя сериализовать','Так требует HTTP'], answer:0, explanation:'Отдельный контракт для внешнего мира.' }
@@ -1443,14 +1440,14 @@ var p = await db.Products.FindAsync([id], ct);
 p!.Price = 900;
 db.Products.Add(new Product { Name = "Новинка", Price = 100, CategoryId = 1 });
 await db.SaveChangesAsync(ct);         // один SQL-транзакционный пакет</code></pre>
-<div class="note why"><b>В ASP.NET</b> DbContext внедряется в сервис или эндпойнт на время запроса. Связка «EF Core + LINQ + DTO + async» — основа большинства CRUD-API, которые вы будете писать.</div>`,
+<div class="note why"><b>Короткая жизнь контекста.</b> DbContext — лёгкая «единица работы»: создавайте его на одну операцию (через DI-scope или <code>IDbContextFactory</code>), не держите вечно и не используйте из нескольких потоков.</div>`,
  check: [
   { id:'q10-4a', type:'single', prompt:'Что делает SaveChangesAsync()?', options:['Отправляет в БД все отслеженные изменения','Загружает данные','Создаёт миграцию','Закрывает соединение'], answer:0, explanation:'Добавления, изменения и удаления — одним вызовом.' },
   { id:'q10-4b', type:'single', prompt:'Зачем нужны миграции EF Core?', options:['Версионировать и применять изменения схемы БД','Переносить данные между серверами','Ускорять запросы','Шифровать базу'], answer:0, explanation:'Схема меняется вместе с кодом.' }
  ]}
  ],
  test: [
-  { id:'t10-1', type:'single', prompt:'Какой JsonSerializerDefaults использует ASP.NET по умолчанию?', options:['Web: camelCase и нечувствительность к регистру','General','Strict','Никакой'], answer:0, explanation:'Поэтому свойство Name превращается в "name".', difficulty:2 },
+  { id:'t10-1', type:'single', prompt:'Какие настройки JSON по умолчанию использует ReadFromJsonAsync у HttpClient?', options:['JsonSerializerDefaults.Web: camelCase и нечувствительность к регистру','General','Strict','Никакие'], answer:0, explanation:'Поэтому "name" из ответа попадёт в свойство Name.', difficulty:2 },
   { id:'t10-2', type:'analyze', prompt:'Что не так с кодом?', code:'public async Task<string> GetAsync(string url)\n{\n    using var client = new HttpClient();\n    return await client.GetStringAsync(url);\n}', options:['HttpClient создаётся на каждый вызов — под нагрузкой закончатся сокеты','Нужно .Result вместо await','using нельзя использовать с async','Всё правильно'], answer:0, explanation:'Используйте IHttpClientFactory.', difficulty:2 },
   { id:'t10-3', type:'match', prompt:'Сопоставьте команду и действие.', pairs:[['dotnet ef migrations add X','Создать миграцию'],['dotnet ef database update','Применить миграции'],['dotnet add package','Добавить NuGet-пакет'],['dotnet user-secrets set','Сохранить секрет разработки']], explanation:'Инструменты CLI.', difficulty:1 },
   { id:'t10-4', type:'single', prompt:'Какое время жизни у DbContext, зарегистрированного через AddDbContext?', options:['Scoped','Singleton','Transient','Static'], answer:0, explanation:'Один на запрос.', difficulty:1 },
@@ -1461,7 +1458,7 @@ await db.SaveChangesAsync(ct);         // один SQL-транзакционн�
  ]
 },
 {
- id: 11, title: 'Тесты и переход к ASP.NET', short: 'xUnit, моки, структура решения, что учить дальше',
+ id: 11, title: 'Тесты, сборка и публикация', short: 'xUnit, моки, публикация, NuGet, что дальше',
  lessons: [
  { id:'11-1', title:'Модульные тесты на xUnit', html:`
 <pre><code>$ dotnet new xunit -o tests/Shop.Tests
@@ -1542,77 +1539,90 @@ $ dotnet test</code></pre>
   { id:'q11-2a', type:'single', prompt:'Почему сервис с зависимостями-интерфейсами легко тестировать?', options:['В тесте вместо реальных реализаций можно подставить подмены','Интерфейсы выполняются быстрее','Тесты не нужны','Компилятор сам проверит логику'], answer:0, explanation:'Это прямое следствие DIP.' },
   { id:'q11-2b', type:'single', prompt:'Как сделать тестируемым код, зависящий от текущего времени?', options:['Внедрить TimeProvider и подменить его в тесте','Запускать тесты в полночь','Использовать DateTime.Now','Отключить тест'], answer:0, explanation:'Время — внешняя зависимость.' }
  ]},
- { id:'11-3', title:'Структура решения', html:`
-<p>Типичное решение, с которого начинается ASP.NET-проект:</p>
-<pre><code>Shop.sln
-├─ src/
-│  ├─ Shop.Domain          классы предметной области, правила (без зависимостей)
-│  ├─ Shop.Application     сервисы сценариев, интерфейсы репозиториев, DTO
-│  ├─ Shop.Infrastructure  EF Core, HttpClient-ы, почта — реализации интерфейсов
-│  └─ Shop.Api             ASP.NET Core: Program.cs, эндпойнты, конфигурация
-└─ tests/
-   ├─ Shop.Domain.Tests
-   └─ Shop.Api.Tests       интеграционные тесты через WebApplicationFactory</code></pre>
-<p>Зависимости направлены внутрь: <code>Api → Application → Domain</code>, <code>Infrastructure → Application</code>. Домен не знает ни про EF Core, ни про HTTP. Это «чистая архитектура» — DIP в масштабе проекта.</p>
-<div class="note"><b>Не усложняйте раньше времени</b> (YAGNI, <a href="../oop/#/l/9-2">ООП 9.2</a>). Для учебного или небольшого проекта хватит одного проекта Api с папками <code>Domain/</code>, <code>Data/</code>, <code>Endpoints/</code> и одного тестового проекта.</div>
-<h3>Полезные настройки для всех проектов</h3>
-<pre><code>// Directory.Build.props в корне решения
+ { id:'11-3', title:'Сборка, публикация и NuGet', html:`
+<h3>Общие настройки решения</h3>
+<pre><code>// Directory.Build.props в корне решения — применяется ко всем проектам
 &lt;Project&gt;
   &lt;PropertyGroup&gt;
     &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
     &lt;Nullable&gt;enable&lt;/Nullable&gt;
     &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
     &lt;TreatWarningsAsErrors&gt;true&lt;/TreatWarningsAsErrors&gt;
+    &lt;AnalysisLevel&gt;latest-recommended&lt;/AnalysisLevel&gt;
   &lt;/PropertyGroup&gt;
 &lt;/Project&gt;</code></pre>
-<p>Плюс <code>.editorconfig</code> со стилем кода и <code>dotnet format</code> в CI.</p>`,
- check: [
-  { id:'q11-3a', type:'single', prompt:'От каких проектов должен зависеть Shop.Domain?', options:['Ни от каких проектов решения','От Shop.Api','От Shop.Infrastructure','От EF Core'], answer:0, explanation:'Домен — центр, зависимости направлены к нему.' },
-  { id:'q11-3b', type:'single', prompt:'Зачем Directory.Build.props?', options:['Общие настройки сборки для всех проектов решения','Хранить пароли','Описывать маршруты API','Запускать тесты'], answer:0, explanation:'Не нужно повторять свойства в каждом .csproj.' }
- ]},
- { id:'11-4', title:'Что дальше: дорожная карта ASP.NET', html:`
-<p>Вы знаете язык и инфраструктуру .NET. Вот что изучать в ASP.NET Core и на какие темы курса это опирается:</p>
-<div class="tbl"><table><tr><th>Тема ASP.NET Core</th><th>Опирается на</th></tr>
-<tr><td>Minimal API и контроллеры, маршрутизация</td><td>Лямбды, атрибуты, async (модули 5, 8)</td></tr>
-<tr><td>Привязка моделей и валидация</td><td>Свойства, record, nullable, DataAnnotations (модули 3, 4)</td></tr>
-<tr><td>Middleware-конвейер</td><td>Делегаты, async, «Декоратор» (модули 5, 8)</td></tr>
-<tr><td>DI, конфигурация, Options, логирование</td><td>Модуль 9 — уже знакомо</td></tr>
-<tr><td>EF Core: связи, миграции, транзакции</td><td>LINQ, IQueryable (модули 6, 10)</td></tr>
-<tr><td>Обработка ошибок, ProblemDetails</td><td>Исключения (модуль 7)</td></tr>
-<tr><td>Аутентификация и авторизация (JWT, cookies, Identity)</td><td>Атрибуты, DI, курс «Информационная безопасность»</td></tr>
-<tr><td>Интеграционные тесты WebApplicationFactory</td><td>xUnit, моки (модуль 11)</td></tr>
-<tr><td>Фоновые задачи, кэширование, SignalR</td><td>BackgroundService, Singleton, async</td></tr>
-<tr><td>Развёртывание: Docker, health checks, OpenTelemetry</td><td>Курс «DevOps»</td></tr>
+<p>Плюс <code>.editorconfig</code> со стилем кода и <code>dotnet format --verify-no-changes</code> в CI. Версии пакетов удобно держать в одном файле <code>Directory.Packages.props</code> (Central Package Management).</p>
+<h3>Публикация</h3>
+<pre><code>$ dotnet publish -c Release -o out                                   # нужен установленный .NET Runtime
+$ dotnet publish -c Release -r linux-x64 --self-contained             # runtime внутри, ставить .NET не нужно
+$ dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true      # один исполняемый файл
+$ dotnet publish -c Release -r linux-x64 -p:PublishAot=true           # нативный бинарник без JIT</code></pre>
+<div class="tbl"><table><tr><th>Вариант</th><th>Плюсы</th><th>Минусы</th></tr>
+<tr><td>Framework-dependent</td><td>Маленький размер</td><td>На машине нужен .NET Runtime нужной версии</td></tr>
+<tr><td>Self-contained</td><td>Работает без установленного .NET</td><td>Десятки МБ, обновлять runtime — пересборкой</td></tr>
+<tr><td>Single file</td><td>Один файл — удобно раздавать утилиту</td><td>Тот же размер, что self-contained</td></tr>
+<tr><td>Native AOT</td><td>Мгновенный старт, меньше памяти</td><td>Нет динамической рефлексии, нужны source generators</td></tr>
 </table></div>
-<h3>Первый проект для практики</h3>
-<pre><code>$ dotnet new webapi -n TodoApi
-$ cd TodoApi
-$ dotnet add package Microsoft.EntityFrameworkCore.Sqlite
-$ dotnet run</code></pre>
-<ol class="steps">
-<li>CRUD для задач: <code>GET/POST/PUT/DELETE /todos</code> с DTO-record'ами.</li>
-<li>Хранение в SQLite через EF Core, миграции.</li>
-<li>Валидация входных данных, 400 и 404 с ProblemDetails.</li>
-<li>Фильтрация и пагинация через LINQ.</li>
-<li>Сервисный слой с интерфейсами и xUnit-тесты к нему.</li>
-<li>Аутентификация по JWT, у каждого пользователя свои задачи.</li>
-<li>Dockerfile и запуск в контейнере.</li>
-</ol>
-<div class="note"><b>Следующий шаг</b> — <a href="../aspnet/">курс «ASP.NET Core: веб-API на .NET»</a>. Он опирается на этот курс и курс ООП и не повторяет их.</div>
-<div class="note why"><b>Ресурсы.</b> Официальная документация learn.microsoft.com/aspnet/core — учебники «Create a minimal API» и «Create a web API with controllers»; книга Эндрю Лока «ASP.NET Core in Action»; исходники ASP.NET Core на GitHub (dotnet/aspnetcore) — отличный пример идиоматичного C#.</div>`,
+<h3>Своя библиотека в NuGet</h3>
+<pre><code>&lt;PropertyGroup&gt;
+  &lt;PackageId&gt;Shop.Money&lt;/PackageId&gt;
+  &lt;Version&gt;1.2.0&lt;/Version&gt;
+  &lt;Description&gt;Тип Money с валютами&lt;/Description&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+<pre><code>$ dotnet pack -c Release                       # → bin/Release/Shop.Money.1.2.0.nupkg
+$ dotnet nuget push *.nupkg --source https://nuget.example/v3/index.json --api-key $KEY</code></pre>
+<p>Версию меняйте по SemVer: ломающее изменение публичного API — новая major-версия.</p>
+<div class="note why"><b>Утилита для всех.</b> С <code>&lt;PackAsTool&gt;true&lt;/PackAsTool&gt;</code> консольное приложение публикуется как .NET tool и ставится одной командой: <code>dotnet tool install -g shop-cli</code> — так распространяются dotnet-ef, dotnet-counters и другие.</div>`,
  check: [
-  { id:'q11-4a', type:'single', prompt:'Какой шаблон dotnet new создаёт проект веб-API?', options:['webapi','console','classlib','xunit'], answer:0, explanation:'dotnet new webapi.' },
-  { id:'q11-4b', type:'single', prompt:'На какую тему курса опирается middleware-конвейер ASP.NET?', options:['Делегаты и async/await','Только enum','Только struct','Файлы и потоки'], answer:0, explanation:'Middleware — делегат RequestDelegate, вызывающий следующий асинхронно.' }
+  { id:'q11-3a', type:'single', prompt:'Чем self-contained публикация отличается от framework-dependent?', options:['Runtime .NET включён в публикацию — устанавливать .NET на машину не нужно','Она меньше по размеру','Она работает только на Windows','Она не требует компиляции'], answer:0, explanation:'Цена — размер в десятки мегабайт.' },
+  { id:'q11-3b', type:'single', prompt:'Зачем Directory.Build.props?', options:['Общие настройки сборки для всех проектов решения','Хранить пароли','Описывать пакеты NuGet для скачивания вручную','Запускать тесты'], answer:0, explanation:'Не нужно повторять свойства в каждом .csproj.' }
+ ]},
+ { id:'11-4', title:'Итоги и что дальше', html:`
+<p>После курса вы умеете на C#:</p>
+<div class="tbl"><table><tr><th>Задача</th><th>Модули</th></tr>
+<tr><td>Создавать и собирать решения из нескольких проектов</td><td>0, 11</td></tr>
+<tr><td>Моделировать данные: классы, record, struct, enum, nullable</td><td>1–4</td></tr>
+<tr><td>Писать обобщённый и функциональный код: generics, делегаты, лямбды, LINQ</td><td>5–6</td></tr>
+<tr><td>Обрабатывать ошибки и освобождать ресурсы</td><td>7</td></tr>
+<tr><td>Писать асинхронный и потокобезопасный код</td><td>8</td></tr>
+<tr><td>Собирать приложение на хосте с DI, конфигурацией и логами</td><td>9</td></tr>
+<tr><td>Работать с файлами, JSON, HTTP и базой данных</td><td>10</td></tr>
+<tr><td>Покрывать код тестами и публиковать приложения и пакеты</td><td>11</td></tr>
+</table></div>
+<h3>Проект для закрепления</h3>
+<p>Консольная утилита и фоновый сервис «Курсы валют»:</p>
+<ol class="steps">
+<li>Решение: библиотека <code>Rates.Core</code>, консольное приложение, worker и тесты.</li>
+<li>Модель: <code>record Rate(string From, string To, decimal Value, DateOnly Date)</code>, nullable включён.</li>
+<li>Загрузка курсов из публичного API через типизированный <code>HttpClient</code> с таймаутом и повторами.</li>
+<li>Хранение в SQLite через EF Core, миграции.</li>
+<li>Команды консоли: показать курс, история за период, конвертация — LINQ-запросы.</li>
+<li>Worker на <code>BackgroundService</code> обновляет курсы раз в час, настройки — через <code>IOptions</code>.</li>
+<li>Отмена по Ctrl+C, структурные логи, тесты сервиса с подменой HTTP-клиента и <code>TimeProvider</code>.</li>
+<li>Публикация консольной утилиты single-file и как .NET tool.</li>
+</ol>
+<h3>Куда двигаться</h3>
+<div class="tbl"><table><tr><th>Направление</th><th>Технологии</th></tr>
+<tr><td>Веб-бэкенд и API</td><td><a href="../aspnet/">курс «ASP.NET Core: веб-API на .NET»</a> — следующий шаг этой серии</td></tr>
+<tr><td>Desktop и мобильные</td><td>WPF, WinUI, Avalonia, .NET MAUI</td></tr>
+<tr><td>Игры</td><td>Unity, Godot (C#)</td></tr>
+<tr><td>Облако и интеграции</td><td>Azure Functions, AWS Lambda, очереди сообщений</td></tr>
+<tr><td>Глубже в язык</td><td>Span и производительность, source generators, анализаторы Roslyn</td></tr>
+</table></div>
+<div class="note why"><b>Ресурсы.</b> Документация learn.microsoft.com/dotnet/csharp (раздел «Язык C#» и «Что нового»); книги Джона Скита «C# in Depth» и Джозефа Албахари «C# in a Nutshell»; исходники .NET на GitHub (dotnet/runtime) — образец идиоматичного C#.</div>`,
+ check: [
+  { id:'q11-4a', type:'single', prompt:'Какой шаблон dotnet new создаёт приложение с Generic Host и BackgroundService?', options:['worker','console','classlib','xunit'], answer:0, explanation:'dotnet new worker.' },
+  { id:'q11-4b', type:'single', prompt:'Какая тема курса нужна, чтобы фоновый сервис корректно останавливался по SIGTERM?', options:['CancellationToken и хост','Только enum','Только struct','Перегрузка операторов'], answer:0, explanation:'Хост отменяет stoppingToken.' }
  ]}
  ],
  test: [
   { id:'t11-1', type:'analyze', prompt:'Какую проблему тестируемости содержит класс?', code:'public class SubscriptionService\n{\n    public bool IsExpired(Subscription s) => s.EndsAt < DateTime.Now;\n    public void Notify(User u) => new SmtpClient("smtp.corp").Send(u.Email, "...");\n}', options:['Жёсткие зависимости от текущего времени и SMTP — их нельзя подменить','Нет проблем','Методы слишком короткие','Нужно больше static'], answer:0, explanation:'Внедрите TimeProvider и INotifier.', difficulty:2 },
   { id:'t11-2', type:'single', prompt:'Какой метод NSubstitute проверяет, что метод мока вызвали один раз?', options:['Received(1)','Verify(Times.Once)','Called()','Assert.Once'], answer:0, explanation:'Verify(Times.Once) — синтаксис Moq.', difficulty:2 },
   { id:'t11-3', type:'single', prompt:'Как называется тестовая подмена — упрощённая рабочая реализация в памяти?', options:['Fake','Mock','Spy','Dummy'], answer:0, explanation:'Например, InMemoryRepository.', difficulty:1 },
-  { id:'t11-4', type:'single', prompt:'Что используют для интеграционных тестов ASP.NET-приложения целиком?', options:['WebApplicationFactory','Thread.Sleep','Console.ReadLine','NSubstitute для всех классов'], answer:0, explanation:'Поднимает приложение в памяти с HTTP-клиентом.', difficulty:2 },
-  { id:'t11-5', type:'match', prompt:'Сопоставьте слой решения и содержимое.', pairs:[['Domain','Сущности и бизнес-правила'],['Application','Сценарии и интерфейсы репозиториев'],['Infrastructure','EF Core и внешние API'],['Api','Эндпойнты и Program.cs']], explanation:'Слои чистой архитектуры.', difficulty:2 },
+  { id:'t11-4', type:'single', prompt:'Что нужно, чтобы утилиту можно было запустить на сервере без установленного .NET?', options:['Публикация --self-contained (или Native AOT)','dotnet build','Скопировать только .dll','Установить Visual Studio'], answer:0, explanation:'Runtime попадёт в папку публикации.', difficulty:2 },
+  { id:'t11-5', type:'match', prompt:'Сопоставьте команду и результат.', pairs:[['dotnet test','Запуск тестов'],['dotnet pack','NuGet-пакет .nupkg'],['dotnet publish','Папка для развёртывания'],['dotnet format','Приведение стиля кода']], explanation:'Команды сборки и публикации.', difficulty:2 },
   { id:'t11-6', type:'single', prompt:'Как назвать тест, проверяющий исключение при отгрузке неоплаченного заказа?', options:['Ship_Unpaid_Throws','Test1','ShipTest','CheckOrder'], answer:0, explanation:'Метод_Условие_Результат.', difficulty:1 },
-  { id:'t11-7', type:'single', prompt:'Что из курса понадобится, чтобы понять builder.Services.AddScoped<IOrderService, OrderService>()?', options:['DI, интерфейсы и методы расширения','Только строки','Только struct','Только LINQ'], answer:0, explanation:'Модули 3, 5 и 9.', difficulty:1 },
+  { id:'t11-7', type:'single', prompt:'Библиотека 1.4.0 удалила публичный метод. Какой будет следующая версия по SemVer?', options:['2.0.0','1.5.0','1.4.1','1.4.0-new'], answer:0, explanation:'Ломающее изменение публичного API — major.', difficulty:1 },
   { id:'t11-8', type:'multiple', prompt:'Что стоит включить для всех проектов решения? (несколько ответов)', options:['Nullable','TreatWarningsAsErrors','Единый TargetFramework','Отключение всех анализаторов'], answer:[0,1,2], explanation:'Анализаторы помогают ловить ошибки.', difficulty:1 }
  ]
 }
@@ -1694,6 +1704,8 @@ export const GLOSSARY = [
  ['xUnit','Популярный фреймворк модульных тестов для .NET.','11-1'],
  ['Мок','Тестовая подмена, проверяющая вызовы.','11-2'],
  ['TimeProvider','Абстракция времени для тестируемого кода.','11-2'],
- ['WebApplicationFactory','Инструмент интеграционных тестов ASP.NET Core.','11-3'],
- ['ASP.NET Core','Фреймворк для веб-приложений и API на .NET.','11-4']
+ ['Self-contained','Публикация вместе с runtime .NET — не требует установленного .NET.','11-3'],
+ ['Directory.Build.props','Общие настройки MSBuild для всех проектов решения.','11-3'],
+ ['dotnet pack','Создание NuGet-пакета из проекта.','11-3'],
+ ['Worker','Шаблон приложения с Generic Host и фоновыми сервисами.','11-4']
 ];
