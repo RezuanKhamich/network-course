@@ -3,7 +3,7 @@
 // COURSE (настройки), MODULES, UPCOMING, GLOSSARY (content.js), WIDGETS, viewTools, viewJourney,
 // mountJourney, viewCheats и, по желанию, readMore (course.js).
 import './pwa.js';
-import { Store, LS_KEY, LS_BACKUP, $, esc, shuffle, toast, fmtTime, plural, lsGet, lsSet, applyTheme, cycleTheme } from './storage.js';
+import { Store, initMenu, LS_KEY, LS_BACKUP, $, esc, shuffle, toast, fmtTime, plural, lsGet, lsSet, applyTheme, cycleTheme } from './storage.js';
 import { Game, PASS, XP, SITE_ROOT, confetti, nextAchievements } from './game.js';
 import { recordAnswer, dueKeys, deckStats, review, qidOf, todayAnswers, weekAnswers, BOXES, REVIEW_XP } from './review.js';
 import { Account } from './sync.js';
@@ -43,7 +43,7 @@ function overall(){
 }
 
 $('#themeBtn').onclick = cycleTheme;
-$('#menuBtn').onclick = () => $('#side').classList.toggle('open');
+initMenu();
 
 function renderStatus(){
   const el = $('#saveStatus'); el.className = 'status'; el.href = HUB + '#/data';

@@ -249,3 +249,15 @@ window.addEventListener('storage', e => {
   if (e.key !== LS_KEY || !e.newValue) return;
   try { const p = JSON.parse(e.newValue); if (p && p.app === APP_ID){ Store.state = Store.normalize(p); applyTheme(); Store.emit('external'); } } catch(err){}
 });
+
+// Мобильное меню: кнопка открывает, пункт меню или клик по затемнению закрывают
+export function initMenu(){
+  const side = $('#side'), scrim = document.createElement('div');
+  scrim.className = 'scrim';
+  side.after(scrim);
+  const close = () => side.classList.remove('open');
+  $('#menuBtn').onclick = () => side.classList.toggle('open');
+  scrim.onclick = close;
+  side.addEventListener('click', e => { if (e.target.closest('a')) close(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+}
