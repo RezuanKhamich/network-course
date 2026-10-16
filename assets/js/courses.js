@@ -52,6 +52,16 @@ const COURSES = [
     color: '#b3264a', colorDark: '#ff8aa5',
     icon: '🧩',
     tags: ['Классы', 'SOLID', 'Паттерны', 'Языки']
+  },
+  {
+    id: 'csharp',
+    title: 'C# и .NET для будущих ASP.NET-разработчиков',
+    short: 'Язык и платформа: типы, коллекции, LINQ, async/await, DI, конфигурация, JSON, HTTP, EF Core и тесты. Опирается на курс ООП и ведёт к ASP.NET Core.',
+    path: 'courses/csharp/',
+    lessons: 48, modules: 12,
+    color: '#2f7d32', colorDark: '#8fd694',
+    icon: '#️⃣',
+    tags: ['C#', '.NET', 'LINQ', 'async']
   }
 ];
 const findCourse = id => COURSES.find(c => c.id === id);

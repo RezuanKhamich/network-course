@@ -56,6 +56,7 @@ const ACHIEVEMENTS = [
   { id:'course-security', icon:'🛡️', title:'Страж', desc:'Сдайте все тесты курса «Информационная безопасность»', tier:'gold', test:x => allTestsPassed(x, 'cyber-security') },
   { id:'course-devops', icon:'🚀', title:'Инженер поставки', desc:'Сдайте все тесты курса «DevOps»', tier:'gold', test:x => allTestsPassed(x, 'devops') },
   { id:'course-oop', icon:'🧩', title:'Архитектор объектов', desc:'Сдайте все тесты курса «ООП»', tier:'gold', test:x => allTestsPassed(x, 'oop') },
+  { id:'course-csharp', icon:'#️⃣', title:'Шарпист', desc:'Сдайте все тесты курса «C#»', tier:'gold', test:x => allTestsPassed(x, 'csharp') },
   { id:'exam-first', icon:'🏁', title:'Экзамен сдан', desc:'Сдайте финальный экзамен любого курса', tier:'silver', test:x => x.exams >= 1 },
   { id:'exam-all', icon:'👑', title:'Все дипломы', desc:'Сдайте финальные экзамены всех курсов', tier:'gold', test:x => x.exams >= COURSES.length },
   { id:'exam-fast', icon:'⚡', title:'Блиц', desc:'Сдайте финальный экзамен быстрее чем за 20 минут', tier:'gold', test:x => x.flags['exam-fast'] },

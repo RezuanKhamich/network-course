@@ -1384,7 +1384,8 @@ class User(val name: String)</code></pre>
 <tr><td>Расширение чужих классов</td><td>—</td><td>Extension methods</td><td>Extension functions</td></tr>
 <tr><td>Экосистема</td><td>Spring, Android</td><td>ASP.NET, Unity</td><td>Android, Ktor, Spring</td></tr>
 </table></div>
-<div class="note why"><b>Переход.</b> Зная один из трёх, второй осваивают за пару недель: отличаются в основном синтаксис и стандартная библиотека.</div>`,
+<div class="note why"><b>Переход.</b> Зная один из трёх, второй осваивают за пару недель: отличаются в основном синтаксис и стандартная библиотека.</div>
+<div class="note">Следующий шаг для C#: <a href="../csharp/">курс «C# и .NET для будущих ASP.NET-разработчиков»</a> — он опирается на этот курс и не повторяет теорию ООП.</div>`,
  check: [
   { id:'q11-1a', type:'single', prompt:'В каком языке классы по умолчанию закрыты для наследования?', options:['Kotlin','Java','Python','JavaScript'], answer:0, explanation:'Нужно явно написать open.' },
   { id:'q11-1b', type:'match', prompt:'Сопоставьте язык и класс данных.', pairs:[['Java','record'],['C#','record'],['Kotlin','data class']], explanation:'Неизменяемые классы с equals/hashCode.' }
