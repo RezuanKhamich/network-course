@@ -42,6 +42,36 @@ export const COURSES = [
     color: '#3d4fc4', colorDark: '#8c9bff',
     icon: '🚀',
     tags: ['CI/CD', 'Docker', 'K8s', 'IaC']
+  },
+  {
+    id: 'oop',
+    title: 'Объектно-ориентированное программирование',
+    short: 'Классы, инкапсуляция, наследование, полиморфизм, композиция, SOLID и паттерны — с примерами на Java, Python, C#, C++, Kotlin и TypeScript.',
+    path: 'courses/oop/',
+    lessons: 48, modules: 12,
+    color: '#b3264a', colorDark: '#ff8aa5',
+    icon: '🧩',
+    tags: ['Классы', 'SOLID', 'Паттерны', 'Языки']
+  },
+  {
+    id: 'csharp',
+    title: 'C# и .NET для будущих ASP.NET-разработчиков',
+    short: 'Язык и платформа: типы, коллекции, LINQ, async/await, DI, конфигурация, JSON, HTTP, EF Core и тесты. Опирается на курс ООП и ведёт к ASP.NET Core.',
+    path: 'courses/csharp/',
+    lessons: 48, modules: 12,
+    color: '#2f7d32', colorDark: '#8fd694',
+    icon: '#️⃣',
+    tags: ['C#', '.NET', 'LINQ', 'async']
+  },
+  {
+    id: 'aspnet',
+    title: 'ASP.NET Core: веб-API на .NET',
+    short: 'Middleware, Minimal API и контроллеры, валидация, EF Core, дизайн API, JWT и авторизация, кэш, фон, SignalR, тесты и деплой. Опирается на курсы ООП и C#.',
+    path: 'courses/aspnet/',
+    lessons: 48, modules: 12,
+    color: '#0a6fa8', colorDark: '#5cc2f2',
+    icon: '🌍',
+    tags: ['Web API', 'EF Core', 'JWT', 'SignalR']
   }
 ];
 export const findCourse = id => COURSES.find(c => c.id === id);
