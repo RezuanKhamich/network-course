@@ -1,8 +1,9 @@
-// Проверка контента курса ИБ: npm run validate
+// Проверка контента курса: node scripts/validate-course.js <id> (npm run validate проверяет все курсы на модулях)
 // Сверяет модули со structure.json, формат и id вопросов, длину уроков, ссылки глоссария и наличие ссылок roadmap.sh.
 import { readFileSync } from 'node:fs';
-const { MODULES, GLOSSARY, RES } = await import('../courses/cyber-security/content.js');
-const st = JSON.parse(readFileSync(new URL('../../docs/cyber-security/structure.json', import.meta.url), 'utf8'));
+const id = process.argv[2] || 'cyber-security';
+const { MODULES, GLOSSARY, RES } = await import(`../courses/${id}/content.js`);
+const st = JSON.parse(readFileSync(new URL(`../../docs/${id}/structure.json`, import.meta.url), 'utf8'));
 const ctx = { MODULES, GLOSSARY, RES, __w: [] };
 const errs=[];const ids=new Set();const E=m=>errs.push(m);
 const chkQ=(q,where)=>{
@@ -39,3 +40,4 @@ for(const g of ctx.GLOSSARY)if(!lessonIds.has(g[2]))E('glossary ref '+g[0]+' '+g
 const gn=ctx.GLOSSARY.map(g=>g[0].toLowerCase());if(new Set(gn).size!==gn.length)E('glossary dup');
 console.log('modules',ctx.MODULES.length,'lessons',n,'avg html',Math.round(len/n),'questions',ids.size,'glossary',ctx.GLOSSARY.length,'test types',types,'widgets',ctx.__w);
 console.log(errs.length?errs.join('\n'):'OK');
+if(errs.length)process.exitCode=1;

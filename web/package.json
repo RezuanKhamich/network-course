@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "validate": "node scripts/validate-cyber.js",
+    "validate": "node scripts/validate-course.js cyber-security && node scripts/validate-course.js frontend",
     "check": "npm run lint && npm run validate && npm run build",
     "catalog": "node scripts/build-catalog.js"
   },
