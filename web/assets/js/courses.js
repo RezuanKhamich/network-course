@@ -92,6 +92,16 @@ export const COURSES = [
     color: '#8a6d00', colorDark: '#f5c843',
     icon: '🐍',
     tags: ['Python', 'asyncio', 'pandas', 'Django']
+  },
+  {
+    id: 'ai-basics',
+    title: 'Основы ИИ: теория машинного обучения',
+    short: 'Как и почему учатся модели: математика, классическое ML, метрики, нейросети, трансформеры, генеративные модели, RL и ответственный ИИ.',
+    path: 'courses/ai-basics/',
+    lessons: 48, modules: 12,
+    color: '#8e24aa', colorDark: '#e1a1f5',
+    icon: '🧠',
+    tags: ['ML', 'Нейросети', 'Трансформеры', 'Метрики']
   }
 ];
 export const findCourse = id => COURSES.find(c => c.id === id);
