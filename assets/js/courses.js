@@ -62,6 +62,16 @@ const COURSES = [
     color: '#2f7d32', colorDark: '#8fd694',
     icon: '#️⃣',
     tags: ['C#', '.NET', 'LINQ', 'async']
+  },
+  {
+    id: 'aspnet',
+    title: 'ASP.NET Core: веб-API на .NET',
+    short: 'Middleware, Minimal API и контроллеры, валидация, EF Core, дизайн API, JWT и авторизация, кэш, фон, SignalR, тесты и деплой. Опирается на курсы ООП и C#.',
+    path: 'courses/aspnet/',
+    lessons: 48, modules: 12,
+    color: '#0a6fa8', colorDark: '#5cc2f2',
+    icon: '🌍',
+    tags: ['Web API', 'EF Core', 'JWT', 'SignalR']
   }
 ];
 const findCourse = id => COURSES.find(c => c.id === id);

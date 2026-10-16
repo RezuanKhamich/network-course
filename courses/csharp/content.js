@@ -1598,6 +1598,7 @@ $ dotnet run</code></pre>
 <li>Аутентификация по JWT, у каждого пользователя свои задачи.</li>
 <li>Dockerfile и запуск в контейнере.</li>
 </ol>
+<div class="note"><b>Следующий шаг</b> — <a href="../aspnet/">курс «ASP.NET Core: веб-API на .NET»</a>. Он опирается на этот курс и курс ООП и не повторяет их.</div>
 <div class="note why"><b>Ресурсы.</b> Официальная документация learn.microsoft.com/aspnet/core — учебники «Create a minimal API» и «Create a web API with controllers»; книга Эндрю Лока «ASP.NET Core in Action»; исходники ASP.NET Core на GitHub (dotnet/aspnetcore) — отличный пример идиоматичного C#.</div>`,
  check: [
   { id:'q11-4a', type:'single', prompt:'Какой шаблон dotnet new создаёт проект веб-API?', options:['webapi','console','classlib','xunit'], answer:0, explanation:'dotnet new webapi.' },
