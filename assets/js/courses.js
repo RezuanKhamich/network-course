@@ -42,6 +42,16 @@ const COURSES = [
     color: '#3d4fc4', colorDark: '#8c9bff',
     icon: '🚀',
     tags: ['CI/CD', 'Docker', 'K8s', 'IaC']
+  },
+  {
+    id: 'oop',
+    title: 'Объектно-ориентированное программирование',
+    short: 'Классы, инкапсуляция, наследование, полиморфизм, композиция, SOLID и паттерны — с примерами на Java, Python, C#, C++, Kotlin и TypeScript.',
+    path: 'courses/oop/',
+    lessons: 48, modules: 12,
+    color: '#b3264a', colorDark: '#ff8aa5',
+    icon: '🧩',
+    tags: ['Классы', 'SOLID', 'Паттерны', 'Языки']
   }
 ];
 const findCourse = id => COURSES.find(c => c.id === id);
