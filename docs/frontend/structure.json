@@ -1,0 +1,664 @@
+{
+  "course": {
+    "id": "frontend",
+    "title": "Frontend для разработчиков",
+    "source": "https://roadmap.sh/frontend",
+    "audience": "Разработчики, знакомые с основами HTML, CSS и JS, которые хотят понять, как всё устроено внутри",
+    "journeyLabel": "Путь клика",
+    "icon": "🎨"
+  },
+  "modules": [
+    {
+      "id": 0,
+      "title": "Как устроен веб",
+      "short": "Абстракции фронтенда, путь запроса, браузер как платформа",
+      "basics": true,
+      "lessons": [
+        {
+          "id": "0-1",
+          "title": "Фронтенд как стопка абстракций",
+          "topics": [
+            "learn-the-basics"
+          ],
+          "focus": "Слои от пикселя до фреймворка; что каждый слой прячет и где он «протекает»"
+        },
+        {
+          "id": "0-2",
+          "title": "От URL до байтов: интернет, DNS, домены, хостинг",
+          "topics": [
+            "internet",
+            "how-does-the-internet-work",
+            "dns-and-how-it-works",
+            "what-is-domain-name",
+            "what-is-hosting"
+          ],
+          "focus": "Обзорно, со ссылками на курс «Сети»"
+        },
+        {
+          "id": "0-3",
+          "title": "HTTP глазами фронтендера: запрос, кеш, HTTPS",
+          "topics": [
+            "what-is-http",
+            "https",
+            "cache-control"
+          ],
+          "focus": "Заголовки, которые фронтендер контролирует; как браузер решает, идти ли в сеть"
+        },
+        {
+          "id": "0-4",
+          "title": "Браузер изнутри: процессы, движки, потоки",
+          "topics": [
+            "browsers-and-how-they-work"
+          ],
+          "focus": "Browser/renderer/GPU-процессы, site isolation, главный поток и почему он один"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "HTML и DOM",
+      "short": "Документ как дерево: парсинг, семантика, события",
+      "lessons": [
+        {
+          "id": "1-1",
+          "title": "Как браузер парсит HTML",
+          "topics": [
+            "html"
+          ],
+          "focus": "Токенизатор, построение дерева, восстановление ошибок, блокирующие скрипты, preload scanner"
+        },
+        {
+          "id": "1-2",
+          "title": "DOM как API: узлы, живые коллекции, мутации",
+          "topics": [
+            "web-apis"
+          ],
+          "focus": "Node/Element, live vs static коллекции, MutationObserver, стоимость операций"
+        },
+        {
+          "id": "1-3",
+          "title": "События: захват, всплытие, делегирование",
+          "topics": [],
+          "focus": "Фазы распространения, default actions, passive-слушатели, синтетические события фреймворков"
+        },
+        {
+          "id": "1-4",
+          "title": "Семантика и дерево доступности",
+          "topics": [
+            "accessibility"
+          ],
+          "focus": "Как из DOM строится accessibility tree, роли, имена, ARIA как «патч» к семантике"
+        },
+        {
+          "id": "1-5",
+          "title": "Формы: встроенное поведение браузера",
+          "topics": [],
+          "focus": "Отправка, валидация, constraint API, FormData — что даёт платформа бесплатно"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "CSS: как браузер вычисляет стиль",
+      "short": "Каскад, вычисленные значения, алгоритмы раскладки",
+      "lessons": [
+        {
+          "id": "2-1",
+          "title": "Каскад, специфичность, слои и наследование",
+          "topics": [
+            "css"
+          ],
+          "focus": "Алгоритм каскада по шагам, @layer, :where/:is, наследуемые и ненаследуемые свойства"
+        },
+        {
+          "id": "2-2",
+          "title": "От объявления к пикселю: specified → computed → used",
+          "topics": [],
+          "focus": "Этапы вычисления значений, относительные единицы, custom properties как runtime-переменные"
+        },
+        {
+          "id": "2-3",
+          "title": "Box model и контексты форматирования",
+          "topics": [],
+          "focus": "Блочный и строчный поток, BFC, схлопывание отступов, stacking context и z-index"
+        },
+        {
+          "id": "2-4",
+          "title": "Flexbox и Grid как алгоритмы",
+          "topics": [],
+          "focus": "Как считается flex-basis/grow/shrink, треки грида и fr, intrinsic sizing"
+        },
+        {
+          "id": "2-5",
+          "title": "Адаптивность: media и container queries",
+          "topics": [],
+          "focus": "Viewport, DPR, container queries, clamp(), логические свойства"
+        },
+        {
+          "id": "2-6",
+          "title": "CSS в масштабе: методологии и фреймворки",
+          "topics": [
+            "css-frameworks",
+            "tailwind"
+          ],
+          "focus": "Проблема глобального пространства имён: BEM, CSS-модули, CSS-in-JS, utility-first"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Рендеринг и производительность",
+      "short": "Конвейер пикселей, Web Vitals, профилирование",
+      "lessons": [
+        {
+          "id": "3-1",
+          "title": "Критический путь рендеринга",
+          "topics": [
+            "performance"
+          ],
+          "focus": "DOM + CSSOM → render tree → layout → paint → composite; что блокирует первый кадр"
+        },
+        {
+          "id": "3-2",
+          "title": "Reflow, repaint и композитинг",
+          "topics": [],
+          "focus": "Layout thrashing, слои, transform/opacity, will-change, бюджет кадра 16 мс"
+        },
+        {
+          "id": "3-3",
+          "title": "Метрики: Core Web Vitals и Lighthouse",
+          "topics": [
+            "lighthouse"
+          ],
+          "focus": "LCP, INP, CLS: что измеряют, лабораторные и полевые данные"
+        },
+        {
+          "id": "3-4",
+          "title": "Загрузка ресурсов: приоритеты и стратегии",
+          "topics": [],
+          "focus": "preload/prefetch, async/defer, lazy loading, шрифты, изображения, code splitting"
+        },
+        {
+          "id": "3-5",
+          "title": "DevTools: смотрим внутрь",
+          "topics": [
+            "devtools-usage"
+          ],
+          "focus": "Performance-трейс, Network waterfall, Memory snapshots, Coverage"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "JavaScript: движок и рантайм",
+      "short": "Как исполняется код: движок, event loop, память, модули",
+      "lessons": [
+        {
+          "id": "4-1",
+          "title": "Движок: парсинг, байткод, JIT",
+          "topics": [
+            "javascript"
+          ],
+          "focus": "Pipeline V8, hidden classes и inline caches, деоптимизация"
+        },
+        {
+          "id": "4-2",
+          "title": "Окружения, замыкания и this",
+          "topics": [],
+          "focus": "Lexical environment, TDZ, как работает замыкание, правила привязки this"
+        },
+        {
+          "id": "4-3",
+          "title": "Прототипы и классы под капотом",
+          "topics": [],
+          "focus": "Цепочка прототипов, class как синтаксис, поиск свойств"
+        },
+        {
+          "id": "4-4",
+          "title": "Event loop: задачи, микрозадачи, рендер",
+          "topics": [],
+          "focus": "Стек вызовов, очереди, когда браузер рисует кадр, requestAnimationFrame"
+        },
+        {
+          "id": "4-5",
+          "title": "Промисы и async/await изнутри",
+          "topics": [],
+          "focus": "Промис как автомат состояний, async как генератор, AbortController, обработка ошибок"
+        },
+        {
+          "id": "4-6",
+          "title": "Память и сборка мусора",
+          "topics": [],
+          "focus": "Достижимость, поколения, типичные утечки во фронтенде, WeakMap/WeakRef"
+        },
+        {
+          "id": "4-7",
+          "title": "Модули: ESM и CommonJS",
+          "topics": [],
+          "focus": "Граф модулей, живые привязки, циклические зависимости, динамический import()"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Веб-платформа: API браузера",
+      "short": "Хранилища, воркеры, PWA, веб-компоненты, сеть",
+      "lessons": [
+        {
+          "id": "5-1",
+          "title": "Хранилища: cookies, Web Storage, IndexedDB, Cache",
+          "topics": [],
+          "focus": "Модель origin, квоты, синхронность, когда что выбирать"
+        },
+        {
+          "id": "5-2",
+          "title": "Сеть из браузера: fetch, стримы, WebSocket, SSE",
+          "topics": [
+            "streamed-responses"
+          ],
+          "focus": "Fetch как Request/Response, ReadableStream, двунаправленные каналы"
+        },
+        {
+          "id": "5-3",
+          "title": "Воркеры: параллелизм в браузере",
+          "topics": [],
+          "focus": "Web Worker, передача данных, structured clone и transferable"
+        },
+        {
+          "id": "5-4",
+          "title": "Service Worker и PWA",
+          "topics": [
+            "service-workers",
+            "pwas"
+          ],
+          "focus": "Прокси между страницей и сетью, жизненный цикл, стратегии кеша, манифест"
+        },
+        {
+          "id": "5-5",
+          "title": "Веб-компоненты: Custom Elements, Shadow DOM, шаблоны",
+          "topics": [
+            "web-components",
+            "custom-elements",
+            "shadow-dom",
+            "html-templates"
+          ],
+          "focus": "Нативная компонентная модель, инкапсуляция стилей, слоты"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Инструменты: от исходников к бандлу",
+      "short": "Git, пакеты, бандлеры, транспиляция, линтеры, TypeScript",
+      "lessons": [
+        {
+          "id": "6-1",
+          "title": "Git и хостинг кода",
+          "topics": [
+            "version-control",
+            "git",
+            "vcs-hosting",
+            "github",
+            "gitlab"
+          ],
+          "focus": "Обзорно, со ссылкой на курс DevOps: модель коммитов, PR"
+        },
+        {
+          "id": "6-2",
+          "title": "Пакетные менеджеры изнутри",
+          "topics": [
+            "package-managers",
+            "npm",
+            "pnpm",
+            "yarn",
+            "bun"
+          ],
+          "focus": "Разрешение зависимостей, lockfile, hoisting, симлинки pnpm, semver"
+        },
+        {
+          "id": "6-3",
+          "title": "Как работает бандлер",
+          "topics": [
+            "module-bundlers",
+            "rollup",
+            "parcel",
+            "rolldown"
+          ],
+          "focus": "Граф зависимостей, tree shaking, чанки, хеши в именах"
+        },
+        {
+          "id": "6-4",
+          "title": "Транспиляция и dev-сервер: esbuild, SWC, Vite",
+          "topics": [
+            "vite",
+            "esbuild",
+            "swc"
+          ],
+          "focus": "Почему компиляторы на Go/Rust быстрее, нативный ESM в dev, HMR"
+        },
+        {
+          "id": "6-5",
+          "title": "AST: линтеры и форматтеры",
+          "topics": [
+            "linters--formatters",
+            "eslint",
+            "prettier",
+            "biome"
+          ],
+          "focus": "Код как дерево, правила как обход AST, codemods"
+        },
+        {
+          "id": "6-6",
+          "title": "TypeScript: структурная типизация",
+          "topics": [
+            "type-checkers"
+          ],
+          "focus": "Типы стираются при компиляции, структурная совместимость, вывод и сужение типов"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Фреймворки: UI = f(state)",
+      "short": "Декларативность, реконсиляция, реактивность",
+      "lessons": [
+        {
+          "id": "7-1",
+          "title": "Зачем фреймворк: от императивного DOM к декларативному",
+          "topics": [
+            "learn-a-framework"
+          ],
+          "focus": "Синхронизация состояния и DOM — главная задача; пишем мини-фреймворк"
+        },
+        {
+          "id": "7-2",
+          "title": "React: Virtual DOM, реконсиляция, Fiber",
+          "topics": [
+            "react"
+          ],
+          "focus": "Рендер как вызов функции, diff по ключам, планировщик и приоритеты"
+        },
+        {
+          "id": "7-3",
+          "title": "Хуки изнутри",
+          "topics": [],
+          "focus": "Почему порядок хуков важен, замыкания и устаревшие значения, эффекты"
+        },
+        {
+          "id": "7-4",
+          "title": "Реактивность: прокси, сигналы, компиляция",
+          "topics": [
+            "vuejs",
+            "solid-js",
+            "svelte"
+          ],
+          "focus": "Vue 3 Proxy, сигналы Solid, компилятор Svelte — без Virtual DOM"
+        },
+        {
+          "id": "7-5",
+          "title": "Angular: DI, change detection, сигналы",
+          "topics": [
+            "angular"
+          ],
+          "focus": "Внедрение зависимостей, zone.js и переход на сигналы"
+        },
+        {
+          "id": "7-6",
+          "title": "Как выбрать фреймворк",
+          "topics": [],
+          "focus": "Сравнение по модели обновлений, размеру, экосистеме; общие паттерны"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Состояние, данные и маршрутизация",
+      "short": "Где живёт состояние, клиентский роутинг, API",
+      "lessons": [
+        {
+          "id": "8-1",
+          "title": "Виды состояния и где его хранить",
+          "topics": [],
+          "focus": "Локальное, глобальное, серверное, URL; store как наблюдаемый объект"
+        },
+        {
+          "id": "8-2",
+          "title": "Серверное состояние: кеш, инвалидация, оптимистичные обновления",
+          "topics": [],
+          "focus": "Stale-while-revalidate на клиенте, TanStack Query"
+        },
+        {
+          "id": "8-3",
+          "title": "Клиентская маршрутизация",
+          "topics": [
+            "react-router"
+          ],
+          "focus": "History API и hash, вложенные маршруты, загрузка данных по маршруту"
+        },
+        {
+          "id": "8-4",
+          "title": "REST и GraphQL с клиента",
+          "topics": [
+            "graphql",
+            "apollo",
+            "relay-modern"
+          ],
+          "focus": "Схема и запросы, нормализованный кеш Apollo/Relay, фрагменты"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Рендеринг на сервере и мета-фреймворки",
+      "short": "CSR, SSR, SSG, гидратация, серверные компоненты",
+      "lessons": [
+        {
+          "id": "9-1",
+          "title": "Спектр рендеринга: CSR, SSR, SSG, ISR",
+          "topics": [
+            "ssr",
+            "ssg"
+          ],
+          "focus": "Где и когда формируется HTML, цена каждого варианта"
+        },
+        {
+          "id": "9-2",
+          "title": "Гидратация, острова и серверные компоненты",
+          "topics": [],
+          "focus": "Что такое гидратация, ошибки рассинхрона, partial hydration, RSC, стриминг HTML"
+        },
+        {
+          "id": "9-3",
+          "title": "Мета-фреймворки",
+          "topics": [
+            "nextjs",
+            "nuxtjs",
+            "svelte-kit",
+            "sveltekit",
+            "tanstack-start"
+          ],
+          "focus": "Файловый роутинг, серверные функции, edge — что они добавляют поверх фреймворка"
+        },
+        {
+          "id": "9-4",
+          "title": "Генераторы статики и контентные сайты",
+          "topics": [
+            "astro",
+            "eleventy",
+            "vuepress"
+          ],
+          "focus": "Сборка в HTML, острова Astro, когда JS не нужен"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Безопасность фронтенда",
+      "short": "Same-origin, CORS, XSS, CSP, аутентификация",
+      "lessons": [
+        {
+          "id": "10-1",
+          "title": "Same-origin policy и CORS",
+          "topics": [
+            "web-security",
+            "cors"
+          ],
+          "focus": "Модель origin, preflight, что CORS защищает и что нет"
+        },
+        {
+          "id": "10-2",
+          "title": "XSS, CSP и OWASP для фронтенда",
+          "topics": [
+            "csp",
+            "owasp-risks"
+          ],
+          "focus": "Контексты экранирования, Trusted Types, CSP-директивы, supply chain"
+        },
+        {
+          "id": "10-3",
+          "title": "Аутентификация в браузере",
+          "topics": [
+            "auth-strategies"
+          ],
+          "focus": "Cookie-сессии vs токены, SameSite, CSRF, OAuth/OIDC с PKCE"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Качество: тесты, доступность, дизайн-системы",
+      "short": "Как проверить, что всё работает и всем доступно",
+      "lessons": [
+        {
+          "id": "11-1",
+          "title": "Тестирование: пирамида и юнит-тесты",
+          "topics": [
+            "testing",
+            "jest",
+            "vitest"
+          ],
+          "focus": "Что такое jsdom, моки модулей, тестирование компонентов"
+        },
+        {
+          "id": "11-2",
+          "title": "E2E: как тест управляет браузером",
+          "topics": [
+            "playwright",
+            "cypress"
+          ],
+          "focus": "CDP и WebDriver BiDi, auto-waiting, flaky-тесты"
+        },
+        {
+          "id": "11-3",
+          "title": "Доступность на практике",
+          "topics": [],
+          "focus": "Клавиатура, фокус, скринридеры, контраст, автоматические проверки"
+        },
+        {
+          "id": "11-4",
+          "title": "Дизайн-системы и документация",
+          "topics": [
+            "design-systems",
+            "docs-generation"
+          ],
+          "focus": "Токены, компоненты, Storybook, генерация документации"
+        },
+        {
+          "id": "11-5",
+          "title": "Рефакторинг и код-ревью",
+          "topics": [
+            "refactoring",
+            "code-reviews"
+          ],
+          "focus": "Безопасные шаги изменения кода, что смотреть на ревью фронтенда"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Доставка и за пределами браузера",
+      "short": "Деплой, мобильные и десктопные приложения",
+      "lessons": [
+        {
+          "id": "12-1",
+          "title": "Деплой фронтенда: статика, CDN, edge",
+          "topics": [
+            "deployment",
+            "github-pages",
+            "netlify",
+            "vercel",
+            "cloudflare",
+            "render",
+            "railway"
+          ],
+          "focus": "Атомарные деплои, превью-окружения, кеширование хешированных файлов"
+        },
+        {
+          "id": "12-2",
+          "title": "Мобильные приложения на веб-технологиях",
+          "topics": [
+            "mobile-apps",
+            "react-native",
+            "flutter",
+            "ionic"
+          ],
+          "focus": "WebView, мост к нативным виджетам, собственный рендер Flutter"
+        },
+        {
+          "id": "12-3",
+          "title": "Десктоп: Electron и Tauri",
+          "topics": [
+            "desktop-apps",
+            "electron",
+            "tauri"
+          ],
+          "focus": "Chromium + Node против системного WebView + Rust, IPC и безопасность"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "AI в работе фронтендера",
+      "short": "Как работают LLM, ассистенты в разработке, AI в продукте",
+      "lessons": [
+        {
+          "id": "13-1",
+          "title": "Как работают LLM и где они ошибаются",
+          "topics": [
+            "how-llms-work",
+            "ai-vs-traditional-coding",
+            "applications"
+          ],
+          "focus": "Обзорно, со ссылкой на курс «AI-агенты»"
+        },
+        {
+          "id": "13-2",
+          "title": "AI-ассистенты в разработке",
+          "topics": [
+            "ai-assisted-coding",
+            "copilot",
+            "cursor",
+            "claude-code",
+            "antigravity",
+            "agents",
+            "mcp",
+            "skills",
+            "prompting-techniques"
+          ],
+          "focus": "Автодополнение, агенты, MCP, ревью сгенерированного кода"
+        },
+        {
+          "id": "13-3",
+          "title": "AI в интерфейсе продукта",
+          "topics": [
+            "implementing-ai",
+            "openai",
+            "anthropic",
+            "gemini"
+          ],
+          "focus": "Вызов API через свой бэкенд, стриминг ответа в UI, безопасность ключей"
+        }
+      ]
+    }
+  ]
+}

@@ -72,6 +72,16 @@ export const COURSES = [
     color: '#0a6fa8', colorDark: '#5cc2f2',
     icon: '🌍',
     tags: ['Web API', 'EF Core', 'JWT', 'SignalR']
+  },
+  {
+    id: 'frontend',
+    title: 'Frontend для разработчиков',
+    short: 'Как на самом деле работают браузер, CSS, JavaScript и фреймворки: от парсинга HTML и event loop до реконсиляции, гидратации и CORS.',
+    path: 'courses/frontend/',
+    lessons: 66, modules: 14,
+    color: '#b0306a', colorDark: '#f27aa9',
+    icon: '🎨',
+    tags: ['DOM', 'CSS', 'Event loop', 'React']
   }
 ];
 export const findCourse = id => COURSES.find(c => c.id === id);
