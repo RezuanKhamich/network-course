@@ -36,9 +36,9 @@ export const COURSES = [
   {
     id: 'devops',
     title: 'DevOps для разработчиков',
-    short: 'От коммита до продакшена: Linux, Git, CI/CD, Docker, Kubernetes, Terraform, облака, мониторинг, SRE и безопасность поставки.',
+    short: 'По roadmap.sh: Linux и терминал, Git, веб-серверы и сети, Docker, облака, Terraform, CI/CD, секреты, мониторинг, Kubernetes, GitOps, service mesh и SRE.',
     path: 'courses/devops/',
-    lessons: 52, modules: 13,
+    lessons: 81, modules: 20,
     color: '#3d4fc4', colorDark: '#8c9bff',
     icon: '🚀',
     tags: ['CI/CD', 'Docker', 'K8s', 'IaC']

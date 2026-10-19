@@ -5,7 +5,7 @@ import { findLesson } from '../../assets/js/engine.js';
 export const COURSE = {
   id: 'devops',
   title: 'DevOps для разработчиков',
-  tagline: 'От коммита до продакшена: как код собирается, тестируется, упаковывается в контейнер, выкатывается и живёт под наблюдением. Короткая теория, реальные конфиги и тесты после каждого модуля.',
+  tagline: 'Весь путь DevOps-инженера по roadmap.sh: язык программирования, Linux и терминал, Git, веб-серверы и сети, контейнеры, облака и serverless, IaC, CI/CD, секреты, мониторинг, Kubernetes, артефакты, GitOps, service mesh, облачные паттерны и SRE.',
   journeyLabel: 'Путь коммита в прод',
   brand: '<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M3 13c0-3 2-5 4.5-5S11 10 13 13s3.5 5 5.5 5S23 16 23 13s-2-5-4.5-5S15 10 13 13s-3.5 5-5.5 5S3 16 3 13z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="13" r="2" fill="var(--accent)"/><circle cx="18.5" cy="13" r="2" fill="var(--accent)"/></svg>'
 };
@@ -113,27 +113,27 @@ export const WIDGETS = {
 
 export function viewTools(){
   return `<div class="crumbs"><a href="#/">главная</a> / инструменты</div><h1>Инструменты</h1>
-  <h2 style="margin-top:26px">Калькулятор SLO и бюджета ошибок</h2><div data-widget="slo"></div>
-  <h2 style="margin-top:26px">Кэш слоёв Docker</h2><p class="small">Подробно — в модуле 5.</p><div data-widget="layers"></div>
-  <h2 style="margin-top:26px">Разбор cron-выражения</h2><div data-widget="cron"></div>
-  <h2 style="margin-top:26px">CI/CD-пайплайн по шагам</h2><p class="small">Подробно — в модуле 4.</p><div data-widget="pipeline"></div>
-  <h2 style="margin-top:26px">Rolling update в Kubernetes</h2><p class="small">Подробно — в модуле 7.</p><div data-widget="rollout"></div>`;
+  <h2 style="margin-top:26px">Калькулятор SLO и бюджета ошибок</h2><p class="small">Подробно — в модуле 19.</p><div data-widget="slo"></div>
+  <h2 style="margin-top:26px">Кэш слоёв Docker</h2><p class="small">Подробно — в модуле 7.</p><div data-widget="layers"></div>
+  <h2 style="margin-top:26px">Разбор cron-выражения</h2><p class="small">Подробно — в модуле 3.</p><div data-widget="cron"></div>
+  <h2 style="margin-top:26px">CI/CD-пайплайн по шагам</h2><p class="small">Подробно — в модуле 10.</p><div data-widget="pipeline"></div>
+  <h2 style="margin-top:26px">Rolling update в Kubernetes</h2><p class="small">Подробно — в модуле 11.</p><div data-widget="rollout"></div>`;
 }
 
 // ====== СКВОЗНОЙ СЦЕНАРИЙ ======
 const JOURNEY = [
- { t:'Задача и ветка', l:'Plan · Git', d:'Задача в трекере. Разработчик создаёт короткоживущую ветку от свежего main, чтобы через день-два влить её обратно.', code:'git switch -c feat/discount-badge', lesson:'2-2' },
- { t:'Коммит', l:'Code · Git', d:'Небольшой атомарный коммит с понятным сообщением. pre-commit-хук прогоняет форматтер и ищет случайно добавленные секреты.', code:'git commit -m "feat(cart): show discount badge"', lesson:'2-1' },
- { t:'Pull request', l:'Review', d:'PR запускает CI и уведомляет ревьюеров. Ветку main защищает правило: без зелёного CI и одобрения слить нельзя.', lesson:'2-3' },
- { t:'CI: проверки', l:'CI', d:'Раннер ставит зависимости из кэша, гоняет линтер, юнит-тесты и сборку. Всё укладывается в 6 минут.', code:'lint ✓  unit 412/412 ✓  build ✓', lesson:'4-1' },
- { t:'Образ', l:'Build · Docker', d:'Multi-stage Dockerfile собирает маленький образ без компилятора, тег — SHA коммита. Образ подписывается и сканируется.', code:'registry.example.com/shop:3f9c2e1', lesson:'5-3' },
- { t:'Инфраструктура', l:'IaC · Terraform', d:'Новой фиче нужна очередь. Её описали в Terraform, план приложен к PR, применение — после ревью.', code:'Plan: 1 to add, 0 to change, 0 to destroy.', lesson:'8-2' },
- { t:'Staging', l:'CD · GitOps', d:'CI обновляет тег образа в репозитории манифестов. Argo CD замечает изменение и синхронизирует staging-кластер.', lesson:'7-4' },
- { t:'Выкатка в прод', l:'CD · canary', d:'Канарейка получает 5% трафика. Анализ сравнивает долю ошибок и p99-латентность с основной версией, потом 50%, потом 100%.', lesson:'7-2' },
- { t:'Наблюдение', l:'Ops · метрики', d:'Дашборд RED по сервису: запросы, ошибки, длительность. Логи и трейсы связаны trace_id.', lesson:'10-1' },
- { t:'Алерт', l:'Ops · SRE', d:'Через час быстро сгорает бюджет ошибок: новая фича ломает оплату у части клиентов. Дежурный получает пейдж.', code:'ALERT CheckoutErrorBudgetBurn  burn_rate=16.2', lesson:'11-2' },
- { t:'Откат и фикс', l:'Ops · инцидент', d:'Фичу выключают флагом за секунды — без деплоя. Фикс уходит обычным путём через CI.', lesson:'7-3' },
- { t:'Постмортем', l:'Learn', d:'Безобвинительный разбор: хронология, причины, задачи. Добавили контрактный тест с платёжным сервисом — цикл замкнулся.', lesson:'11-3' }
+ { t:'Задача и ветка', l:'Plan · Git', d:'Задача в трекере. Разработчик создаёт короткоживущую ветку от свежего main, чтобы через день-два влить её обратно.', code:'git switch -c feat/discount-badge', lesson:'4-2' },
+ { t:'Коммит', l:'Code · Git', d:'Небольшой атомарный коммит с понятным сообщением. pre-commit-хук прогоняет форматтер и ищет случайно добавленные секреты.', code:'git commit -m "feat(cart): show discount badge"', lesson:'4-1' },
+ { t:'Pull request', l:'Review', d:'PR запускает CI и уведомляет ревьюеров. Ветку main защищает правило: без зелёного CI и одобрения слить нельзя.', lesson:'4-3' },
+ { t:'CI: проверки', l:'CI', d:'Раннер ставит зависимости из кэша, гоняет линтер, юнит-тесты и сборку. Всё укладывается в 6 минут.', code:'lint ✓  unit 412/412 ✓  build ✓', lesson:'10-1' },
+ { t:'Образ', l:'Build · Docker', d:'Multi-stage Dockerfile собирает маленький образ без компилятора, тег — SHA коммита. Образ подписывается и сканируется.', code:'registry.example.com/shop:3f9c2e1', lesson:'7-3' },
+ { t:'Инфраструктура', l:'IaC · Terraform', d:'Новой фиче нужна очередь. Её описали в Terraform, план приложен к PR, применение — после ревью.', code:'Plan: 1 to add, 0 to change, 0 to destroy.', lesson:'9-2' },
+ { t:'Staging', l:'CD · GitOps', d:'CI обновляет тег образа в репозитории манифестов. Argo CD замечает изменение и синхронизирует staging-кластер.', lesson:'16-1' },
+ { t:'Выкатка в прод', l:'CD · canary', d:'Канарейка получает 5% трафика. Анализ сравнивает долю ошибок и p99-латентность с основной версией, потом 50%, потом 100%.', lesson:'11-2' },
+ { t:'Наблюдение', l:'Ops · метрики', d:'Дашборд RED по сервису: запросы, ошибки, длительность. Логи и трейсы связаны trace_id.', lesson:'13-1' },
+ { t:'Алерт', l:'Ops · SRE', d:'Через час быстро сгорает бюджет ошибок: новая фича ломает оплату у части клиентов. Дежурный получает пейдж.', code:'ALERT CheckoutErrorBudgetBurn  burn_rate=16.2', lesson:'19-2' },
+ { t:'Откат и фикс', l:'Ops · инцидент', d:'Фичу выключают флагом за секунды — без деплоя. Фикс уходит обычным путём через CI.', lesson:'11-3' },
+ { t:'Постмортем', l:'Learn', d:'Безобвинительный разбор: хронология, причины, задачи. Добавили контрактный тест с платёжным сервисом — цикл замкнулся.', lesson:'19-3' }
 ];
 let journeyStep = 0;
 export function viewJourney(){
@@ -158,6 +158,8 @@ export function viewCheats(){
   const t = (head, rows) => `<div class="tbl"><table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
   return `<div class="crumbs"><a href="#/">главная</a> / шпаргалки</div><h1>Шпаргалки</h1>
   <h2 style="margin-top:26px">Linux</h2>${t(['Команда','Что делает'], [['<code>systemctl status app</code>','Состояние сервиса'],['<code>journalctl -u app -f</code>','Логи сервиса в реальном времени'],['<code>ps aux --sort=-%mem | head</code>','Самые прожорливые процессы'],['<code>df -h</code> / <code>du -sh *</code>','Место на дисках / в каталоге'],['<code>free -h</code>','Память'],['<code>ss -tlnp</code>','Слушающие порты и процессы'],['<code>chmod 640 f</code>','Права rw-r-----'],['<code>tail -f /var/log/syslog</code>','Следить за логом']])}
+  <h2 style="margin-top:26px">Диагностика в терминале</h2>${t(['Команда','Что показывает'], [['<code>uptime</code>, <code>top</code>','Нагрузка и процессы'],['<code>vmstat 1</code>, <code>iostat -xz 1</code>','CPU, память, своп, диски'],['<code>dmesg -T</code>','Ядро: OOM, ошибки дисков'],['<code>dig name +short</code>','DNS'],['<code>curl -sv URL</code>','HTTP и TLS'],['<code>nc -zv host port</code>','Открыт ли порт'],['<code>grep</code> / <code>awk</code> / <code>sed</code> / <code>jq</code>','Поиск, столбцы, замена, JSON']])}
+  <h2 style="margin-top:26px">Nginx и SSH</h2>${t(['Команда','Что делает'], [['<code>nginx -t</code>','Проверить конфиг'],['<code>systemctl reload nginx</code>','Применить без разрыва соединений'],['<code>ssh-keygen -t ed25519</code>','Создать ключ'],['<code>ssh -J bastion host</code>','Через бастион'],['<code>ssh -L 5432:db:5432 bastion</code>','Проброс порта'],['<code>rsync -az dist/ host:/srv/</code>','Синхронизация файлов по SSH']])}
   <h2 style="margin-top:26px">Git</h2>${t(['Команда','Что делает'], [['<code>git switch -c feat/x</code>','Новая ветка'],['<code>git rebase origin/main</code>','Переложить ветку на свежий main'],['<code>git revert &lt;sha&gt;</code>','Отменить коммит новым коммитом'],['<code>git bisect start</code>','Двоичный поиск коммита с багом'],['<code>git tag -a v1.4.0</code>','Аннотированный тег релиза'],['<code>git log --oneline --graph</code>','История графом']])}
   <h2 style="margin-top:26px">Docker</h2>${t(['Команда','Что делает'], [['<code>docker build -t app:1.0 .</code>','Собрать образ'],['<code>docker run -d -p 8080:80 app:1.0</code>','Запустить с пробросом порта'],['<code>docker ps</code> / <code>docker logs -f id</code>','Контейнеры / логи'],['<code>docker exec -it id sh</code>','Shell внутри контейнера'],['<code>docker image history app</code>','Слои образа'],['<code>docker compose up -d</code>','Поднять стек из compose.yaml'],['<code>docker system prune</code>','Удалить неиспользуемое']])}
   <h2 style="margin-top:26px">kubectl</h2>${t(['Команда','Что делает'], [['<code>kubectl get pods -o wide</code>','Поды и узлы'],['<code>kubectl describe pod p</code>','События и причины проблем'],['<code>kubectl logs p -c c --previous</code>','Логи упавшего контейнера'],['<code>kubectl apply -f k8s/</code>','Применить манифесты'],['<code>kubectl rollout status deploy/app</code>','Ход выкатки'],['<code>kubectl rollout undo deploy/app</code>','Откат'],['<code>kubectl port-forward svc/app 8080:80</code>','Доступ к сервису локально'],['<code>kubectl top pods</code>','Потребление CPU/памяти']])}
