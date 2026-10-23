@@ -36,9 +36,9 @@ export const COURSES = [
   {
     id: 'devops',
     title: 'DevOps для разработчиков',
-    short: 'От коммита до продакшена: Linux, Git, CI/CD, Docker, Kubernetes, Terraform, облака, мониторинг, SRE и безопасность поставки.',
+    short: 'По roadmap.sh: Linux и терминал, Git, веб-серверы и сети, Docker, облака, Terraform, CI/CD, секреты, мониторинг, Kubernetes, GitOps, service mesh и SRE.',
     path: 'courses/devops/',
-    lessons: 52, modules: 13,
+    lessons: 81, modules: 20,
     color: '#3d4fc4', colorDark: '#8c9bff',
     icon: '🚀',
     tags: ['CI/CD', 'Docker', 'K8s', 'IaC']
@@ -82,6 +82,26 @@ export const COURSES = [
     color: '#b0306a', colorDark: '#f27aa9',
     icon: '🎨',
     tags: ['DOM', 'CSS', 'Event loop', 'React']
+  },
+  {
+    id: 'python',
+    title: 'Python: от основ к Django и ИИ',
+    short: 'Синтаксис, коллекции, функции и декораторы, ООП по-питоновски, генераторы, пакеты, типы и тесты, asyncio, NumPy и pandas. Опирается на курс ООП и ведёт к Django и машинному обучению.',
+    path: 'courses/python/',
+    lessons: 48, modules: 12,
+    color: '#8a6d00', colorDark: '#f5c843',
+    icon: '🐍',
+    tags: ['Python', 'asyncio', 'pandas', 'Django']
+  },
+  {
+    id: 'ai-basics',
+    title: 'Основы ИИ: теория машинного обучения',
+    short: 'Как и почему учатся модели: математика, классическое ML, метрики, нейросети, трансформеры, генеративные модели, RL и ответственный ИИ.',
+    path: 'courses/ai-basics/',
+    lessons: 48, modules: 12,
+    color: '#8e24aa', colorDark: '#e1a1f5',
+    icon: '🧠',
+    tags: ['ML', 'Нейросети', 'Трансформеры', 'Метрики']
   }
 ];
 export const findCourse = id => COURSES.find(c => c.id === id);
