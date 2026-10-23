@@ -64,6 +64,9 @@ button{font:inherit;cursor:pointer}
 @media (min-width:1500px){body{font-size:17px}}
 .prose p,.prose li{max-width:80ch}
 .prose ul,.prose ol{padding-left:1.2em}
+.prose .lead{font-size:1.05rem;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px}
+.note.recap{border-color:var(--ok);background:var(--ok-soft)}
+.note.recap ul{margin:6px 0 0}
 .small{font-size:.85rem;color:var(--muted)}
 .crumbs{font:500 12.5px var(--f-mono);color:var(--muted);margin-bottom:10px}
 .crumbs a{color:var(--muted)}
