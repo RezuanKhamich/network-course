@@ -3,6 +3,7 @@
 // COURSE (настройки), MODULES, UPCOMING, GLOSSARY (content.js), WIDGETS, viewTools, viewJourney,
 // mountJourney, viewCheats и, по желанию, readMore (course.js).
 import './pwa.js';
+import { markTerms, initTerms } from './terms.js';
 import { Store, initMenu, LS_KEY, LS_BACKUP, $, esc, shuffle, toast, fmtTime, plural, lsGet, lsSet, applyTheme, cycleTheme } from './storage.js';
 import { Game, PASS, XP, SITE_ROOT, confetti, nextAchievements } from './game.js';
 import { recordAnswer, dueKeys, deckStats, review, qidOf, todayAnswers, weekAnswers, BOXES, REVIEW_XP } from './review.js';
@@ -205,6 +206,7 @@ function viewLesson(id){
 function mountLesson(id){
   const l = findLesson(id); if (!l || !isUnlocked(l.module)) return;
   mountWidgets($('#view'));
+  markTerms($('.prose'), id, GLOSSARY);
   const secs = [...document.querySelectorAll('.prose h3'), $('#selfcheck')];
   $('#tocSecs').innerHTML = secs.map((h, i) => { h.id = h.id || 'sec' + i; return `<a class="sub" href="${location.hash}" data-sec="${h.id}">${esc(h.textContent)}</a>`; }).join('');
   $('#tocSecs').onclick = e => { const t = e.target.closest('[data-sec]'); if (t){ e.preventDefault(); document.getElementById(t.dataset.sec).scrollIntoView({ behavior:'smooth' }); } };
@@ -522,6 +524,8 @@ function mountProgress(){
 // ====== СТАРТ ======
 export function startCourse(cfg){
   ({ COURSE, MODULES, UPCOMING = [], GLOSSARY, WIDGETS, viewTools, viewJourney, mountJourney, viewCheats, readMore } = cfg);
+  const order = MODULES.flatMap(m => m.lessons.map(l => l.id));
+  initTerms({ glossary: GLOSSARY, findLesson, lessonIndex: id => order.indexOf(id), currentLesson: () => (location.hash.match(/^#\/l\/([\w-]+)/) || [])[1] });
   Store.load(); applyTheme();
   // Каталог на главной сайта считает проценты по этим числам, не загружая контент курса
   const meta = { lessons:allLessons().length, modules:MODULES.length }; const cur = P.state.meta;

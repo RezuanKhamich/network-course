@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "validate": "node scripts/validate-course.js cyber-security && node scripts/validate-course.js frontend",
     "check": "npm run lint && npm run validate && npm run build",
-    "catalog": "node scripts/build-catalog.js"
+    "catalog": "node scripts/build-catalog.js",
+    "terms": "node scripts/check-terms.js"
   },
   "devDependencies": {
     "eslint": "^9.39.0",
