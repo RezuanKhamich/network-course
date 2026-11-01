@@ -1,50 +1,201 @@
-// Код, специфичный для курса «DevOps»: настройки, виджеты, сквозной сценарий, шпаргалки.
+// Код, специфичный для курса «DevOps»: настройки, учебный терминал, виджеты, сквозной сценарий, шпаргалки.
 import { $, esc } from '../../assets/js/storage.js';
 import { Game } from '../../assets/js/game.js';
 import { findLesson } from '../../assets/js/engine.js';
+import { createLab } from './lab-engine.js';
+import { LABS } from './labs.js';
+import { DRILLS, newDrillLab, drillPassed } from './trainer.js';
+import { sandboxDef, newSandbox, cleanLine, runnable } from './sandbox.js';
 export const COURSE = {
   id: 'devops',
-  title: 'DevOps для разработчиков',
-  tagline: 'Весь путь DevOps-инженера по roadmap.sh: язык программирования, Linux и терминал, Git, веб-серверы и сети, контейнеры, облака и serverless, IaC, CI/CD, секреты, мониторинг, Kubernetes, артефакты, GitOps, service mesh, облачные паттерны и SRE.',
-  journeyLabel: 'Путь коммита в прод',
+  title: 'От DevOps к Systems Engineering и SRE',
+  tagline: 'Программа на 90 дней для тех, кто хочет понимать инфраструктуру и самостоятельно расследовать неисправности: Linux, сети, Nginx, JVM, Docker, PostgreSQL, мониторинг, логи, автоматизация и надёжность. Вся теория и практика — прямо здесь: 20 лабораторий во встроенном терминале и итоговый проект.',
+  journeyLabel: 'Путь запроса и где он ломается',
   brand: '<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M3 13c0-3 2-5 4.5-5S11 10 13 13s3.5 5 5.5 5S23 16 23 13s-2-5-4.5-5S15 10 13 13s-3.5 5-5.5 5S3 16 3 13z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="13" r="2" fill="var(--accent)"/><circle cx="18.5" cy="13" r="2" fill="var(--accent)"/></svg>'
 };
 
-function stepWidget(el, steps, head){
-  el.className = 'widget';
-  let k = 0;
-  const draw = () => {
-    el.innerHTML = `${head ? head(k) : ''}<div style="display:flex;flex-direction:column;gap:6px;font:13px var(--f-mono)">${steps.map((s, i) => `<div style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:8px;align-items:center;padding:6px 8px;border-radius:6px;opacity:${i > k ? .2 : 1};background:${i === k ? 'var(--accent-soft)' : 'transparent'}"><b>${esc(s.n)}</b><span>${esc(s.c)}</span></div>`).join('')}</div>
-    <p style="margin:12px 0 10px"><b>Шаг ${k + 1}/${steps.length}.</b> ${esc(steps[k].e)}</p>
-    <div class="row"><button class="btn ghost" data-d="-1" ${k === 0 ? 'disabled' : ''}>← Назад</button><button class="btn" data-d="1" ${k === steps.length - 1 ? 'disabled' : ''}>Шаг вперёд →</button></div>`;
-    el.querySelectorAll('button').forEach(b => b.onclick = () => { k += +b.dataset.d; draw(); });
+// ====== УЧЕБНЫЙ ТЕРМИНАЛ ======
+const LAB_KEY = id => 'devops-lab:' + id;
+function labLoad(id){ try { return JSON.parse(localStorage.getItem(LAB_KEY(id))) || []; } catch (e){ return []; } }
+function labStore(id, log){ try { localStorage.setItem(LAB_KEY(id), JSON.stringify(log)); } catch (e){ /* прогресс лабы просто не сохранится */ } }
+function mountLab(el, id){
+  const def = LABS[id];
+  el.className = 'widget lab';
+  const history = [];
+  let histPos = 0, lab, editing = null;
+  const prompt = () => `student@${def.host || 'lab'}:${lab.cwd.replace(/^\/home\/student/, '~')}$`;
+  el.innerHTML = `<div class="lab-head"><b>🖥 Лаборатория: ${esc(def.title)}</b><p>${esc(def.intro)}</p></div><ol class="lab-tasks"></ol>
+    <div class="lab-term" role="log" aria-live="polite"><div class="lab-out"></div><div class="lab-line"><span></span><input type="text" aria-label="Команда" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
+    <div class="lab-edit" hidden><p class="small lab-edit-name"></p><textarea spellcheck="false" aria-label="Содержимое файла"></textarea><div class="row" style="margin-top:8px"><button class="btn" data-a="save">Сохранить</button><button class="btn ghost" data-a="cancel">Отмена</button></div></div>
+    <div class="lab-foot"><button class="btn ghost" data-a="hint">Подсказка</button><button class="btn ghost" data-a="reset">Сначала</button><span class="small lab-count"></span></div>`;
+  const out = el.querySelector('.lab-out'), term = el.querySelector('.lab-term'), input = el.querySelector('.lab-line input'), pr = el.querySelector('.lab-line span');
+  const box = el.querySelector('.lab-edit'), area = box.querySelector('textarea');
+  const print = (text, cls = '') => { if (!text) return; const p = document.createElement('pre'); p.className = cls; p.textContent = text; out.appendChild(p); };
+  const scroll = () => { term.scrollTop = term.scrollHeight; };
+  const drawTasks = () => {
+    el.querySelector('.lab-tasks').innerHTML = def.tasks.map((t, i) => `<li class="${i < lab.step ? 'ok' : i === lab.step ? 'cur' : ''}"><span>${i < lab.step ? '✓' : i === lab.step ? '▸' : '○'}</span><span>${esc(t.t)}</span></li>`).join('');
+    el.querySelector('.lab-count').textContent = lab.finished ? 'Лаборатория пройдена. Повторите её без подсказок.' : `Задание ${lab.step + 1} из ${def.tasks.length}`;
+    pr.textContent = prompt();
   };
-  draw();
+  const report = done => {
+    for (const t of done) print('✓ Задание выполнено.' + (t.why ? ' ' + t.why : ''), 'good');
+    if (done.length && lab.finished){ print('🎉 Все задания выполнены!', 'good'); Game.flag('devops:lab:' + id); }
+    if (done.length) drawTasks();
+  };
+  const start = () => {
+    lab = createLab(def); out.innerHTML = ''; editing = null; box.hidden = true;
+    print('Введите help — справка, tasks — задания, hint — подсказка.', 'info');
+    const saved = labLoad(id);
+    if (saved.length){ lab.replay(saved); print('Прогресс восстановлен: стенд в том состоянии, в каком вы его оставили.', 'info'); }
+    drawTasks();
+  };
+  const exec = line => {
+    print(prompt() + ' ' + line, 'cmd');
+    const r = lab.run(line);
+    labStore(id, lab.state.log);
+    if (r.clear) out.innerHTML = '';
+    print(r.out);
+    if (r.edit){ editing = r.edit.path; box.querySelector('.lab-edit-name').textContent = 'Редактор: ' + editing; area.value = r.edit.content; box.hidden = false; area.focus(); }
+    report(r.done);
+    pr.textContent = prompt();
+    scroll();
+  };
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ const v = input.value; input.value = ''; if (v.trim()){ history.push(v); histPos = history.length; exec(v); } }
+    else if (e.key === 'ArrowUp' && histPos > 0){ input.value = history[--histPos]; e.preventDefault(); }
+    else if (e.key === 'ArrowDown'){ histPos = Math.min(history.length, histPos + 1); input.value = history[histPos] || ''; e.preventDefault(); }
+  });
+  // Клик по терминалу ставит курсор в поле ввода, но не мешает выделять текст
+  term.addEventListener('click', () => { if (!String(window.getSelection())) input.focus({ preventScroll:true }); });
+  el.addEventListener('click', e => {
+    const a = e.target.closest('[data-a]'); if (!a) return;
+    const k = a.dataset.a;
+    if (k === 'hint') exec('hint');
+    if (k === 'reset'){ labStore(id, []); start(); }
+    if (k === 'cancel'){ box.hidden = true; editing = null; input.focus({ preventScroll:true }); }
+    if (k === 'save'){ const done = lab.save(editing, area.value); labStore(id, lab.state.log); print('Файл сохранён: ' + editing, 'info'); box.hidden = true; editing = null; report(done); scroll(); input.focus({ preventScroll:true }); }
+  });
+  start();
 }
 
-const PIPELINE_STEPS = [
-  { n:'push', c:'git push origin feature/login', e:'Разработчик отправляет ветку. CI-система получает webhook и ставит пайплайн в очередь.' },
-  { n:'checkout', c:'actions/checkout@v4', e:'Раннер — чистая временная машина. Он клонирует репозиторий на нужный коммит.' },
-  { n:'deps (cache)', c:'npm ci  # cache hit: node_modules за 4 с', e:'Зависимости ставятся строго по lock-файлу. Кэш по хешу lock-файла экономит минуты.' },
-  { n:'lint + unit', c:'npm run lint && npm test', e:'Быстрые проверки идут первыми: упасть за минуту дешевле, чем через двадцать.' },
-  { n:'build image', c:'docker build -t app:3f9c2e1 .', e:'Собирается один артефакт, помеченный SHA коммита. Дальше по всем окружениям едет именно он.' },
-  { n:'scan', c:'trivy image app:3f9c2e1', e:'Сканер ищет уязвимости в образе и зависимостях. Критичные — повод остановить пайплайн.' },
-  { n:'push image', c:'docker push registry/app:3f9c2e1', e:'Артефакт уходит в реестр. Пересобирать его для продакшена нельзя — только продвигать.' },
-  { n:'deploy staging', c:'helm upgrade app --set image.tag=3f9c2e1', e:'Выкладка в staging и интеграционные / smoke-тесты против живого окружения.' },
-  { n:'deploy prod', c:'canary 5% → 50% → 100%', e:'Продакшен получает тот же образ, постепенно, с автоматическим откатом по метрикам.' }
-];
-const ROLLOUT_STEPS = [
-  { n:'старт', c:'v1 v1 v1 v1  | maxSurge=1, maxUnavailable=0', e:'Deployment с 4 репликами v1. Меняем образ на v2 — запускается rolling update.' },
-  { n:'surge', c:'v1 v1 v1 v1 [v2 …]', e:'Kubernetes создаёт один лишний под v2 (maxSurge=1). Пока readiness-проба не прошла, трафик на него не идёт.' },
-  { n:'ready', c:'v1 v1 v1 v1  v2✓', e:'Под v2 готов, попадает в endpoints сервиса и начинает получать запросы.' },
-  { n:'замена', c:'v1 v1 v1  v2✓ [v2 …]', e:'Один старый под удаляется (сначала уходит из endpoints, получает SIGTERM), создаётся следующий новый.' },
-  { n:'…', c:'v1  v2✓ v2✓ v2✓ [v2 …]', e:'Цикл повторяется. Ёмкость ни разу не падает ниже 4 готовых подов.' },
-  { n:'готово', c:'v2✓ v2✓ v2✓ v2✓', e:'Все реплики на v2. Старый ReplicaSet сохранён с 0 подов — kubectl rollout undo вернёт его за секунды.' }
-];
+// ====== ПЕСОЧНИЦА УРОКА ======
+// Кнопки ▶ у команд в теории запускают их здесь же: терминал переезжает под блок, из которого нажали
+const INLINE_SKIP = new Set(['id', 'date', 'help', 'tasks', 'hint', 'clear', 'top', 'mount']);
+function mountSandbox(el){
+  const def = sandboxDef((el.dataset.labs || '').split(',').filter(Boolean));
+  const prose = el.closest('.prose');
+  let lab = newSandbox(def);
+  el.className = 'widget lab sandbox';
+  el.innerHTML = `<div class="lab-head"><b>🖥 Терминал урока</b><p>Нажимайте ▶ у команд в тексте или вводите свои. Это учебный стенд, ничего не сломается.</p></div>
+    <div class="lab-term" role="log" aria-live="polite"><div class="lab-out"></div><div class="lab-line"><span></span><input type="text" aria-label="Команда" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
+    <div class="lab-foot"><button class="btn ghost" data-a="reset">Сбросить стенд</button></div>`;
+  const out = el.querySelector('.lab-out'), term = el.querySelector('.lab-term'), input = el.querySelector('input'), pr = el.querySelector('.lab-line span');
+  const prompt = () => `student@sandbox:${lab.cwd.replace(/^\/home\/student/, '~')}$`;
+  const print = (t, c = '') => { if (!t) return; const p = document.createElement('pre'); p.className = c; p.textContent = t; out.appendChild(p); };
+  const exec = line => {
+    print(prompt() + ' ' + line, 'cmd');
+    const r = lab.run(line);
+    if (r.clear) out.innerHTML = '';
+    print(r.out);
+    if (r.edit) print('В терминале урока редактора нет: меняйте файлы через sed и echo. Редактор есть в лабораториях.', 'info');
+    pr.textContent = prompt();
+    term.scrollTop = term.scrollHeight;
+  };
+  const history = []; let histPos = 0;
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ const v = input.value; input.value = ''; if (v.trim()){ history.push(v); histPos = history.length; exec(v); } }
+    else if (e.key === 'ArrowUp' && histPos > 0){ input.value = history[--histPos]; e.preventDefault(); }
+    else if (e.key === 'ArrowDown'){ histPos = Math.min(history.length, histPos + 1); input.value = history[histPos] || ''; e.preventDefault(); }
+  });
+  term.addEventListener('click', () => { if (!String(window.getSelection())) input.focus({ preventScroll:true }); });
+  el.querySelector('[data-a=reset]').onclick = () => { lab = newSandbox(def); out.innerHTML = ''; pr.textContent = prompt(); };
+  pr.textContent = prompt();
+  if (!prose) return;
+  const runFrom = (cmd, anchor) => {
+    anchor.after(el);
+    exec(cmd);
+    el.scrollIntoView({ block:'nearest', behavior:'smooth' });
+  };
+  for (const pre of prose.querySelectorAll('pre')){
+    if (pre.closest('.widget')) continue;
+    const code = pre.querySelector('code') || pre;
+    code.innerHTML = code.textContent.split('\n').map(raw => {
+      const cmd = cleanLine(raw);
+      return runnable(def, cmd) ? `<button class="run-line" data-cmd="${esc(cmd)}" title="Выполнить в терминале" aria-label="Выполнить: ${esc(cmd)}">▶</button>${esc(raw)}` : esc(raw);
+    }).join('\n');
+    code.addEventListener('click', e => { const b = e.target.closest('.run-line'); if (b) runFrom(b.dataset.cmd, pre); });
+  }
+  for (const c of prose.querySelectorAll('code')){
+    if (c.closest('pre, .widget, a')) continue;
+    const cmd = c.textContent.trim();
+    if (INLINE_SKIP.has(cmd) || !/^[a-z]/.test(cmd) || !runnable(def, cmd) || !lab.dry(cmd)) continue;
+    const b = document.createElement('button');
+    b.className = 'run-inline'; b.textContent = '▶'; b.title = 'Выполнить в терминале'; b.setAttribute('aria-label', 'Выполнить: ' + cmd);
+    b.onclick = () => runFrom(cmd, c.closest('.tbl, p, ul, ol, .note') || c);
+    c.after(b);
+  }
+}
+
+// ====== ТРЕНАЖЁР ТЕРМИНАЛА ======
+const TRAINER_KEY = 'devops-trainer';
+function mountTrainer(el){
+  el.className = 'widget lab';
+  const all = DRILLS.flatMap(d => d.items.map(x => ({ ...x, level: d.level })));
+  let solved = [];
+  try { solved = JSON.parse(localStorage.getItem(TRAINER_KEY)) || []; } catch (e){ /* начнём с нуля */ }
+  const id = ex => all.indexOf(ex);
+  let cur = all.find(x => !solved.includes(id(x))) || all[0], lab, passed = false;
+  const history = []; let histPos = 0;
+  el.innerHTML = `<div class="lab-head"><b>⌨ Тренажёр терминала Linux</b><p>Подходит любая верная команда: проверяется результат. Стенд перед каждым упражнением возвращается в исходное состояние.</p></div>
+    <div class="lab-foot lab-levels"></div><p class="lab-task"></p>
+    <div class="lab-term" role="log" aria-live="polite"><div class="lab-out"></div><div class="lab-line"><span></span><input type="text" aria-label="Команда" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
+    <div class="lab-foot"><button class="btn" data-a="next">Дальше →</button><button class="btn ghost" data-a="hint">Подсказка</button><button class="btn ghost" data-a="random">Случайное</button><button class="btn ghost" data-a="reset">Сбросить прогресс</button><span class="small lab-count"></span></div>`;
+  const out = el.querySelector('.lab-out'), term = el.querySelector('.lab-term'), input = el.querySelector('input'), pr = el.querySelector('.lab-line span');
+  const print = (t, c = '') => { if (!t) return; const p = document.createElement('pre'); p.className = c; p.textContent = t; out.appendChild(p); term.scrollTop = term.scrollHeight; };
+  const prompt = () => `student@trainer:${lab.cwd.replace(/^\/home\/student/, '~')}$`;
+  const draw = () => {
+    el.querySelector('.lab-levels').innerHTML = DRILLS.map((d, i) => { const n = d.items.filter(x => solved.includes(all.findIndex(a => a.t === x.t))).length; return `<button class="btn ${cur.level === d.level ? '' : 'ghost'}" data-l="${i}">${esc(d.level)} ${n}/${d.items.length}</button>`; }).join('');
+    el.querySelector('.lab-task').innerHTML = `<b>${esc(cur.level)}.</b> ${esc(cur.t)}${solved.includes(id(cur)) ? ' <span class="tag ok">решено</span>' : ''}`;
+    el.querySelector('.lab-count').textContent = `Решено ${solved.length} из ${all.length}`;
+    pr.textContent = prompt();
+  };
+  const open = ex => { cur = ex; lab = newDrillLab(); passed = false; out.innerHTML = ''; draw(); };
+  const next = () => { const i = id(cur); open(all.slice(i + 1).concat(all.slice(0, i + 1)).find(x => !solved.includes(id(x))) || all[(i + 1) % all.length]); };
+  const exec = line => {
+    print(prompt() + ' ' + line, 'cmd');
+    const r = lab.run(line);
+    if (r.clear) out.innerHTML = '';
+    print(r.out);
+    if (r.edit) print('Редактор в тренажёре недоступен: используйте echo, sed и перенаправление.', 'info');
+    if (!passed && drillPassed(cur, lab, r.out)){
+      passed = true;
+      if (!solved.includes(id(cur))){ solved.push(id(cur)); try { localStorage.setItem(TRAINER_KEY, JSON.stringify(solved)); } catch (e){ /* прогресс не сохранится */ } }
+      if (solved.length === all.length) Game.flag('devops:trainer');
+      print('✓ Верно! Нажмите Enter на пустой строке или «Дальше».', 'good');
+    }
+    draw();
+  };
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ const v = input.value; input.value = ''; if (v.trim()){ history.push(v); histPos = history.length; exec(v); } else if (passed) next(); }
+    else if (e.key === 'ArrowUp' && histPos > 0){ input.value = history[--histPos]; e.preventDefault(); }
+    else if (e.key === 'ArrowDown'){ histPos = Math.min(history.length, histPos + 1); input.value = history[histPos] || ''; e.preventDefault(); }
+  });
+  term.addEventListener('click', () => { if (!String(window.getSelection())) input.focus({ preventScroll:true }); });
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.l !== undefined) open(all.find(x => x.level === DRILLS[+b.dataset.l].level));
+    else if (b.dataset.a === 'next') next();
+    else if (b.dataset.a === 'hint') print('Подсказка: ' + cur.sol, 'info');
+    else if (b.dataset.a === 'random') open(all[Math.floor(Math.random() * all.length)]);
+    else if (b.dataset.a === 'reset'){ solved = []; try { localStorage.removeItem(TRAINER_KEY); } catch (err){ /* нечего сбрасывать */ } open(all[0]); }
+  });
+  open(cur);
+}
 
 export const WIDGETS = {
-  pipeline(el){ stepWidget(el, PIPELINE_STEPS); },
-  rollout(el){ stepWidget(el, ROLLOUT_STEPS); },
+  trainer: mountTrainer,
+  sandbox: mountSandbox,
+  ...Object.fromEntries(Object.keys(LABS).map(id => [id, el => mountLab(el, id)])),
   slo(el){
     el.className = 'widget';
     const id = 'slo' + Math.random().toString(36).slice(2, 6);
@@ -113,32 +264,34 @@ export const WIDGETS = {
 
 export function viewTools(){
   return `<div class="crumbs"><a href="#/">главная</a> / инструменты</div><h1>Инструменты</h1>
-  <h2 style="margin-top:26px">Калькулятор SLO и бюджета ошибок</h2><p class="small">Подробно — в модуле 19.</p><div data-widget="slo"></div>
+  <h2 style="margin-top:26px">Тренажёр терминала Linux</h2><p class="small">Подробно — в уроке 1.7.</p><div data-widget="trainer"></div>
+  <h2 style="margin-top:26px">Калькулятор SLO и бюджета ошибок</h2><p class="small">Подробно — в модуле 12.</p><div data-widget="slo"></div>
   <h2 style="margin-top:26px">Кэш слоёв Docker</h2><p class="small">Подробно — в модуле 7.</p><div data-widget="layers"></div>
-  <h2 style="margin-top:26px">Разбор cron-выражения</h2><p class="small">Подробно — в модуле 3.</p><div data-widget="cron"></div>
-  <h2 style="margin-top:26px">CI/CD-пайплайн по шагам</h2><p class="small">Подробно — в модуле 10.</p><div data-widget="pipeline"></div>
-  <h2 style="margin-top:26px">Rolling update в Kubernetes</h2><p class="small">Подробно — в модуле 11.</p><div data-widget="rollout"></div>`;
+  <h2 style="margin-top:26px">Разбор cron-выражения</h2><p class="small">Подробно — в модуле 2.</p><div data-widget="cron"></div>`;
 }
 
 // ====== СКВОЗНОЙ СЦЕНАРИЙ ======
 const JOURNEY = [
- { t:'Задача и ветка', l:'Plan · Git', d:'Задача в трекере. Разработчик создаёт короткоживущую ветку от свежего main, чтобы через день-два влить её обратно.', code:'git switch -c feat/discount-badge', lesson:'4-2' },
- { t:'Коммит', l:'Code · Git', d:'Небольшой атомарный коммит с понятным сообщением. pre-commit-хук прогоняет форматтер и ищет случайно добавленные секреты.', code:'git commit -m "feat(cart): show discount badge"', lesson:'4-1' },
- { t:'Pull request', l:'Review', d:'PR запускает CI и уведомляет ревьюеров. Ветку main защищает правило: без зелёного CI и одобрения слить нельзя.', lesson:'4-3' },
- { t:'CI: проверки', l:'CI', d:'Раннер ставит зависимости из кэша, гоняет линтер, юнит-тесты и сборку. Всё укладывается в 6 минут.', code:'lint ✓  unit 412/412 ✓  build ✓', lesson:'10-1' },
- { t:'Образ', l:'Build · Docker', d:'Multi-stage Dockerfile собирает маленький образ без компилятора, тег — SHA коммита. Образ подписывается и сканируется.', code:'registry.example.com/shop:3f9c2e1', lesson:'7-3' },
- { t:'Инфраструктура', l:'IaC · Terraform', d:'Новой фиче нужна очередь. Её описали в Terraform, план приложен к PR, применение — после ревью.', code:'Plan: 1 to add, 0 to change, 0 to destroy.', lesson:'9-2' },
- { t:'Staging', l:'CD · GitOps', d:'CI обновляет тег образа в репозитории манифестов. Argo CD замечает изменение и синхронизирует staging-кластер.', lesson:'16-1' },
- { t:'Выкатка в прод', l:'CD · canary', d:'Канарейка получает 5% трафика. Анализ сравнивает долю ошибок и p99-латентность с основной версией, потом 50%, потом 100%.', lesson:'11-2' },
- { t:'Наблюдение', l:'Ops · метрики', d:'Дашборд RED по сервису: запросы, ошибки, длительность. Логи и трейсы связаны trace_id.', lesson:'13-1' },
- { t:'Алерт', l:'Ops · SRE', d:'Через час быстро сгорает бюджет ошибок: новая фича ломает оплату у части клиентов. Дежурный получает пейдж.', code:'ALERT CheckoutErrorBudgetBurn  burn_rate=16.2', lesson:'19-2' },
- { t:'Откат и фикс', l:'Ops · инцидент', d:'Фичу выключают флагом за секунды — без деплоя. Фикс уходит обычным путём через CI.', lesson:'11-3' },
- { t:'Постмортем', l:'Learn', d:'Безобвинительный разбор: хронология, причины, задачи. Добавили контрактный тест с платёжным сервисом — цикл замкнулся.', lesson:'19-3' }
+ { t:'Имя в адрес', l:'DNS', d:'Браузер спрашивает резолвер адрес shop.lab. Если DNS не работает, дальше ничего не случится: «Could not resolve host». Проверяют через dig.', code:'dig +short shop.lab', lesson:'4-3' },
+ { t:'Маршрут', l:'IP', d:'Пакеты идут к серверу через шлюзы. Проблемы маршрута или провайдера видны по mtr и traceroute.', code:'ip route; traceroute 203.0.113.40', lesson:'4-1' },
+ { t:'TCP-соединение', l:'TCP', d:'SYN, SYN+ACK, ACK на порт 443. Refused — порт никто не слушает, timeout — скорее всего, firewall.', code:'nc -zv shop.lab 443', lesson:'4-2' },
+ { t:'TLS', l:'TLS', d:'Сервер предъявляет сертификат. Истёк срок, не то имя или нет промежуточной цепочки — соединение прервётся здесь.', code:'openssl s_client -connect shop.lab:443', lesson:'4-5' },
+ { t:'Nginx принимает запрос', l:'Reverse proxy', d:'По Host и пути выбираются server и location. Запись появляется в access.log, проблемы — в error.log.', code:'tail -f /var/log/nginx/error.log', lesson:'5-2' },
+ { t:'Передача приложению', l:'502 / 504', d:'Nginx подключается к upstream. Приложение не слушает — 502. Не ответило вовремя — 504.', code:"awk '{print $9}' access.log | sort | uniq -c", lesson:'5-3' },
+ { t:'Служба или контейнер', l:'systemd · Docker', d:'Жив ли процесс? systemd или Docker перезапускают упавшее. Код 137 означает SIGKILL, часто из-за памяти.', code:'systemctl status shop-api; docker compose ps', lesson:'2-4' },
+ { t:'Ресурсы сервера', l:'CPU · RAM · диск', d:'Хватает ли ресурсов? Метод USE: занятость, очередь, ошибки. Высокий wa — диск, нулевой available — память.', code:'uptime; vmstat 1 5; free -h; df -h', lesson:'3-4' },
+ { t:'Поток JVM', l:'JVM', d:'Запрос занимает поток Tomcat. Если все потоки чего-то ждут, CPU низкий, а приложение не отвечает. Ответ даст дамп потоков.', code:'jcmd 1204 Thread.print', lesson:'6-3' },
+ { t:'Соединение с базой', l:'Пул', d:'Поток берёт соединение из пула HikariCP. Пул исчерпан — запрос ждёт и получает таймаут.', code:'active=10, idle=0, waiting=186', lesson:'6-2' },
+ { t:'Запрос в PostgreSQL', l:'SQL', d:'Медленно из-за отсутствия индекса? Или строка заблокирована незакрытой транзакцией? Смотрите pg_stat_activity и EXPLAIN.', code:'SELECT pid, pg_blocking_pids(pid) FROM pg_stat_activity;', lesson:'8-3' },
+ { t:'Метрики', l:'Prometheus', d:'Рост ошибок и p99 виден на дашборде RED ещё до звонка клиента.', code:'sum(rate(http_requests_total{status=~"5.."}[5m]))', lesson:'9-2' },
+ { t:'Алерт', l:'Alerting', d:'Симптом держится 5 минут — дежурный получает вызов с понятным описанием.', code:'ALERT HighErrorRate', lesson:'9-3' },
+ { t:'Логи по trace_id', l:'Loki', d:'Один идентификатор собирает всю историю запроса со всех сервисов и указывает на первопричину.', code:'{service=~".+"} |= "c9d4"', lesson:'10-2' },
+ { t:'Инцидент и разбор', l:'SRE', d:'Сначала вернуть работу пользователям, затем RCA и постмортем с конкретными действиями, чтобы это не повторилось.', lesson:'12-3' }
 ];
 let journeyStep = 0;
 export function viewJourney(){
-  return `<div class="crumbs"><a href="#/">главная</a> / сквозной сценарий</div><h1>Путь коммита в прод</h1>
-  <p style="margin:10px 0 20px;max-width:75ch">Одна небольшая фича от задачи до постмортема: что происходит на каждом этапе поставки. Каждый шаг ведёт в урок, где он разобран подробно.</p>
+  return `<div class="crumbs"><a href="#/">главная</a> / сквозной сценарий</div><h1>Путь запроса и где он ломается</h1>
+  <p style="margin:10px 0 20px;max-width:75ch">Один запрос от браузера до базы и обратно. На каждом шаге показано, что может сломаться и чем это проверить. Шаг ведёт в урок, где тема разобрана подробно.</p>
   <div class="journey"><ol class="jlist" id="jlist"></ol><div class="jcard" id="jcard"></div></div>`;
 }
 export function mountJourney(){
@@ -160,10 +313,11 @@ export function viewCheats(){
   <h2 style="margin-top:26px">Linux</h2>${t(['Команда','Что делает'], [['<code>systemctl status app</code>','Состояние сервиса'],['<code>journalctl -u app -f</code>','Логи сервиса в реальном времени'],['<code>ps aux --sort=-%mem | head</code>','Самые прожорливые процессы'],['<code>df -h</code> / <code>du -sh *</code>','Место на дисках / в каталоге'],['<code>free -h</code>','Память'],['<code>ss -tlnp</code>','Слушающие порты и процессы'],['<code>chmod 640 f</code>','Права rw-r-----'],['<code>tail -f /var/log/syslog</code>','Следить за логом']])}
   <h2 style="margin-top:26px">Диагностика в терминале</h2>${t(['Команда','Что показывает'], [['<code>uptime</code>, <code>top</code>','Нагрузка и процессы'],['<code>vmstat 1</code>, <code>iostat -xz 1</code>','CPU, память, своп, диски'],['<code>dmesg -T</code>','Ядро: OOM, ошибки дисков'],['<code>dig name +short</code>','DNS'],['<code>curl -sv URL</code>','HTTP и TLS'],['<code>nc -zv host port</code>','Открыт ли порт'],['<code>grep</code> / <code>awk</code> / <code>sed</code> / <code>jq</code>','Поиск, столбцы, замена, JSON']])}
   <h2 style="margin-top:26px">Nginx и SSH</h2>${t(['Команда','Что делает'], [['<code>nginx -t</code>','Проверить конфиг'],['<code>systemctl reload nginx</code>','Применить без разрыва соединений'],['<code>ssh-keygen -t ed25519</code>','Создать ключ'],['<code>ssh -J bastion host</code>','Через бастион'],['<code>ssh -L 5432:db:5432 bastion</code>','Проброс порта'],['<code>rsync -az dist/ host:/srv/</code>','Синхронизация файлов по SSH']])}
-  <h2 style="margin-top:26px">Git</h2>${t(['Команда','Что делает'], [['<code>git switch -c feat/x</code>','Новая ветка'],['<code>git rebase origin/main</code>','Переложить ветку на свежий main'],['<code>git revert &lt;sha&gt;</code>','Отменить коммит новым коммитом'],['<code>git bisect start</code>','Двоичный поиск коммита с багом'],['<code>git tag -a v1.4.0</code>','Аннотированный тег релиза'],['<code>git log --oneline --graph</code>','История графом']])}
   <h2 style="margin-top:26px">Docker</h2>${t(['Команда','Что делает'], [['<code>docker build -t app:1.0 .</code>','Собрать образ'],['<code>docker run -d -p 8080:80 app:1.0</code>','Запустить с пробросом порта'],['<code>docker ps</code> / <code>docker logs -f id</code>','Контейнеры / логи'],['<code>docker exec -it id sh</code>','Shell внутри контейнера'],['<code>docker image history app</code>','Слои образа'],['<code>docker compose up -d</code>','Поднять стек из compose.yaml'],['<code>docker system prune</code>','Удалить неиспользуемое']])}
-  <h2 style="margin-top:26px">kubectl</h2>${t(['Команда','Что делает'], [['<code>kubectl get pods -o wide</code>','Поды и узлы'],['<code>kubectl describe pod p</code>','События и причины проблем'],['<code>kubectl logs p -c c --previous</code>','Логи упавшего контейнера'],['<code>kubectl apply -f k8s/</code>','Применить манифесты'],['<code>kubectl rollout status deploy/app</code>','Ход выкатки'],['<code>kubectl rollout undo deploy/app</code>','Откат'],['<code>kubectl port-forward svc/app 8080:80</code>','Доступ к сервису локально'],['<code>kubectl top pods</code>','Потребление CPU/памяти']])}
-  <h2 style="margin-top:26px">Terraform</h2>${t(['Команда','Что делает'], [['<code>terraform init</code>','Скачать провайдеры, подключить backend'],['<code>terraform plan -out=tfplan</code>','Показать и сохранить план'],['<code>terraform apply tfplan</code>','Применить ровно этот план'],['<code>terraform state list</code>','Ресурсы в state'],['<code>terraform import</code>','Взять существующий ресурс под управление'],['<code>terraform fmt</code> / <code>validate</code>','Формат и проверка синтаксиса']])}
-  <h2 style="margin-top:26px">Доступность</h2>${t(['SLO','Простой в месяц (30 дн)','Простой в год'], [['99%','7 ч 12 мин','3,65 дн'],['99,5%','3 ч 36 мин','1,83 дн'],['99,9%','43,2 мин','8 ч 46 мин'],['99,95%','21,6 мин','4 ч 23 мин'],['99,99%','4,3 мин','52,6 мин'],['99,999%','26 с','5,3 мин']])}
-  <h2 style="margin-top:26px">Стратегии выкатки</h2>${t(['Стратегия','Плюсы','Минусы'], [['Recreate','Просто, нет двух версий сразу','Простой'],['Rolling','Без простоя, без лишних ресурсов','Две версии одновременно, медленный откат'],['Blue-green','Мгновенное переключение и откат','Двойные ресурсы, сложно с БД'],['Canary','Риск на малой доле трафика','Нужны метрики и маршрутизация'],['Feature flag','Отделяет релиз от деплоя','Долг из старых флагов']])}`;
+  <h2 style="margin-top:26px">JVM</h2>${t(['Команда','Что делает'], [['<code>jps -l</code>','Java-процессы'],['<code>jstat -gcutil PID 1000</code>','Сборка мусора каждую секунду'],['<code>jcmd PID Thread.print</code>','Дамп потоков'],['<code>jcmd PID VM.flags</code>','Настройки JVM'],['<code>jcmd PID GC.heap_info</code>','Состояние heap'],['<code>kill -3 PID</code>','Дамп потоков без JDK']])}
+  <h2 style="margin-top:26px">PostgreSQL</h2>${t(['Запрос','Что показывает'], [['<code>SELECT state, count(*) FROM pg_stat_activity GROUP BY state;</code>','Соединения по состояниям'],['<code>SELECT pid, pg_blocking_pids(pid) FROM pg_stat_activity WHERE wait_event_type=\'Lock\';</code>','Кто кого блокирует'],['<code>EXPLAIN ANALYZE ...</code>','План и реальное время'],['<code>CREATE INDEX CONCURRENTLY ...</code>','Индекс без блокировки записи'],['<code>pg_dump -Fc db -f f.dump</code>','Резервная копия'],['<code>pg_restore -d db f.dump</code>','Восстановление']])}
+  <h2 style="margin-top:26px">PromQL и LogQL</h2>${t(['Запрос','Что показывает'], [['<code>up == 0</code>','Недоступные цели'],['<code>rate(metric[5m])</code>','Скорость счётчика'],['<code>histogram_quantile(0.99, ...)</code>','p99'],['<code>predict_linear(metric[6h], 86400) &lt; 0</code>','Прогноз заполнения за сутки'],['<code>{service="app"} |= "текст"</code>','Логи с текстом'],['<code>{service="app"} | json | level="ERROR"</code>','Фильтр по полю JSON']])}
+  <h2 style="margin-top:26px">Ansible</h2>${t(['Команда','Что делает'], [['<code>ansible -i inv all -m ping</code>','Проверить связь'],['<code>ansible-playbook -i inv site.yml --check --diff</code>','Показать изменения'],['<code>ansible-playbook -i inv site.yml --limit web-01</code>','Применить к одному хосту'],['<code>ansible-vault edit file.yml</code>','Изменить секреты']])}
+  <h2 style="margin-top:26px">Коды, по которым понятен слой</h2>${t(['Симптом','Вероятная причина'], [['502','Приложение не слушает или упало'],['503','Перегрузка или намеренный отказ'],['504','Приложение не ответило вовремя'],['Код выхода 137','SIGKILL, часто нехватка памяти'],['Код выхода 143','SIGTERM, обычная остановка'],['Connection refused','Порт никто не слушает'],['Timeout','Firewall или сеть']])}
+  <h2 style="margin-top:26px">Доступность</h2>${t(['SLO','Простой в месяц (30 дн)','Простой в год'], [['99%','7 ч 12 мин','3,65 дн'],['99,5%','3 ч 36 мин','1,83 дн'],['99,9%','43,2 мин','8 ч 46 мин'],['99,95%','21,6 мин','4 ч 23 мин'],['99,99%','4,3 мин','52,6 мин'],['99,999%','26 с','5,3 мин']])}`;
 }

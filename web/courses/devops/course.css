@@ -1,0 +1,27 @@
+/* Встроенный терминал лабораторий */
+.lab{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:18px 0;overflow:hidden}
+.lab-head{padding:12px 14px;border-bottom:1px solid var(--line)}
+.lab-head b{display:block;margin-bottom:4px}
+.lab-head p{margin:0;font-size:14px;color:var(--muted)}
+.lab-tasks{list-style:none;margin:0;padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;border-bottom:1px solid var(--line)}
+.lab-tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px;margin:0;color:var(--muted)}
+.lab-tasks li.cur{color:var(--ink);font-weight:600}
+.lab-tasks li.ok{color:var(--ok)}
+.lab-term{background:var(--code-bg);color:var(--code-ink);font:13px/1.5 var(--f-mono);padding:12px 14px;height:320px;overflow:auto;cursor:text}
+.lab-term pre{margin:0;padding:0;background:none;color:inherit;font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;border:0}
+.lab-term .cmd{color:#fff;font-weight:600}
+.lab-term .good{color:#6fdc8c}
+.lab-term .info{color:#9aa6e8}
+.lab-line{display:flex;gap:8px;align-items:baseline}
+.lab-line span{white-space:nowrap;color:#6fdc8c;flex:none;max-width:60%;overflow:hidden;text-overflow:ellipsis}
+.lab-line input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#fff;font:inherit;padding:0;box-shadow:none}
+.lab-edit{padding:10px 14px;border-top:1px solid var(--line)}
+.lab-edit textarea{width:100%;min-height:200px;font:13px/1.5 var(--f-mono);background:var(--code-bg);color:var(--code-ink);border:1px solid var(--line);border-radius:6px;padding:8px;box-sizing:border-box}
+.lab-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.lab-levels{border-top:0;border-bottom:1px solid var(--line)}
+.lab-levels .btn{padding:4px 10px;font-size:13px}
+.lab-task{margin:0;padding:12px 14px}
+.run-line{background:none;border:0;color:#6fdc8c;cursor:pointer;font:inherit;padding:0 8px 0 0}
+.run-line:hover{color:#fff}
+.run-inline{background:none;border:0;color:var(--accent);cursor:pointer;font-size:11px;padding:0 2px;vertical-align:middle}
+.lab-foot .small{margin-left:auto}

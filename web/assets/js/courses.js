@@ -35,13 +35,13 @@ export const COURSES = [
   },
   {
     id: 'devops',
-    title: 'DevOps для разработчиков',
-    short: 'По roadmap.sh: Linux и терминал, Git, веб-серверы и сети, Docker, облака, Terraform, CI/CD, секреты, мониторинг, Kubernetes, GitOps, service mesh и SRE.',
+    title: 'От DevOps к Systems Engineering и SRE',
+    short: '90 дней практики прямо в браузере: Linux, сети, Nginx, JVM, Docker, PostgreSQL, мониторинг, логи, Ansible, инциденты и надёжность.',
     path: 'courses/devops/',
-    lessons: 81, modules: 20,
+    lessons: 54, modules: 14,
     color: '#3d4fc4', colorDark: '#8c9bff',
     icon: '🚀',
-    tags: ['CI/CD', 'Docker', 'K8s', 'IaC']
+    tags: ['Linux', 'JVM', 'Docker', 'SRE']
   },
   {
     id: 'oop',
