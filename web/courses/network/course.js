@@ -25,9 +25,9 @@ const DNS_STEPS = [
       { from:'Браузер', to:'ОС (stub)', q:'www.example.com?', a:'', e:'Браузер и ОС не нашли имя в своих кэшах и в hosts.' },
       { from:'ОС (stub)', to:'Резолвер', q:'www.example.com? (рекурсивно)', a:'', e:'Stub-резолвер просит рекурсивный резолвер найти окончательный ответ.' },
       { from:'Резолвер', to:'Корень .', q:'www.example.com?', a:'Не знаю. Серверы com: a.gtld-servers.net…', e:'Корень отвечает направлением (referral) на серверы зоны com.' },
-      { from:'Резолвер', to:'Сервер com', q:'www.example.com?', a:'Не знаю. Серверы example.com: ns1.example.com…', e:'Сервер TLD знает только NS-записи доменов второго уровня.' },
+      { from:'Резолвер', to:'Сервер com', q:'www.example.com?', a:'Не знаю. Серверы example.com: ns1.example.com…', e:'Сервер TLD возвращает делегацию example.com; связанные адреса серверов могут прийти как glue-записи.' },
       { from:'Резолвер', to:'ns1.example.com', q:'www.example.com?', a:'www.example.com A 93.184.215.14, TTL 300', e:'Авторитетный сервер даёт окончательный ответ (флаг aa).' },
-      { from:'Резолвер', to:'ОС → Браузер', q:'', a:'93.184.215.14', e:'Резолвер кэширует ответ на 300 секунд и возвращает клиенту. Следующий запрос будет обслужен из кэша за миллисекунды.' }
+      { from:'Резолвер', to:'ОС → Браузер', q:'', a:'93.184.215.14', e:'Резолвер кэширует ответ на 300 секунд и возвращает клиенту. Повтор может использовать кэш до истечения TTL; одно время ответа не доказывает кэширование.' }
     ];
 const TLS_STEPS = [
   { from:'Клиент', to:'Сервер', q:'ClientHello: версии TLS, шифры, key_share (X25519), SNI=example.com, ALPN=h2,http/1.1', a:'', e:'Клиент сразу отправляет свою часть обмена ключами Диффи–Хеллмана, угадывая алгоритм. Поэтому TLS 1.3 укладывается в один RTT.' },
@@ -36,13 +36,13 @@ const TLS_STEPS = [
   { from:'Клиент', to:'Сервер', q:'', a:'🔒 Certificate: цепочка сертификатов example.com', e:'Клиент проверяет цепочку до доверенного корня, срок действия и что example.com есть в SAN.' },
   { from:'Клиент', to:'Сервер', q:'', a:'🔒 CertificateVerify: подпись рукопожатия закрытым ключом', e:'Сервер доказывает, что владеет закрытым ключом от сертификата: подписывает всю историю рукопожатия.' },
   { from:'Клиент', to:'Сервер', q:'', a:'🔒 Finished', e:'Контрольная сумма рукопожатия: никто не подменил сообщения по пути.' },
-  { from:'Клиент', to:'Сервер', q:'🔒 Finished + GET / HTTP/2', a:'', e:'Клиент подтверждает рукопожатие и сразу отправляет первый запрос. Прошёл ровно один RTT.' }
+  { from:'Клиент', to:'Сервер', q:'🔒 Finished + зашифрованные кадры HTTP/2', a:'', e:'Клиент подтверждает рукопожатие и сразу отправляет первый запрос. В обычном полном рукопожатии без дополнительных обменов TLS понадобился один RTT после TCP.' }
 ];
 export const WIDGETS = {
   encap(el){
     const layers = [
       { n:'Прикладной (HTTP)', h:'GET /index.html HTTP/1.1', c:'var(--accent)' },
-      { n:'Транспортный (TCP)', h:'TCP: порт 51000 → 443, seq, ack', c:'#3b82c4' },
+      { n:'Транспортный (TCP)', h:'TCP: порт 51000 → 80, seq, ack', c:'#3b82c4' },
       { n:'Сетевой (IP)', h:'IP: 192.168.1.10 → 93.184.215.14, TTL 64', c:'#a46ad1' },
       { n:'Канальный (Ethernet)', h:'Ethernet: MAC 3c:22:… → a4:bb:…, FCS', c:'#d0802b' }
     ];
@@ -54,7 +54,7 @@ export const WIDGETS = {
         const L = layers[i];
         inner = `<div class="layer" style="border-color:${L.c}"><span class="lbl" style="color:${L.c}">${i === 0 ? 'HTTP-запрос' : L.h}</span>${i === 0 ? `<div class="data">${L.h}</div>` : inner}</div>`;
       }
-      el.innerHTML = `<div class="encap">${inner}</div><p class="small" style="text-align:center">Уровень: <b>${layers[lvl].n}</b></p><div class="row" style="justify-content:center"><button class="btn ghost" data-d="-1" ${lvl === 0 ? 'disabled' : ''}>← Снять заголовок</button><button class="btn" data-d="1" ${lvl === layers.length - 1 ? 'disabled' : ''}>Следующий уровень →</button></div>`;
+      el.innerHTML = `<p class="small">Упрощённый пример HTTP/1.1 по TCP/80 без TLS. Для HTTPS между HTTP и TCP добавляется TLS.</p><div class="encap">${inner}</div><p class="small" style="text-align:center">Уровень: <b>${layers[lvl].n}</b></p><div class="row" style="justify-content:center"><button class="btn ghost" data-d="-1" ${lvl === 0 ? 'disabled' : ''}>← Снять заголовок</button><button class="btn" data-d="1" ${lvl === layers.length - 1 ? 'disabled' : ''}>Следующий уровень →</button></div>`;
       el.querySelectorAll('button').forEach(b => b.onclick = () => { lvl += +b.dataset.d; draw(); });
     };
     draw();
@@ -94,7 +94,7 @@ export const WIDGETS = {
     el.innerHTML = `<label for="${id}" class="small">IPv6-адрес (полный или сокращённый)</label><div class="row"><input type="text" id="${id}" value="2001:0db8:0000:0000:0000:ff00:0042:8329" style="font-family:var(--f-mono);flex:1;max-width:460px" autocomplete="off"></div><div class="out"></div>`;
     const inp = el.querySelector('input'), out = el.querySelector('.out');
     const expand = s => {
-      s = s.trim().toLowerCase().split('/')[0];
+      s = s.trim().toLowerCase();
       if (!/^[0-9a-f:]+$/.test(s) || (s.match(/::/g) || []).length > 1) return null;
       let parts;
       if (s.includes('::')){ const [l, r] = s.split('::'); const L = l ? l.split(':') : [], R = r ? r.split(':') : []; const miss = 8 - L.length - R.length; if (miss < 1) return null; parts = [...L, ...Array(miss).fill('0'), ...R]; }
@@ -119,8 +119,8 @@ export const WIDGETS = {
       if ((f & 0xe000) === 0x2000) return 'global unicast';
       return 'другой / зарезервированный'; };
     const calc = () => { const g = expand(inp.value);
-      if (!g){ out.innerHTML = '<p class="small" style="color:var(--bad)">Это не похоже на IPv6-адрес. Проверьте: 8 групп до 4 hex-цифр, :: не больше одного раза.</p>'; return; }
-      out.innerHTML = `<div class="calc"><div style="grid-column:1/-1"><span>Сокращённая форма (RFC 5952)</span><b>${compress(g)}</b></div><div style="grid-column:1/-1"><span>Полная форма</span><b>${g.join(':')}</b></div><div><span>Префикс сети /64</span><b>${compress([...g.slice(0, 4), '0000', '0000', '0000', '0000'])}/64</b></div><div><span>Идентификатор интерфейса</span><b>${g.slice(4).join(':')}</b></div><div><span>Тип</span><b>${type(g)}</b></div><div><span>EUI-64 (из MAC)?</span><b>${g[5].endsWith('ff') && g[6].startsWith('fe') ? 'да, ff:fe в середине' : 'нет'}</b></div></div>`; };
+      if (!g){ out.innerHTML = '<p class="small" style="color:var(--bad)">Введите адрес без /префикса: 8 шестнадцатеричных групп, :: не больше одного раза. Смешанная запись с IPv4 в этом учебном инструменте не поддерживается.</p>'; return; }
+      out.innerHTML = `<div class="calc"><div style="grid-column:1/-1"><span>Сокращённая форма (RFC 5952)</span><b>${compress(g)}</b></div><div style="grid-column:1/-1"><span>Полная форма</span><b>${g.join(':')}</b></div><div><span>Если сеть использует /64</span><b>${compress([...g.slice(0, 4), '0000', '0000', '0000', '0000'])}/64</b></div><div><span>Идентификатор при /64</span><b>${g.slice(4).join(':')}</b></div><div><span>Тип</span><b>${type(g)}</b></div><div><span>Признак modified EUI-64</span><b>${g[5].endsWith('ff') && g[6].startsWith('fe') ? 'ff:fe найдено; возможно, из MAC' : 'шаблон ff:fe не найден'}</b></div></div><p class="small">Совпадение ff:fe не доказывает способ назначения адреса. Префикс сети нельзя определить из одного адреса: /64 здесь выбран как учебный пример.</p>`; };
     inp.addEventListener('input', calc); calc();
   },
   route(el){
@@ -172,23 +172,23 @@ export function viewTools(){
 
 // ====== СКВОЗНОЙ СЦЕНАРИЙ ======
 const JOURNEY = [
- { t:'Подключение к сети', l:'L3 · DHCP', d:'Ноутбук подключился к Wi-Fi и по DHCP (Discover → Offer → Request → Ack) получил адрес 192.168.1.10/24, шлюз 192.168.1.1 и DNS-сервер.', code:'inet 192.168.1.10/24 brd 192.168.1.255 scope global dynamic wlan0', lesson:'3-4' },
+ { t:'Подключение к сети', l:'L7 · DHCP', d:'Ноутбук подключился к Wi-Fi и по DHCP (Discover → Offer → Request → Ack) получил адрес 192.168.1.10/24, шлюз 192.168.1.1 и DNS-сервер.', code:'inet 192.168.1.10/24 brd 192.168.1.255 scope global dynamic wlan0', lesson:'3-4' },
  { t:'Ввод адреса', l:'L7 · URL', d:'Вы вводите shop.example.com. Браузер понимает, что нужен https:// (или знает это по HSTS), и выделяет имя хоста.', lesson:'10-3' },
  { t:'Поиск в кэшах', l:'L7 · DNS', d:'Браузер проверяет свой DNS-кэш, затем кэш ОС и файл hosts. Записи нет — запрос уходит резолверу.', lesson:'8-4' },
  { t:'Поиск MAC шлюза', l:'L2 · ARP', d:'Резолвер находится в другой сети, поэтому пакет нужно отдать шлюзу. Его MAC ноутбук узнаёт через ARP (или берёт из кэша).', code:'192.168.1.1 dev wlan0 lladdr a4:bb:6d:21:0f:01 REACHABLE', lesson:'2-4' },
- { t:'Разрешение имени', l:'L7 · DNS', d:'Рекурсивный резолвер опрашивает корень → серверы .com → авторитетный сервер example.com и получает A-запись. CDN через GeoDNS или anycast отдаёт адрес ближайшего узла.', code:'shop.example.com. 300 IN A 203.0.113.80', lesson:'8-2' },
- { t:'Выход в интернет', l:'L3 · NAT', d:'Роутер подменяет частный адрес 192.168.1.10:51544 на свой публичный и запоминает соответствие в таблице NAT.', lesson:'3-5' },
+ { t:'Разрешение имени', l:'L7 · DNS', d:'В этом сценарии запрос к удалённому резолверу уже прошёл через NAT и роутеры провайдера. При пустом кэше резолвер опрашивает корень → .com → авторитетный сервер и возвращает A-запись. GeoDNS и anycast помогают выбрать узел CDN, но не обещают минимального расстояния или RTT.', code:'shop.example.com. 300 IN A 203.0.113.80', lesson:'8-2' },
+ { t:'Выход в интернет', l:'L3 · NAT', d:'Теперь рассмотрим пакеты к найденному адресу сайта. Для каждого исходящего потока роутер подменяет частный адрес и порт ноутбука на внешний адрес и порт, сохраняя запись NAT для ответов. Для предыдущего DNS-запроса существовала отдельная запись.', lesson:'3-5' },
  { t:'Путь по сетям', l:'L3 · маршрутизация', d:'Каждый роутер по таблице маршрутизации (longest prefix match) передаёт пакет дальше. Между провайдерами путь выбирает BGP. TTL уменьшается на каждом прыжке.', lesson:'5-1' },
  { t:'TCP-соединение', l:'L4 · TCP', d:'SYN → SYN-ACK → ACK с узлом CDN на порт 443. Стоит один RTT. Договорились о MSS и окне.', lesson:'7-2' },
  { t:'TLS-рукопожатие', l:'L6/7 · TLS 1.3', d:'ClientHello с SNI shop.example.com и ALPN h2 → сервер присылает сертификат, браузер проверяет цепочку и имя. Ещё один RTT, дальше всё зашифровано.', lesson:'10-2' },
- { t:'HTTP-запрос', l:'L7 · HTTP/2', d:'GET / с заголовками Host, cookies, Accept-Encoding. По одному соединению HTTP/2 параллельно пойдут запросы CSS, JS и картинок.', code:'GET / HTTP/2\nHost: shop.example.com\nCookie: sid=9x2k', lesson:'9-1' },
+ { t:'HTTP-запрос', l:'L7 · HTTP/2', d:'HTTP/2-запрос с псевдозаголовками :method, :path, :authority и обычными заголовками cookie, accept-encoding. По одному соединению HTTP/2 параллельно пойдут запросы CSS, JS и картинок.', code:':method: GET\n:scheme: https\n:authority: shop.example.com\n:path: /\ncookie: sid=9x2k', lesson:'9-1' },
  { t:'CDN и origin', l:'L7 · CDN', d:'Статика с хешем в имени отдаётся из кэша узла (HIT). HTML с персональными данными CDN проксирует на origin: балансировщик → reverse proxy → приложение → база.', lesson:'11-3' },
  { t:'Ответ и рендер', l:'L7 · браузер', d:'Сервер отвечает 200 OK, HTML приходит сжатым. Браузер строит страницу, а для следующих запросов к тому же хосту переиспользует соединение: без DNS, TCP и TLS.', lesson:'9-3' }
 ];
 let journeyStep = 0;
 export function viewJourney(){
   return `<div class="crumbs"><a href="#/">главная</a> / сквозной сценарий</div><h1>Открываем сайт</h1>
-  <p style="margin:10px 0 20px;max-width:75ch">Всё, что происходит между нажатием Enter и появлением страницы, — по шагам и по уровням. Каждый шаг ведёт в урок, где он разобран подробно.</p>
+  <p style="margin:10px 0 20px;max-width:75ch">Учебный сценарий: IPv4, обычный DNS через резолвер, пустые кэши и новое HTTP/2-соединение поверх TCP и TLS 1.3. Настройки DHCP получены при подключении к сети; реальные повторные обращения могут пропускать часть шагов. Каждый шаг ведёт в урок, где он разобран подробно.</p>
   <div class="journey"><ol class="jlist" id="jlist"></ol><div class="jcard" id="jcard"></div></div>`;
 }
 export function mountJourney(){

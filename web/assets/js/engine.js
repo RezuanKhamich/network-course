@@ -341,11 +341,15 @@ function startTest(id, errorsOnly){
     }
   });
 }
-function guessLesson(m, q){ return m.lessons[Math.min(m.lessons.length - 1, Math.floor(m.test.indexOf(q) / Math.ceil(m.test.length / m.lessons.length)))].id; }
+function guessLesson(m, q){
+  // В новых курсах источник указан явно; старый подбор остаётся для остального контента.
+  if (q.lessonId && m.lessons.some(l => l.id === q.lessonId)) return q.lessonId;
+  return m.lessons[Math.min(m.lessons.length - 1, Math.floor(m.test.indexOf(q) / Math.ceil(m.test.length / m.lessons.length)))].id;
+}
 
 function viewExamIntro(){
   const root = $('#testRoot'); const fe = P.state.finalExam;
-  const pool = MODULES.flatMap(m => [...m.test.map(q => ({ ...q, lessonId: guessLesson(m, q) })), ...m.lessons.flatMap(l => l.check.map(q => ({ ...q, lessonId:l.id })))]);
+  const pool = MODULES.filter(isUnlocked).flatMap(m => [...m.test.map(q => ({ ...q, lessonId: guessLesson(m, q) })), ...m.lessons.flatMap(l => l.check.map(q => ({ ...q, lessonId:l.id })))]);
   const n = Math.min(40, pool.length);
   root.innerHTML = `<div class="crumbs"><a href="#/">главная</a> / экзамен</div><h1>Финальный экзамен</h1>
   <p style="margin-top:10px">${n} случайных вопросов из всех открытых модулей, 60 минут. Порог — ${PASS}%. Всего в банке ${pool.length} вопросов.</p>
@@ -420,7 +424,10 @@ function studiedPool(){
   for (const q of questionBank().values()){
     if (deck[COURSE.id + '/' + q.id]) continue;
     const lessonDone = P.state.lessons[q.lessonId] && P.state.lessons[q.lessonId].completed;
-    if (lessonDone || moduleStats(q.module).passed) out.push(q);
+    const stats = moduleStats(q.module);
+    const fromTest = q.module.test.some(t => t.id === q.id);
+    // Модульное задание может связывать несколько тем: одного пройденного урока недостаточно.
+    if (stats.passed || (fromTest ? stats.done === stats.total : lessonDone)) out.push(q);
   }
   return out;
 }
